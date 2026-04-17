@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Gem, BookOpen, Trophy } from 'lucide-react-native';
 import { User } from '@/types';
 import { Colors } from '@/constants/colors';
@@ -11,23 +11,42 @@ interface StatItemProps {
   accent: string;
 }
 
+// Componente privado: Solo se usa dentro de esta fila
 function StatItem({ icon, value, label, accent }: StatItemProps) {
   return (
-    <View style={[styles.statCard, { borderTopColor: accent }]}>
+    <View 
+      // Estructura base: Flex-1 para que las 3 cajas midan lo mismo, borde de 1px general y 2px arriba
+      className="flex-1 bg-blue-card rounded-[14px] p-3.5 items-center gap-1.5 border border-white/5 border-t-2"
+      //  Solo el color del borde superior es dinámico
+      style={{ borderTopColor: accent }}
+      
+      accessible={true}
+      accessibilityLabel={`${label}: ${value}`}
+    >
       {icon}
-      <Text style={[styles.statValue, { color: accent }]}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      
+      <Text 
+        className="font-bold text-lg" 
+        style={{ color: accent }}
+      >
+        {value}
+      </Text>
+      
+      <Text className="text-text-muted font-normal text-[11px]">
+        {label}
+      </Text>
     </View>
   );
 }
 
 interface StatsRowProps {
   user: User;
+  className?: string; // Para inyectar márgenes superiores/inferiores desde la pantalla Home
 }
 
-export default function StatsRow({ user }: StatsRowProps) {
+export default function StatsRow({ user, className = '' }: StatsRowProps) {
   return (
-    <View style={styles.row}>
+    <View className={`flex-row gap-2.5 mx-4 ${className}`.trim()}>
       <StatItem
         icon={<Gem size={20} color={Colors.gold[500]} />}
         value={user.gems.toLocaleString()}
@@ -49,31 +68,3 @@ export default function StatsRow({ user }: StatsRowProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: 10,
-    marginHorizontal: 16,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: Colors.blue.card,
-    borderRadius: 14,
-    padding: 14,
-    alignItems: 'center',
-    gap: 6,
-    borderTopWidth: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  statValue: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 18,
-  },
-  statLabel: {
-    color: Colors.text.muted,
-    fontFamily: 'Inter-Regular',
-    fontSize: 11,
-  },
-});

@@ -1,32 +1,22 @@
 import React from 'react';
-import { View, ViewStyle } from 'react-native';
-import { Colors } from '@/constants/colors';
+import { View } from 'react-native';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  className?: string;
   variant?: 'default' | 'elevated' | 'highlight';
 }
 
-export default function Card({ children, style, variant = 'default' }: CardProps) {
-  const bgColors: Record<string, string> = {
-    default: Colors.blue.card,
-    elevated: Colors.blue.surface,
-    highlight: Colors.navy[700],
+export default function Card({ children, className = '', variant = 'default' }: CardProps) {
+  const variantClasses: Record<string, string> = {
+    default: 'bg-blue-card',
+    elevated: 'bg-blue-surface', // agregar 'surface' a tu tailwind.config.js
+    highlight: 'bg-navy-700',
   };
 
   return (
     <View
-      style={[
-        {
-          backgroundColor: bgColors[variant],
-          borderRadius: 16,
-          padding: 16,
-          borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.06)',
-        },
-        style,
-      ]}
+      className={`rounded-2xl p-4 border border-white/[0.06] ${variantClasses[variant]} ${className}`.trim()}
     >
       {children}
     </View>

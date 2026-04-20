@@ -19,8 +19,8 @@ function getInitials(name: string): string {
 }
 
 export default function Avatar({ uri, name, size = 40, className = '' }: AvatarProps) {
-  // ⚠️ EXCEPCIÓN AL ISSUE #11: Valores dinámicos calculados.
-  // Mantenemos esto en objeto para no forzar al motor de Tailwind en tiempo real.
+  //  Valores dinámicos calculados.
+  // Mantenemos esto en objeto para no forzar al motor de Tailwind en tiempo real
   const dynamicSizeStyle = {
     width: size,
     height: size,

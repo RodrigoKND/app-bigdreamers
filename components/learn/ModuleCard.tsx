@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable } from 'react-native';
 import { CircleCheck as CheckCircle2, Clock, ChevronRight } from 'lucide-react-native';
 import { LearningModule } from '@/types';
 import { Colors } from '@/constants/colors';
@@ -21,56 +21,84 @@ const DIFFICULTY_LABELS = {
 interface ModuleCardProps {
   module: LearningModule;
   onPress?: (module: LearningModule) => void;
+  className?: string; // Habilitamos la inyeccion de margenes desde el padre
 }
 
-export default function ModuleCard({ module, onPress }: ModuleCardProps) {
+export default function ModuleCard({ module, onPress, className = '' }: ModuleCardProps) {
   const diffColor = DIFFICULTY_COLORS[module.difficulty];
 
   return (
-    <TouchableOpacity style={styles.container} onPress={() => onPress?.(module)} activeOpacity={0.8}>
-      <Image source={{ uri: module.thumbnail }} style={styles.thumbnail} />
-      <View style={styles.content}>
-        <View style={styles.tags}>
-          <Text style={[styles.category]}>{module.category}</Text>
-          <Text style={[styles.difficulty, { color: diffColor }]}>
+    <Pressable 
+      onPress={() => onPress?.(module)} 
+      //  TouchableOpacity por Pressable + active:opacity-80
+      className={`flex-row bg-blue-card rounded-2xl mb-3 overflow-hidden border border-white/5 active:opacity-80 ${className}`.trim()}
+      
+      // Accesibilidad 
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={`Módulo: ${module.title}. Dificultad: ${DIFFICULTY_LABELS[module.difficulty]}.`}
+    >
+      {/* Miniatura con fallback de fondo mientras carga */}
+      <Image 
+        source={{ uri: module.thumbnail }} 
+        className="w-[100px] h-[110px] bg-navy-800" 
+      />
+
+      {/* Contenedor Principal */}
+      <View className="flex-1 p-3 gap-1.5 justify-between">
+        
+        {/* Etiquetas (Categoría y Dificultad) */}
+        <View className="flex-row gap-2">
+          <Text className="text-text-muted font-normal text-[11px]">
+            {module.category}
+          </Text>
+          <Text 
+            className="font-semibold text-[11px]" 
+            style={{ color: diffColor }}
+          >
             {DIFFICULTY_LABELS[module.difficulty]}
           </Text>
         </View>
-        <Text style={styles.title} numberOfLines={2}>{module.title}</Text>
+
+        {/* Título del módulo */}
+        <Text 
+          className="text-white font-semibold text-sm" 
+          numberOfLines={2}
+        >
+          {module.title}
+        </Text>
+
+        {/* Barra de Progreso Dinámica */}
         {module.progress > 0 && !module.completed && (
-          <ProgressBar progress={module.progress} height={6} color={Colors.blue.light} />
+          <ProgressBar 
+            progress={module.progress} 
+            height={6} 
+            color={Colors.blue.light} 
+          />
         )}
-        <View style={styles.footer}>
-          <View style={styles.metaRow}>
+
+        {/* Pie de la tarjeta (Duración, Gemas y Estado) */}
+        <View className="flex-row items-center gap-2.5">
+          
+          <View className="flex-1 flex-row items-center gap-1">
             <Clock size={12} color={Colors.text.muted} />
-            <Text style={styles.duration}>{module.duration}</Text>
+            <Text className="text-text-muted font-normal text-[11px]">
+              {module.duration}
+            </Text>
           </View>
+
           <GemBadge count={module.gemsReward} size="sm" />
-          {module.completed && <CheckCircle2 size={18} color={Colors.success} />}
-          {!module.completed && <ChevronRight size={16} color={Colors.text.muted} />}
+          
+          {module.completed ? (
+            <CheckCircle2 size={18} color={Colors.success} />
+          ) : (
+            <ChevronRight size={16} color={Colors.text.muted} />
+          )}
+          
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.blue.card,
-    borderRadius: 16,
-    marginBottom: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    flexDirection: 'row',
-  },
-  thumbnail: { width: 100, height: 110 },
-  content: { flex: 1, padding: 12, gap: 6, justifyContent: 'space-between' },
-  tags: { flexDirection: 'row', gap: 8 },
-  category: { color: Colors.text.muted, fontFamily: 'Inter-Regular', fontSize: 11 },
-  difficulty: { fontFamily: 'Inter-SemiBold', fontSize: 11 },
-  title: { color: Colors.white, fontFamily: 'Inter-SemiBold', fontSize: 14 },
-  footer: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 },
-  duration: { color: Colors.text.muted, fontFamily: 'Inter-Regular', fontSize: 11 },
-});
+//ya usamos los cards y todolo definopreviamente

@@ -1,56 +1,77 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Gem, TrendingUp } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import Card from '@/components/shared/Card';
 
 interface GemHistoryCardProps {
   totalEarned: number;
   currentGems: number;
   weeklyGrowth: number;
+  className?: string; 
 }
 
 export default function GemHistoryCard({
   totalEarned,
   currentGems,
   weeklyGrowth,
+  className = '',
 }: GemHistoryCardProps) {
   return (
-    <View style={styles.container}>
-      <View style={styles.item}>
+    // Usamos el Card maestro pasándole flex-row para que distribuya los elementos en línea
+    <Card className={`flex-row p-4 mx-4 mb-3 ${className}`.trim()}>
+      
+      {/* Bloque 1: Gemas actuales */}
+      <View 
+        className="flex-1 items-center gap-1.5"
+        accessible={true}
+        accessibilityLabel={`Gemas actuales: ${currentGems}`}
+      >
         <Gem size={18} color={Colors.gold[500]} />
-        <Text style={styles.value}>{currentGems.toLocaleString()}</Text>
-        <Text style={styles.label}>Gemas actuales</Text>
+        <Text className="text-gold-500 font-bold text-lg">
+          {currentGems.toLocaleString()}
+        </Text>
+        <Text className="text-text-muted font-normal text-[11px] text-center">
+          Gemas actuales
+        </Text>
       </View>
-      <View style={styles.divider} />
-      <View style={styles.item}>
+
+      {/* Divisor Vertical */}
+      <View className="w-[1px] bg-white/10 mx-2" />
+
+      {/* Bloque 2: Total ganadas */}
+      <View 
+        className="flex-1 items-center gap-1.5"
+        accessible={true}
+        accessibilityLabel={`Total de gemas ganadas históricamente: ${totalEarned}`}
+      >
         <Gem size={18} color={Colors.text.secondary} />
-        <Text style={[styles.value, { color: Colors.text.secondary }]}>
+        <Text className="text-text-secondary font-bold text-lg">
           {totalEarned.toLocaleString()}
         </Text>
-        <Text style={styles.label}>Total ganadas</Text>
+        <Text className="text-text-muted font-normal text-[11px] text-center">
+          Total ganadas
+        </Text>
       </View>
-      <View style={styles.divider} />
-      <View style={styles.item}>
+
+      {/* Divisor Vertical */}
+      <View className="w-[1px] bg-white/10 mx-2" />
+
+      {/* Bloque 3: Crecimiento semanal */}
+      <View 
+        className="flex-1 items-center gap-1.5"
+        accessible={true}
+        accessibilityLabel={`Crecimiento esta semana: ${weeklyGrowth} gemas`}
+      >
         <TrendingUp size={18} color={Colors.success} />
-        <Text style={[styles.value, { color: Colors.success }]}>+{weeklyGrowth}</Text>
-        <Text style={styles.label}>Esta semana</Text>
+        <Text className="text-success font-bold text-lg">
+          +{weeklyGrowth}
+        </Text>
+        <Text className="text-text-muted font-normal text-[11px] text-center">
+          Esta semana
+        </Text>
       </View>
-    </View>
+
+    </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    backgroundColor: Colors.blue.card,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  item: { flex: 1, alignItems: 'center', gap: 6 },
-  value: { color: Colors.gold[500], fontFamily: 'Inter-Bold', fontSize: 18 },
-  label: { color: Colors.text.muted, fontFamily: 'Inter-Regular', fontSize: 11, textAlign: 'center' },
-  divider: { width: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginHorizontal: 8 },
-});

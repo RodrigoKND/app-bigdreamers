@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LogOut, Settings, Bell, Shield } from 'lucide-react-native';
 import { User } from '@/types';
@@ -17,10 +17,18 @@ interface MenuItemProps {
 
 function MenuItem({ icon, label, onPress, danger }: MenuItemProps) {
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
+    <Pressable
+      className="flex-row items-center gap-[14px] px-4 py-[14px] border-t border-white/[0.04] active:opacity-70"
+      onPress={onPress}
+    >
       {icon}
-      <Text style={[styles.menuLabel, danger && { color: Colors.error }]}>{label}</Text>
-    </TouchableOpacity>
+      <Text
+        className="font-sans text-[15px] flex-1 text-text-secondary"
+        style={danger ? { color: Colors.error } : undefined}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -37,18 +45,22 @@ export default function ProfileScreen() {
 
   if (loading || !user) {
     return (
-      <View style={styles.loader}>
+      <View className="flex-1 items-center justify-center bg-navy-900">
         <ActivityIndicator size="large" color={Colors.gold[500]} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+    <SafeAreaView className="flex-1 bg-navy-900" edges={['top']}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerClassName="pb-10"
+      >
         <ProfileHeader user={user} />
         <ProfileStatCard
-          title="Estadísticas de participación"
+          title="Estadísticas de partición"
+          className="mt-4"
           stats={[
             { label: 'Racha actual', value: `${user.streak} días`, accent: Colors.warning },
             { label: 'Ranking comunidad', value: `#${user.communityRank}`, accent: Colors.gold[500] },
@@ -56,12 +68,18 @@ export default function ProfileScreen() {
             { label: 'Total gemas', value: user.totalGemsEarned.toLocaleString(), accent: Colors.gold[400] },
           ]}
         />
-        <View style={styles.menu}>
-          <Text style={styles.menuSection}>Configuración</Text>
+
+        <View className="mx-4 bg-blue-card rounded-2xl overflow-hidden border border-white/[0.06]">
+          <Text className="text-text-muted font-semibold text-xs px-4 pt-4 pb-2">
+            Configuración
+          </Text>
+
           <MenuItem icon={<Bell size={18} color={Colors.text.secondary} />} label="Notificaciones" />
           <MenuItem icon={<Shield size={18} color={Colors.text.secondary} />} label="Privacidad y seguridad" />
           <MenuItem icon={<Settings size={18} color={Colors.text.secondary} />} label="Ajustes de cuenta" />
-          <View style={styles.separator} />
+
+          <View className="h-px bg-white/[0.08] mx-4 my-1" />
+
           <MenuItem
             icon={<LogOut size={18} color={Colors.error} />}
             label="Cerrar sesión"
@@ -72,14 +90,3 @@ export default function ProfileScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.navy[900] },
-  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.navy[900] },
-  content: { paddingBottom: 40 },
-  menu: { marginHorizontal: 16, backgroundColor: Colors.blue.card, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  menuSection: { color: Colors.text.muted, fontFamily: 'Inter-SemiBold', fontSize: 12, padding: 16, paddingBottom: 8 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)' },
-  menuLabel: { color: Colors.text.secondary, fontFamily: 'Inter-Regular', fontSize: 15, flex: 1 },
-  separator: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginHorizontal: 16, marginVertical: 4 },
-});

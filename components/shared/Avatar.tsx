@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Image, Text, StyleSheet } from 'react-native';
-import { Colors } from '@/constants/colors';
+import { View, Image, Text } from 'react-native';
 
 interface AvatarProps {
   uri?: string;
   name: string;
   size?: number;
+  // Permite al componente padre inyectar márgenes o posiciones (ej. mt-4)
+  className?: string; 
 }
 
 function getInitials(name: string): string {
@@ -17,40 +18,34 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-export default function Avatar({ uri, name, size = 40 }: AvatarProps) {
+export default function Avatar({ uri, name, size = 40, className = '' }: AvatarProps) {
+  //  Valores dinámicos calculados.
+  // Mantenemos esto en objeto para no forzar al motor de Tailwind en tiempo real
+  const dynamicSizeStyle = {
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+  };
+
   return (
     <View
-      style={[
-        styles.container,
-        {
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: Colors.navy[600],
-        },
-      ]}
+      className={`items-center justify-center overflow-hidden bg-navy-600 ${className}`.trim()}
+      style={dynamicSizeStyle}
     >
       {uri ? (
         <Image
           source={{ uri }}
-          style={{ width: size, height: size, borderRadius: size / 2 }}
+          style={dynamicSizeStyle}
           resizeMode="cover"
         />
       ) : (
-        <Text style={[styles.initials, { fontSize: size * 0.36 }]}>{getInitials(name)}</Text>
+        <Text
+          className="text-white font-bold"
+          style={{ fontSize: size * 0.36 }} // Cálculo de fuente dinámico
+        >
+          {getInitials(name)}
+        </Text>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  initials: {
-    color: Colors.white,
-    fontFamily: 'Inter-Bold',
-  },
-});

@@ -1,50 +1,45 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Level } from '@/types';
 import { getLevelConfig } from '@/constants/levels';
 
 interface LevelBadgeProps {
   level: Level;
   size?: 'sm' | 'md' | 'lg';
+  className?: string; 
 }
 
-const SIZES = {
-  sm: { fontSize: 10, paddingH: 8, paddingV: 3, borderRadius: 8 },
-  md: { fontSize: 12, paddingH: 12, paddingV: 5, borderRadius: 10 },
-  lg: { fontSize: 14, paddingH: 14, paddingV: 6, borderRadius: 12 },
+const SIZE_CLASSES = {
+  sm: { container: 'px-2 py-[3px] rounded-lg', text: 'text-[10px]' },
+  md: { container: 'px-3 py-[5px] rounded-[10px]', text: 'text-xs' },
+  lg: { container: 'px-[14px] py-[6px] rounded-xl', text: 'text-sm' },
 };
 
-export default function LevelBadge({ level, size = 'md' }: LevelBadgeProps) {
+const COLOR_CLASSES: Record<string, { container: string, text: string }> = {
+  bronze: { container: 'bg-levels-bronzeBg border-levels-bronze', text: 'text-levels-bronze' },
+  silver: { container: 'bg-levels-silverBg border-levels-silver', text: 'text-levels-silver' },
+  gold: { container: 'bg-levels-goldBg border-levels-gold', text: 'text-levels-gold' },
+  diamond: { container: 'bg-levels-diamondBg border-levels-diamond', text: 'text-levels-diamond' },
+};
+
+export default function LevelBadge({ level, size = 'md', className = '' }: LevelBadgeProps) {
   const config = getLevelConfig(level);
-  const s = SIZES[size];
+  const s = SIZE_CLASSES[size];
+  const colors = COLOR_CLASSES[level as string] || COLOR_CLASSES.bronze;
 
   return (
     <View
-      style={[
-        styles.badge,
-        {
-          backgroundColor: config.bgColor,
-          paddingHorizontal: s.paddingH,
-          paddingVertical: s.paddingV,
-          borderRadius: s.borderRadius,
-          borderColor: config.color,
-        },
-      ]}
+      className={`border self-start flex-row items-center justify-center ${colors.container} ${s.container} ${className}`.trim()}
+      accessible={true}
+      accessibilityLabel={`Nivel ${config?.label || 'desconocido'}`} //  Blindaje A11y, me lo recomendo claude, 
     >
-      <Text style={[styles.text, { color: config.color, fontSize: s.fontSize }]}>
-        {config.label.toUpperCase()}
+      <Text 
+        className={`font-bold tracking-[0.8px] uppercase ${colors.text} ${s.text}`}
+      >
+        {/* Blindaje anti-crashes: Si config no existe, no falla solo  */}
+        {config?.label || ''}
       </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    borderWidth: 1,
-    alignSelf: 'flex-start',
-  },
-  text: {
-    fontFamily: 'Inter-Bold',
-    letterSpacing: 0.8,
-  },
-});
+//reduci un poco el tamaño, refactorizado a puro mainwind

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BookOpen } from 'lucide-react-native';
 import { LearningModule } from '@/types';
@@ -23,7 +23,7 @@ export default function LearnScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loader}>
+      <View className="flex-1 items-center justify-center bg-navy-900">
         <ActivityIndicator size="large" color={Colors.gold[500]} />
       </View>
     );
@@ -38,66 +38,72 @@ export default function LearnScreen() {
   const inProgress = modules.filter((m) => m.progress > 0 && !m.completed).length;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerRow}>
+    <SafeAreaView className="flex-1 bg-navy-900" edges={['top']}>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="pb-8"
+        showsVerticalScrollIndicator={false}
+      >
+
+        <View className="flex-row items-center gap-[10px] px-4 pt-3 pb-3">
           <BookOpen size={22} color={Colors.gold[500]} />
-          <Text style={styles.title}>Aprender</Text>
+          <Text className="text-white font-bold text-2xl">Aprender</Text>
         </View>
-        <View style={styles.statsRow}>
-          <View style={styles.statChip}>
-            <Text style={[styles.statNum, { color: Colors.success }]}>{completed}</Text>
-            <Text style={styles.statLabel}>Completados</Text>
-          </View>
-          <View style={styles.statChip}>
-            <Text style={[styles.statNum, { color: Colors.blue.light }]}>{inProgress}</Text>
-            <Text style={styles.statLabel}>En progreso</Text>
-          </View>
-          <View style={styles.statChip}>
-            <Text style={[styles.statNum, { color: Colors.text.secondary }]}>
-              {modules.length - completed - inProgress}
-            </Text>
-            <Text style={styles.statLabel}>Por iniciar</Text>
-          </View>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories} contentContainerStyle={styles.categoriesContent}>
-          {CATEGORIES.map((cat) => (
-            <View key={cat} style={[styles.catBtn, activeCategory === cat && styles.catActive]}>
-              <Text
-                style={[styles.catText, activeCategory === cat && styles.catTextActive]}
-                onPress={() => setActiveCategory(cat)}
-              >
-                {cat}
+
+        <View className="flex-row gap-[10px] mx-4 mb-4">
+          {[
+            { label: 'Completados', value: completed, color: Colors.success },
+            { label: 'En progreso', value: inProgress, color: Colors.blue.light },
+            { label: 'Por iniciar', value: modules.length - completed - inProgress, color: Colors.text.secondary },
+          ].map((stat) => (
+            <View
+              key={stat.label}
+              className="flex-1 bg-blue-card rounded-xl p-3 items-center border border-white/[0.06]"
+              accessible={true}
+              accessibilityLabel={`${stat.label}: ${stat.value}`}
+            >
+              <Text className="font-bold text-xl" style={{ color: stat.color }}>
+                {stat.value}
+              </Text>
+              <Text className="text-text-muted font-sans text-[11px] mt-0.5">
+                {stat.label}
               </Text>
             </View>
           ))}
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="px-4 gap-2 mb-4"
+        >
+          {CATEGORIES.map((cat) => (
+            <Pressable
+              key={cat}
+              className="px-4 py-2 rounded-full border active:opacity-70"
+              style={{
+                backgroundColor: activeCategory === cat ? Colors.gold[600] : Colors.blue.card,
+                borderColor: activeCategory === cat ? Colors.gold[500] : 'rgba(255,255,255,0.08)',
+              }}
+              onPress={() => setActiveCategory(cat)}
+            >
+              <Text
+                className="font-medium text-[13px]"
+                style={{ color: activeCategory === cat ? Colors.navy[900] : Colors.text.muted }}
+              >
+                {cat}
+              </Text>
+            </Pressable>
+          ))}
         </ScrollView>
-        <View style={styles.modules}>
+
+        <View className="px-4">
           {filtered.map((m) => (
             <ModuleCard key={m.id} module={m} />
           ))}
         </View>
+
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.navy[900] },
-  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.navy[900] },
-  scroll: { flex: 1 },
-  content: { paddingBottom: 30 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12 },
-  title: { color: Colors.white, fontFamily: 'Inter-Bold', fontSize: 24 },
-  statsRow: { flexDirection: 'row', gap: 10, marginHorizontal: 16, marginBottom: 16 },
-  statChip: { flex: 1, backgroundColor: Colors.blue.card, borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  statNum: { fontFamily: 'Inter-Bold', fontSize: 20 },
-  statLabel: { color: Colors.text.muted, fontFamily: 'Inter-Regular', fontSize: 11, marginTop: 2 },
-  categories: { marginBottom: 16 },
-  categoriesContent: { paddingHorizontal: 16, gap: 8 },
-  catBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: Colors.blue.card, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  catActive: { backgroundColor: Colors.gold[600], borderColor: Colors.gold[500] },
-  catText: { color: Colors.text.muted, fontFamily: 'Inter-Medium', fontSize: 13 },
-  catTextActive: { color: Colors.navy[900] },
-  modules: { paddingHorizontal: 16 },
-});

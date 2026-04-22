@@ -1,8 +1,11 @@
 import { Tabs } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Hop as Home, TrendingUp, Users, BookOpen, User } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -11,8 +14,8 @@ export default function TabLayout() {
           backgroundColor: Colors.navy[800],
           borderTopColor: 'rgba(255,255,255,0.06)',
           borderTopWidth: 1,
-          height: 64,
-          paddingBottom: 10,
+          height: 64 + insets.bottom,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
           paddingTop: 8,
         },
         tabBarActiveTintColor: Colors.gold[500],

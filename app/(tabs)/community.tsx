@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Trophy } from 'lucide-react-native';
 import { CommunityMember, Activity } from '@/types';
@@ -28,51 +28,53 @@ export default function CommunityScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loader}>
+      <View className="flex-1 items-center justify-center bg-navy-900">
         <ActivityIndicator size="large" color={Colors.gold[500]} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
+    <SafeAreaView className="flex-1 bg-navy-900" edges={['top']}>
+
+      <View className="flex-row items-center gap-[10px] px-4 pt-3 pb-2">
         <Trophy size={22} color={Colors.gold[500]} />
-        <Text style={styles.title}>Comunidad</Text>
+        <Text className="text-white font-bold text-2xl">Comunidad</Text>
       </View>
-      <View style={styles.tabs}>
+
+      <View className="flex-row gap-2 px-4 mb-3">
         {(['ranking', 'activity'] as const).map((t) => (
-          <View key={t} style={[styles.tabBtn, tab === t && styles.tabActive]}>
+          <Pressable
+            key={t}
+            className="flex-1 py-[10px] rounded-xl items-center border active:opacity-70"
+            style={{
+              backgroundColor: tab === t ? Colors.gold[600] : Colors.blue.card,
+              borderColor: tab === t ? Colors.gold[500] : 'rgba(255,255,255,0.06)',
+            }}
+            onPress={() => setTab(t)}
+          >
             <Text
-              style={[styles.tabText, tab === t && styles.tabTextActive]}
-              onPress={() => setTab(t)}
+              className="font-semibold text-sm"
+              style={{ color: tab === t ? Colors.navy[900] : Colors.text.muted }}
             >
               {t === 'ranking' ? 'Ranking' : 'Actividad'}
             </Text>
-          </View>
+          </Pressable>
         ))}
       </View>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-4 pb-6"
+        showsVerticalScrollIndicator={false}
+      >
         {tab === 'ranking'
           ? members.map((m) => (
               <MemberCard key={m.id} member={m} isCurrentUser={m.id === CURRENT_USER_ID} />
             ))
           : activities.map((a) => <ActivityItem key={a.id} activity={a} />)}
       </ScrollView>
+
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.navy[900] },
-  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.navy[900] },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
-  title: { color: Colors.white, fontFamily: 'Inter-Bold', fontSize: 24 },
-  tabs: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 12 },
-  tabBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, backgroundColor: Colors.blue.card, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  tabActive: { backgroundColor: Colors.gold[600], borderColor: Colors.gold[500] },
-  tabText: { color: Colors.text.muted, fontFamily: 'Inter-SemiBold', fontSize: 14 },
-  tabTextActive: { color: Colors.navy[900] },
-  scroll: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingBottom: 24 },
-});

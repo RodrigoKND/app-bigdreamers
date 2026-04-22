@@ -1,66 +1,51 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '@/constants/colors';
+import { View, Text } from 'react-native';
+// Importamos la pieza base que construimos en la Fase 1
+import Card from '@/components/shared/Card';
 
 interface StatItem {
   label: string;
   value: string | number;
-  accent?: string;
+  accent?: string; // Espera un código hexadecimal para inyectar dinámicamente
 }
 
 interface ProfileStatCardProps {
   title: string;
   stats: StatItem[];
+  className?: string; // Permite inyectar márgenes desde la pantalla principal
 }
 
-export default function ProfileStatCard({ title, stats }: ProfileStatCardProps) {
+export default function ProfileStatCard({ title, stats, className = '' }: ProfileStatCardProps) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>{title}</Text>
-      <View style={styles.grid}>
+    // Usamos el Card maestro para heredar fondos, bordes y radios automáticamente
+    <Card className={`mx-4 mb-3 p-4 ${className}`.trim()}>
+      <Text className="text-text-secondary font-semibold text-[13px] mb-3.5">
+        {title}
+      </Text>
+
+      {/* Contenedor Grid responsivo */}
+      <View className="flex-row flex-wrap gap-4">
         {stats.map((stat) => (
-          <View key={stat.label} style={styles.item}>
-            <Text style={[styles.value, stat.accent ? { color: stat.accent } : {}]}>
+          <View 
+            key={stat.label} 
+            className="min-w-[40%] flex-col gap-1"
+            // Accesibilidad: Agrupa el valor y la etiqueta para el lector de pantalla
+            accessible={true}
+            accessibilityLabel={`${stat.label}: ${stat.value}`}
+          >
+            <Text 
+              className="text-white font-bold text-xl"
+              // Regla Híbrida: El color dinámico va en línea, el resto en NativeWind
+              style={stat.accent ? { color: stat.accent } : undefined}
+            >
               {stat.value}
             </Text>
-            <Text style={styles.label}>{stat.label}</Text>
+            <Text className="text-text-muted text-xs font-normal">
+              {stat.label}
+            </Text>
           </View>
         ))}
       </View>
-    </View>
+    </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.blue.card,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  title: {
-    color: Colors.text.secondary,
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 13,
-    marginBottom: 14,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-  },
-  item: { minWidth: '40%', gap: 3 },
-  value: {
-    color: Colors.white,
-    fontFamily: 'Inter-Bold',
-    fontSize: 20,
-  },
-  label: {
-    color: Colors.text.muted,
-    fontFamily: 'Inter-Regular',
-    fontSize: 12,
-  },
-});

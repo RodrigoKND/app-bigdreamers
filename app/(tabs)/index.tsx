@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { User, Activity } from '@/types';
 import { Colors } from '@/constants/colors';
@@ -27,24 +27,32 @@ export default function HomeScreen() {
 
   if (loading || !user) {
     return (
-      <View style={styles.loader}>
+      <View className="flex-1 items-center justify-center bg-navy-900">
         <ActivityIndicator size="large" color={Colors.gold[500]} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerBar}>
-          <Text style={styles.logo}>BigDreamers</Text>
-          <Text style={styles.logoAccent}>.</Text>
+    <SafeAreaView className="flex-1 bg-navy-900" edges={['top']}>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="pb-8 gap-4"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="flex-row items-baseline px-4 pt-2 pb-1">
+          <Text className="text-white font-bold text-2xl">BigDreamers</Text>
+          <Text className="text-gold-500 font-bold text-3xl">.</Text>
         </View>
+
         <WelcomeBanner user={user} />
         <StatsRow user={user} />
         <LevelProgressCard user={user} />
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Actividad reciente</Text>
+
+        <View className="mx-4 bg-blue-card rounded-2xl p-4 border border-white/[0.06]">
+          <Text className="text-white font-semibold text-base mb-2">
+            Actividad reciente
+          </Text>
           {activities.map((a) => (
             <ActivityItem key={a.id} activity={a} />
           ))}
@@ -53,33 +61,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.navy[900] },
-  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.navy[900] },
-  scroll: { flex: 1 },
-  content: { paddingBottom: 30, gap: 16 },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  logo: { color: Colors.white, fontFamily: 'Inter-Bold', fontSize: 22 },
-  logoAccent: { color: Colors.gold[500], fontFamily: 'Inter-Bold', fontSize: 28 },
-  section: {
-    marginHorizontal: 16,
-    backgroundColor: Colors.blue.card,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  sectionTitle: {
-    color: Colors.white,
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    marginBottom: 8,
-  },
-});

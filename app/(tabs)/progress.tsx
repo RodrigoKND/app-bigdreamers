@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Milestone, User } from '@/types';
 import { Colors } from '@/constants/colors';
@@ -8,6 +8,9 @@ import { getCurrentUser } from '@/services/userService';
 import GemHistoryCard from '@/components/progress/GemHistoryCard';
 import MilestoneCard from '@/components/progress/MilestoneCard';
 import LevelProgressCard from '@/components/home/LevelProgressCard';
+
+const FILTERS = ['all', 'completed', 'pending'] as const;
+const FILTER_LABELS = { all: 'Todos', completed: 'Completados', pending: 'Pendientes' };
 
 export default function ProgressScreen() {
   const [user, setUser] = useState<User | null>(null);
@@ -27,7 +30,7 @@ export default function ProgressScreen() {
 
   if (loading || !user) {
     return (
-      <View style={styles.loader}>
+      <View className="flex-1 items-center justify-center bg-navy-900">
         <ActivityIndicator size="large" color={Colors.gold[500]} />
       </View>
     );
@@ -39,63 +42,58 @@ export default function ProgressScreen() {
     return true;
   });
 
-  const FILTERS = ['all', 'completed', 'pending'] as const;
-  const FILTER_LABELS = { all: 'Todos', completed: 'Completados', pending: 'Pendientes' };
-
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Mi Progreso</Text>
+    <SafeAreaView className="flex-1 bg-navy-900" edges={['top']}>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="pb-8 gap-4"
+        showsVerticalScrollIndicator={false}
+      >
+
+        <Text className="text-white font-bold text-2xl px-4 pt-2">
+          Mi Progreso
+        </Text>
+
         <GemHistoryCard
           currentGems={user.gems}
           totalEarned={user.totalGemsEarned}
           weeklyGrowth={340}
         />
+
         <LevelProgressCard user={user} />
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Hitos</Text>
-          <View style={styles.filters}>
+
+        <View className="mx-4 gap-1">
+          <Text className="text-white font-semibold text-base mb-3">
+            Hitos
+          </Text>
+
+          <View className="flex-row gap-2 mb-3">
             {FILTERS.map((f) => (
-              <View
+              <Pressable
                 key={f}
-                style={[styles.filterBtn, filter === f && styles.filterActive]}
+                className="px-[14px] py-[7px] rounded-full border active:opacity-70"
+                style={{
+                  backgroundColor: filter === f ? Colors.gold[600] : Colors.blue.card,
+                  borderColor: filter === f ? Colors.gold[500] : 'rgba(255,255,255,0.08)',
+                }}
+                onPress={() => setFilter(f)}
               >
                 <Text
-                  style={[styles.filterText, filter === f && styles.filterTextActive]}
-                  onPress={() => setFilter(f)}
+                  className="font-medium text-[13px]"
+                  style={{ color: filter === f ? Colors.navy[900] : Colors.text.muted }}
                 >
                   {FILTER_LABELS[f]}
                 </Text>
-              </View>
+              </Pressable>
             ))}
           </View>
+
           {filtered.map((m) => (
             <MilestoneCard key={m.id} milestone={m} />
           ))}
         </View>
+
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.navy[900] },
-  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.navy[900] },
-  scroll: { flex: 1 },
-  content: { paddingBottom: 30, gap: 16 },
-  title: { color: Colors.white, fontFamily: 'Inter-Bold', fontSize: 24, paddingHorizontal: 16, paddingTop: 8 },
-  section: { marginHorizontal: 16, gap: 4 },
-  sectionTitle: { color: Colors.white, fontFamily: 'Inter-SemiBold', fontSize: 16, marginBottom: 12 },
-  filters: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  filterBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: Colors.blue.card,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  filterActive: { backgroundColor: Colors.gold[600], borderColor: Colors.gold[500] },
-  filterText: { color: Colors.text.muted, fontFamily: 'Inter-Medium', fontSize: 13 },
-  filterTextActive: { color: Colors.navy[900] },
-});

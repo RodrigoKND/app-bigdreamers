@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Gem } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
@@ -7,39 +7,42 @@ interface GemBadgeProps {
   count: number;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
+  className?: string;
 }
 
 const SIZES = {
-  sm: { icon: 12, font: 12 },
-  md: { icon: 16, font: 14 },
-  lg: { icon: 20, font: 18 },
+  sm: { icon: 12, countClass: 'text-xs', labelClass: 'text-[10px]' },
+  md: { icon: 16, countClass: 'text-sm', labelClass: 'text-xs' },
+  lg: { icon: 20, countClass: 'text-lg', labelClass: 'text-base' },
 };
 
-export default function GemBadge({ count, size = 'md', showLabel = false }: GemBadgeProps) {
+export default function GemBadge({ count, size = 'md', showLabel = false, className = '' }: GemBadgeProps) {
   const s = SIZES[size];
-  const formatted = count >= 1000 ? `${(count / 1000).toFixed(1)}k` : count.toString();
+  
+  // parseFloat elimina los decimales en cero (ej. 1.0k -> 1k), pero mantiene el 1.5K
+  const formatted = count >= 1000 
+    ? `${parseFloat((count / 1000).toFixed(1))}k` 
+    : count.toString();
 
   return (
-    <View style={styles.container}>
+    <View 
+      className={`flex-row items-center gap-1 ${className}`.trim()}
+      accessible={true}
+      accessibilityLabel={`${count} gemas`} // ♿ Mejora de accesibilidad (VoiceOver/TalkBack)
+    >
       <Gem size={s.icon} color={Colors.gold[500]} strokeWidth={2} />
-      <Text style={[styles.text, { fontSize: s.font }]}>{formatted}</Text>
-      {showLabel && <Text style={[styles.label, { fontSize: s.font - 2 }]}>gemas</Text>}
+      
+      <Text className={`text-gold-500 font-bold ${s.countClass}`}>
+        {formatted}
+      </Text>
+      
+      {showLabel && (
+        <Text className={`text-text-secondary font-sans ${s.labelClass}`}>
+          gemas
+        </Text>
+      )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  text: {
-    color: Colors.gold[500],
-    fontFamily: 'Inter-Bold',
-  },
-  label: {
-    color: Colors.text.secondary,
-    fontFamily: 'Inter-Regular',
-  },
-});
+//el tamaño es un poco mas pequeño para que este mas armonico con los cards  

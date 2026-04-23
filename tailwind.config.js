@@ -18,7 +18,8 @@ module.exports = {
           primary: '#1565C0',   // no lo toque
           light: '#1E88E5',
           bright: '#1A7FCA',
-          card: '#0D3A6B',
+          card: '#135dad',
+          user: '#2f7fd6',
           surface: '#0E2A50',
         },
         gold: {

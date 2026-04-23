@@ -8,6 +8,7 @@ import { getCommunityRanking, getRecentActivities } from '@/services/communitySe
 import MemberCard from '@/components/community/MemberCard';
 import ActivityItem from '@/components/home/ActivityItem';
 
+
 const CURRENT_USER_ID = '1';
 
 export default function CommunityScreen() {

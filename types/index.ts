@@ -9,6 +9,8 @@ export interface User {
   gems: number;
   gemsToNextLevel: number;
   joinedAt: string;
+  modules?: number;
+  ranking?: number;
   streak: number;
   completedModules: number;
   communityRank: number;

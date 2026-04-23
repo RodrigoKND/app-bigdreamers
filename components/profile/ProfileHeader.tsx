@@ -1,83 +1,75 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Calendar } from 'lucide-react-native';
-import { User } from '@/types';
 import { Colors } from '@/constants/colors';
 import { getLevelConfig } from '@/constants/levels';
 import LevelBadge from '@/components/shared/LevelBadge';
-import GemBadge from '@/components/shared/GemBadge';
 
 interface ProfileHeaderProps {
-  user: User;
-  className?: string; // Habilitamos la inyección de estilos (ej. mt-4)
+  user: any;
+  isDark: boolean;
+  className?: string;
 }
 
-export default function ProfileHeader({ user, className = '' }: ProfileHeaderProps) {
+export default function ProfileHeader({ user, isDark, className = '' }: ProfileHeaderProps) {
   const config = getLevelConfig(user.level);
-  const joinDate = new Date(user.joinedAt).toLocaleDateString('es-ES', {
-    month: 'long',
-    year: 'numeric',
-  });
 
-  // Lógica de seguridad para iniciales limpias y en mayúscula
   const userInitials = user.name
     .split(' ')
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join('')
     .slice(0, 2)
     .toUpperCase();
 
   return (
-    <LinearGradient
-      colors={[Colors.navy[700], Colors.blue.card]}
-      className={`items-center pt-[30px] pb-6 px-4 gap-2.5 ${className}`.trim()}
-      
-      // Accesibilidad integral para el encabezado
+    <View
+      className={`items-center pt-6 pb-6 px-4 gap-2 ${className}`.trim()}
+      style={{ backgroundColor: isDark ? Colors.navy[900] : Colors.light.bg }}
       accessible={true}
-      accessibilityLabel={`Perfil de ${user.name}. Nivel ${config.label}. Miembro desde ${joinDate}.`}
+      accessibilityLabel={`Perfil de ${user.name}. Nivel ${config.label}.`}
     >
-      {/* Contenedor del Avatar */}
-      <View className="mb-1">
+      {/* Avatar */}
+      <View
+        className="w-[90px] h-[90px] rounded-full border-[3px] items-center justify-center mb-1"
+        style={{
+          borderColor: config.color,
+          backgroundColor: isDark ? Colors.navy[600] : Colors.light.surface,
+        }}
+      >
         {user.avatar ? (
-          <Image 
-            source={{ uri: user.avatar }} 
-            className="w-[90px] h-[90px] rounded-full border-[3px]"
-            style={{ borderColor: config.color }} 
+          <Image
+            source={{ uri: user.avatar }}
+            className="w-full h-full rounded-full"
           />
         ) : (
-          <View 
-            className="w-[90px] h-[90px] rounded-full border-[3px] bg-navy-600 items-center justify-center"
-            style={{ borderColor: config.color }}
+          <Text
+            className="font-bold text-[28px]"
+            style={{ color: isDark ? Colors.text.primary : Colors.light.textPrimary }}
           >
-            <Text className="text-white font-bold text-[28px]">
-              {userInitials}
-            </Text>
-          </View>
+            {userInitials}
+          </Text>
         )}
       </View>
 
-      {/* Información Personal */}
-      <Text className="text-white font-bold text-[22px]">
+      {/* Nombre */}
+      <Text
+        className="font-bold text-[22px]"
+        style={{ color: isDark ? Colors.text.primary : Colors.light.textPrimary }}
+      >
         {user.name}
       </Text>
-      <Text className="text-text-muted font-normal text-[13px]">
+
+      {/* Email */}
+      <Text
+        className="font-normal text-[13px]"
+        style={{ color: isDark ? Colors.text.muted : Colors.light.textMuted }}
+      >
         {user.email}
       </Text>
 
-      {/* Fila de Insignias (Nivel y Gemas) */}
-      <View className="flex-row gap-3 items-center">
+      {/* Badge nivel */}
+      <View className="mt-1">
         <LevelBadge level={user.level} size="md" />
-        <GemBadge count={user.gems} size="md" showLabel />
       </View>
-
-      {/* Metadatos (Fecha de Ingreso) */}
-      <View className="flex-row items-center gap-1.5 mt-1">
-        <Calendar size={13} color={Colors.text.muted} />
-        <Text className="text-text-muted font-normal text-xs">
-          Miembro desde {joinDate}
-        </Text>
-      </View>
-    </LinearGradient>
+    </View>
   );
 }

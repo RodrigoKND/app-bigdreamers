@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, Image } from 'react-native';
 import { Colors } from '@/constants/colors';
 import { getLevelConfig } from '@/constants/levels';
-import LevelBadge from '@/components/shared/LevelBadge';
 
 interface ProfileHeaderProps {
   user: any;
@@ -22,14 +21,14 @@ export default function ProfileHeader({ user, isDark, className = '' }: ProfileH
 
   return (
     <View
-      className={`items-center pt-6 pb-6 px-4 gap-2 ${className}`.trim()}
+      className={`items-center pt-10 pb-4 px-4 gap-2 ${className}`.trim()}
       style={{ backgroundColor: isDark ? Colors.navy[900] : Colors.light.bg }}
       accessible={true}
       accessibilityLabel={`Perfil de ${user.name}. Nivel ${config.label}.`}
     >
       {/* Avatar */}
       <View
-        className="w-[90px] h-[90px] rounded-full border-[3px] items-center justify-center mb-1"
+        className="w-[96px] h-[96px] rounded-full border-[3px] items-center justify-center mb-1"
         style={{
           borderColor: config.color,
           backgroundColor: isDark ? Colors.navy[600] : Colors.light.surface,
@@ -42,7 +41,7 @@ export default function ProfileHeader({ user, isDark, className = '' }: ProfileH
           />
         ) : (
           <Text
-            className="font-bold text-[28px]"
+            className="font-bold text-[30px]"
             style={{ color: isDark ? Colors.text.primary : Colors.light.textPrimary }}
           >
             {userInitials}
@@ -60,15 +59,24 @@ export default function ProfileHeader({ user, isDark, className = '' }: ProfileH
 
       {/* Email */}
       <Text
-        className="font-normal text-[13px]"
+        className="font-normal text-[13px] -mt-1"
         style={{ color: isDark ? Colors.text.muted : Colors.light.textMuted }}
       >
         {user.email}
       </Text>
 
-      {/* Badge nivel */}
-      <View className="mt-1">
-        <LevelBadge level={user.level} size="md" />
+      {/* Badge nivel — fondo oscuro, texto claro */}
+      <View
+        className="flex-row items-center gap-1.5 px-4 py-1.5 rounded-full mt-1"
+        style={{ backgroundColor: config.bgColor ?? Colors.navy[700] }}
+      >
+        <Text style={{ fontSize: 12 }}>⚡</Text>
+        <Text
+          className="font-bold text-xs tracking-wide"
+          style={{ color: config.color }}
+        >
+          {config.label.toUpperCase()}
+        </Text>
       </View>
     </View>
   );

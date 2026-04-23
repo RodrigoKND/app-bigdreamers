@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import {
+  View, Text, ScrollView,
+  Pressable, ActivityIndicator
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LogOut, Shield, Edit2, Sun, Moon } from 'lucide-react-native';
-import { User } from '@/types';
+import { LogOut, Shield, Edit2, Sun, Moon, ChevronRight, User } from 'lucide-react-native';
+import { User as UserType } from '@/types';
 import { Colors } from '@/constants/colors';
 import { getCurrentUser } from '@/services/userService';
 import { useTheme } from '@/context/ThemeContext';
@@ -15,31 +18,61 @@ interface MenuItemProps {
   onPress?: () => void;
   danger?: boolean;
   isDark: boolean;
+  showChevron?: boolean;
 }
 
-function MenuItem({ icon, label, onPress, danger, isDark }: MenuItemProps) {
+function MenuItem({ icon, label, onPress, danger, isDark, showChevron = true }: MenuItemProps) {
+  const textColor = danger
+    ? Colors.light.error
+    : isDark ? Colors.text.secondary : Colors.light.textPrimary;
+
+  const iconBg = danger
+    ? (isDark ? 'rgba(239,68,68,0.12)' : Colors.light.errorBg)
+    : (isDark ? Colors.navy[700] : Colors.light.accentLight);
+
   return (
     <Pressable
-      className="flex-row items-center gap-[14px] px-4 py-[14px] active:opacity-70"
-      style={{ borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)' }}
+      className="flex-row items-center gap-3 px-4 py-[14px] active:opacity-70"
       onPress={onPress}
       accessible={true}
       accessibilityLabel={label}
       accessibilityRole="button"
     >
-      {icon}
+      <View
+        className="w-9 h-9 rounded-xl items-center justify-center"
+        style={{ backgroundColor: iconBg }}
+      >
+        {icon}
+      </View>
       <Text
         className="font-sans text-[15px] flex-1"
-        style={{ color: danger ? Colors.light.error : isDark ? Colors.text.secondary : Colors.light.textSecond }}
+        style={{ color: textColor }}
       >
         {label}
       </Text>
+      {showChevron && !danger && (
+        <ChevronRight
+          size={16}
+          color={isDark ? Colors.text.muted : Colors.light.textMuted}
+        />
+      )}
     </Pressable>
   );
 }
 
+function SectionLabel({ label, isDark }: { label: string; isDark: boolean }) {
+  return (
+    <Text
+      className="font-semibold text-xs px-4 pt-5 pb-2 tracking-widest"
+      style={{ color: isDark ? Colors.text.muted : Colors.light.textMuted }}
+    >
+      {label}
+    </Text>
+  );
+}
+
 export default function ProfileScreen() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
   const { isDark, toggleTheme } = useTheme();
 
@@ -61,110 +94,147 @@ export default function ProfileScreen() {
     );
   }
 
-  const cardBg    = isDark ? Colors.blue.card    : Colors.light.card;
-  const cardBorder= isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-  const labelColor= isDark ? Colors.text.muted   : Colors.light.textMuted;
-  const iconColor = isDark ? Colors.text.secondary : Colors.light.textSecond;
+  const screenBg   = isDark ? Colors.navy[900] : Colors.light.bg;
+  const cardBg     = isDark ? Colors.blue.card : Colors.light.card;
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const iconColor  = isDark ? Colors.text.secondary : Colors.light.accent;
+  const divider    = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
 
   return (
-    <SafeAreaView
-      className="flex-1"
-      style={{ backgroundColor: isDark ? Colors.navy[900] : Colors.light.bg }}
-      edges={['top']}
-    >
-      {/* Header con título, toggle tema y editar */}
+    <SafeAreaView className="flex-1" style={{ backgroundColor: screenBg }} edges={['top']}>
+
+      {/* Header — solo título y editar */}
       <View
-        className="flex-row items-center justify-between px-4 py-3"
-        style={{ backgroundColor: isDark ? Colors.navy[900] : Colors.light.bg }}
+        className="flex-row items-center justify-between px-4 pt-2 pb-1"
+        style={{ backgroundColor: screenBg }}
       >
         <Text
-          className="font-bold text-[22px]"
+          className="font-bold text-[24px]"
           style={{ color: isDark ? Colors.text.primary : Colors.light.textPrimary }}
         >
           Perfil
         </Text>
 
-        <View className="flex-row items-center gap-2">
-          {/* Toggle Sol / Luna */}
-          <Pressable
-            onPress={toggleTheme}
-            className="w-10 h-10 rounded-full items-center justify-center active:opacity-70"
-            style={{ backgroundColor: isDark ? Colors.navy[700] : Colors.light.surface }}
-            accessible={true}
-            accessibilityLabel={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-            accessibilityRole="button"
-          >
-            {isDark
-              ? <Sun size={18} color={Colors.gold[400]} />
-              : <Moon size={18} color={Colors.light.accent} />
-            }
-          </Pressable>
-
-          {/* Editar perfil */}
-          <Pressable
-            className="w-10 h-10 rounded-full items-center justify-center active:opacity-70"
-            style={{ backgroundColor: isDark ? Colors.navy[700] : Colors.light.surface }}
-            accessible={true}
-            accessibilityLabel="Editar perfil"
-            accessibilityRole="button"
-          >
-            <Edit2 size={18} color={isDark ? Colors.text.secondary : Colors.light.accent} />
-          </Pressable>
-        </View>
+        <Pressable
+          className="w-9 h-9 rounded-full items-center justify-center active:opacity-70"
+          style={{ backgroundColor: isDark ? Colors.navy[700] : Colors.light.surface }}
+          accessible={true}
+          accessibilityLabel="Editar perfil"
+          accessibilityRole="button"
+        >
+          <Edit2 size={17} color={iconColor} />
+        </Pressable>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerClassName="pb-10"
       >
+        {/* Separador */}
+        <View
+          style={{
+            height: 1,
+            marginTop: 15,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)',
+          }}
+        />
+
+        {/* Avatar + nombre + badge */}
         <ProfileHeader user={user} isDark={isDark} />
 
+        {/* Stats: Gemas | Módulos | Racha */}
         <ProfileStatCard
-          title="Estadísticas"
-          className="mt-4"
           isDark={isDark}
+          className="mt-2"
           stats={[
-            { label: 'Racha actual',       value: `${user.streak} días`,              accent: Colors.warning },
-            { label: 'Ranking comunidad',  value: `#${user.communityRank}`,           accent: Colors.gold[500] },
-            { label: 'Módulos completados',value: user.completedModules,              accent: Colors.success },
-            { label: 'Total gemas',        value: user.totalGemsEarned.toLocaleString(), accent: Colors.gold[400] },
+            { label: 'GEMAS',   value: user.gems.toLocaleString(), accent: Colors.gold[500], icon: '💎' },
+            { label: 'MÓDULOS', value: user.completedModules,      accent: isDark ? Colors.text.primary : Colors.light.textPrimary, icon: '📚' },
+            { label: 'RACHA',   value: user.streak,                accent: Colors.warning,   icon: '🔥' },
           ]}
         />
 
         {/* MI CUENTA */}
-        <Text
-          className="font-semibold text-xs px-4 pt-4 pb-2 tracking-widest"
-          style={{ color: labelColor }}
-        >
-          MI CUENTA
-        </Text>
+        <SectionLabel label="MI CUENTA" isDark={isDark} />
         <View
           className="mx-4 rounded-2xl overflow-hidden"
           style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
         >
           <MenuItem
             isDark={isDark}
-            icon={<Shield size={18} color={iconColor} />}
-            label="Seguridad"
+            icon={<User size={16} color={iconColor} />}
+            label="Información personal"
           />
+          <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
           <MenuItem
             isDark={isDark}
-            icon={<Edit2 size={18} color={iconColor} />}
-            label="Información personal"
+            icon={<Shield size={16} color={iconColor} />}
+            label="Seguridad"
           />
         </View>
 
-        {/* CERRAR SESIÓN */}
+        {/* PREFERENCIAS */}
+        <SectionLabel label="PREFERENCIAS" isDark={isDark} />
         <View
-          className="mx-4 mt-3 rounded-2xl overflow-hidden"
-          style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.08)' : Colors.light.errorBg, borderWidth: 1, borderColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(220,38,38,0.15)' }}
+          className="mx-4 rounded-2xl overflow-hidden"
+          style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
         >
-          <MenuItem
-            isDark={isDark}
-            icon={<LogOut size={18} color={Colors.light.error} />}
-            label="Cerrar sesión"
-            danger
-          />
+          <Pressable
+            className="flex-row items-center gap-3 px-4 py-[14px] active:opacity-70"
+            onPress={toggleTheme}
+            accessible={true}
+            accessibilityLabel={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            accessibilityRole="button"
+          >
+            <View
+              className="w-9 h-9 rounded-xl items-center justify-center"
+              style={{ backgroundColor: isDark ? Colors.navy[700] : Colors.light.accentLight }}
+            >
+              {isDark
+                ? <Sun size={16} color={Colors.gold[400]} />
+                : <Moon size={16} color={Colors.light.accent} />
+              }
+            </View>
+            <Text
+              className="font-sans text-[15px] flex-1"
+              style={{ color: isDark ? Colors.text.secondary : Colors.light.textPrimary }}
+            >
+              Tema
+            </Text>
+            <Text
+              className="text-[13px]"
+              style={{ color: isDark ? Colors.text.muted : Colors.light.textMuted }}
+            >
+              {isDark ? 'Oscuro' : 'Claro'}
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* CERRAR SESIÓN */}
+        <View className="mx-4 mt-3 mb-2">
+          <Pressable
+            className="flex-row items-center gap-3 px-4 py-[15px] rounded-2xl active:opacity-70"
+            style={{
+              backgroundColor: isDark ? 'rgba(239,68,68,0.08)' : Colors.light.errorBg,
+              borderWidth: 1,
+              borderColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(220,38,38,0.12)',
+            }}
+            accessible={true}
+            accessibilityLabel="Cerrar sesión"
+            accessibilityRole="button"
+          >
+            <View
+              className="w-9 h-9 rounded-xl items-center justify-center"
+              style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(220,38,38,0.1)' }}
+            >
+              <LogOut size={16} color={Colors.light.error} />
+            </View>
+            <Text
+              className="font-semibold text-[15px] flex-1"
+              style={{ color: Colors.light.error }}
+            >
+              Cerrar sesión
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>

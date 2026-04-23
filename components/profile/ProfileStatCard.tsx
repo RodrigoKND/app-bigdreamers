@@ -1,46 +1,62 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Colors } from '@/constants/colors';
-import Card from '@/components/shared/Card';
 
 interface StatItem {
   label: string;
   value: string | number;
   accent?: string;
+  icon?: string;
 }
 
 interface ProfileStatCardProps {
-  title: string;
   stats: StatItem[];
   className?: string;
   isDark: boolean;
 }
 
-export default function ProfileStatCard({ title, stats, className = '', isDark }: ProfileStatCardProps) {
+export default function ProfileStatCard({ stats, className = '', isDark }: ProfileStatCardProps) {
+  const cardBg     = isDark ? Colors.blue.card : Colors.light.card;
+  const borderColor= isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const divider    = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+
   return (
-    <Card className={`mx-4 mb-3 p-4 ${className}`.trim()}>
-      <Text
-        className="font-semibold text-[13px] mb-3.5"
-        style={{ color: isDark ? Colors.text.secondary : Colors.light.textSecond }}
-      >
-        {title}
-      </Text>
-      <View className="flex-row flex-wrap gap-4">
-        {stats.map((stat) => (
+    <View
+      className={`mx-4 mb-3 rounded-2xl ${className}`.trim()}
+      style={{
+        backgroundColor: cardBg,
+        borderWidth: 1,
+        borderColor,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0 : 0.07,
+        shadowRadius: 8,
+        elevation: isDark ? 0 : 3,
+      }}
+    >
+      <View className="flex-row">
+        {stats.map((stat, index) => (
           <View
             key={stat.label}
-            className="min-w-[40%] flex-col gap-1"
+            className="flex-1 items-center py-4"
+            style={index < stats.length - 1 ? {
+              borderRightWidth: 1,
+              borderRightColor: divider,
+            } : undefined}
             accessible={true}
             accessibilityLabel={`${stat.label}: ${stat.value}`}
           >
             <Text
-              className="font-bold text-xl"
+              className="font-bold text-[22px]"
               style={{ color: stat.accent ?? (isDark ? Colors.text.primary : Colors.light.textPrimary) }}
             >
               {stat.value}
             </Text>
+            {stat.icon && (
+              <Text style={{ fontSize: 12, marginTop: 2 }}>{stat.icon}</Text>
+            )}
             <Text
-              className="text-xs font-normal"
+              className="text-[10px] font-semibold tracking-widest mt-1"
               style={{ color: isDark ? Colors.text.muted : Colors.light.textMuted }}
             >
               {stat.label}
@@ -48,6 +64,6 @@ export default function ProfileStatCard({ title, stats, className = '', isDark }
           </View>
         ))}
       </View>
-    </Card>
+    </View>
   );
 }

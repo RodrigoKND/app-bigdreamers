@@ -1,9 +1,5 @@
 import { View, Image } from "react-native";
-
-const IMAGES = {
-    BUHO: require("../../assets/images/morfeus.webp"),
-    LOGO_BIGDREAMERS: require("../../assets/images/logo.png"),
-}
+import {IMAGES} from "@/constants/images";
 
 export default function Hero() {
     return (

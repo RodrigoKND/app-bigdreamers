@@ -11,8 +11,23 @@ import {
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 
 SplashScreen.preventAutoHideAsync();
+
+function AppContent() {
+  const { isDark } = useTheme();
+
+  return (
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+    </>
+  );
+}
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -35,12 +50,8 @@ export default function RootLayout() {
   }
 
   return (
-    <>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="light" />
-    </>
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }

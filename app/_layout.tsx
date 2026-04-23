@@ -12,16 +12,17 @@ import {
 import * as SplashScreen from 'expo-splash-screen';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
 SplashScreen.preventAutoHideAsync();
 
 function AppContent() {
   const { isDark } = useTheme();
-
+  const { isLoggedIn } = useAuth();
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
+        {!isLoggedIn ? <Stack.Screen name="login" /> : <Stack.Screen name="(tabs)" />}
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />
@@ -50,8 +51,10 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
       <AppContent />
     </ThemeProvider>
+    </AuthProvider>
   );
 }

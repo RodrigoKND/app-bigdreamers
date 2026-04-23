@@ -6,8 +6,7 @@ import { CommunityMember, Activity } from '@/types';
 import { Colors } from '@/constants/colors';
 import { getCommunityRanking, getRecentActivities } from '@/services/communityService';
 import MemberCard from '@/components/community/MemberCard';
-import ActivityItem from '@/components/home/ActivityItem';
-
+import ActivityItem from '@/components/home/ActivitySection';
 
 const CURRENT_USER_ID = '1';
 

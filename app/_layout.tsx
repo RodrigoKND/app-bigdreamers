@@ -25,6 +25,7 @@ function AppContent() {
         {!isLoggedIn ? <Stack.Screen name="login" /> : <Stack.Screen name="(tabs)" />}
         <Stack.Screen name="community" />
         <Stack.Screen name="progress" />
+        <Stack.Screen name="company/[id]" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />
@@ -55,8 +56,8 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </AuthProvider>
   );
 }

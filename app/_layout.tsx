@@ -23,6 +23,8 @@ function AppContent() {
     <>
       <Stack screenOptions={{ headerShown: false }}>
         {!isLoggedIn ? <Stack.Screen name="login" /> : <Stack.Screen name="(tabs)" />}
+        <Stack.Screen name="community" />
+        <Stack.Screen name="progress" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />

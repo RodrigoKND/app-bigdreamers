@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Hop as Home, TrendingUp, Users, BookOpen, User } from 'lucide-react-native';
+import { House, TrendingUp, BookOpen, User } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -8,7 +8,7 @@ export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const { isDark } = useTheme();
 
-const tabBg       = isDark ? Colors.navy[800]         : Colors.light.tabBg;
+const tabBg       = isDark ? Colors.navy[700]         : Colors.light.tabBg;
 const tabBorder   = isDark ? 'rgba(255,255,255,0.06)' : Colors.light.tabBorder;
 const tabActive   = isDark ? Colors.gold[500]         : Colors.light.tabActive;
 const tabInactive = isDark ? Colors.text.muted        : Colors.light.tabInactive;
@@ -38,23 +38,17 @@ const tabInactive = isDark ? Colors.text.muted        : Colors.light.tabInactive
         name="index"
         options={{
           title: 'Inicio',
-          tabBarIcon: ({ size, color }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ size, color }) => <House size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="progress"
+        name="invest"
         options={{
-          title: 'Progreso',
+          title: 'Invertir',
           tabBarIcon: ({ size, color }) => <TrendingUp size={size} color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="community"
-        options={{
-          title: 'Comunidad',
-          tabBarIcon: ({ size, color }) => <Users size={size} color={color} />,
-        }}
-      />
+
       <Tabs.Screen
         name="learn"
         options={{

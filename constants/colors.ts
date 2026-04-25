@@ -42,8 +42,8 @@ export const Colors = {
 
   // ─── LIGHT (nuevo) ────────────────────────────────────
   light: {
-    bg:           '#F4F7FA',
-    card:         '#FFFFFF',
+    bg:           '#FFFFFF',   // blanco puro para el fondo
+    card:         '#F4F7FA',
     surface:      '#EEF3F8',
     overlay:      '#DDEAF5',
     accent:       '#048ABF',

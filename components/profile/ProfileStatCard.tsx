@@ -1,51 +1,69 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-// Importamos la pieza base que construimos en la Fase 1
-import Card from '@/components/shared/Card';
+import { Colors } from '@/constants/colors';
 
 interface StatItem {
   label: string;
   value: string | number;
-  accent?: string; // Espera un código hexadecimal para inyectar dinámicamente
+  accent?: string;
+  icon?: string;
 }
 
 interface ProfileStatCardProps {
-  title: string;
   stats: StatItem[];
-  className?: string; // Permite inyectar márgenes desde la pantalla principal
+  className?: string;
+  isDark: boolean;
 }
 
-export default function ProfileStatCard({ title, stats, className = '' }: ProfileStatCardProps) {
-  return (
-    // Usamos el Card maestro para heredar fondos, bordes y radios automáticamente
-    <Card className={`mx-4 mb-3 p-4 ${className}`.trim()}>
-      <Text className="text-text-secondary font-semibold text-[13px] mb-3.5">
-        {title}
-      </Text>
+export default function ProfileStatCard({ stats, className = '', isDark }: ProfileStatCardProps) {
+  const cardBg     = isDark ? Colors.blue.card : Colors.light.card;
+  const borderColor= isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const divider    = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
 
-      {/* Contenedor Grid responsivo */}
-      <View className="flex-row flex-wrap gap-4">
-        {stats.map((stat) => (
-          <View 
-            key={stat.label} 
-            className="min-w-[40%] flex-col gap-1"
-            // Accesibilidad: Agrupa el valor y la etiqueta para el lector de pantalla
+  return (
+    <View
+      className={`mx-4 mb-3 rounded-2xl ${className}`.trim()}
+      style={{
+        backgroundColor: cardBg,
+        borderWidth: 1,
+        borderColor,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0 : 0.07,
+        shadowRadius: 8,
+        elevation: isDark ? 0 : 3,
+      }}
+    >
+      <View className="flex-row">
+        {stats.map((stat, index) => (
+          <View
+            key={stat.label}
+            className="flex-1 items-center py-4"
+            style={index < stats.length - 1 ? {
+              borderRightWidth: 1,
+              borderRightColor: divider,
+            } : undefined}
             accessible={true}
             accessibilityLabel={`${stat.label}: ${stat.value}`}
           >
-            <Text 
-              className="text-white font-bold text-xl"
-              // Regla Híbrida: El color dinámico va en línea, el resto en NativeWind
-              style={stat.accent ? { color: stat.accent } : undefined}
+            <Text
+              className="font-bold text-[22px]"
+              style={{ color: stat.accent ?? (isDark ? Colors.text.primary : Colors.light.textPrimary) }}
             >
               {stat.value}
             </Text>
-            <Text className="text-text-muted text-xs font-normal">
+            {stat.icon && (
+              <Text style={{ fontSize: 12, marginTop: 2 }}>{stat.icon}</Text>
+            )}
+            <Text
+              className="text-[10px] font-semibold tracking-widest mt-1"
+              style={{ color: isDark ? Colors.text.muted : Colors.light.textMuted }}
+            >
               {stat.label}
             </Text>
           </View>
         ))}
       </View>
-    </Card>
+    </View>
   );
 }

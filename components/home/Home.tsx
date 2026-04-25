@@ -37,8 +37,8 @@ export default function HomeScreen() {
     }
 
     return (
-        <SafeAreaView className="flex-1" edges={['top']}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }} className="bg-blue-primary">
+        <SafeAreaView className="flex-1 bg-blue-primary" edges={['top']}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
 
                 <Header points={15} />
 

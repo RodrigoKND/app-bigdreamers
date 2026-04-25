@@ -21,7 +21,7 @@ export default function Invest() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 30 }}
+        contentContainerStyle={{ paddingBottom: 10 }}
       >
         <View className="px-6 mt-6">
           
@@ -35,7 +35,7 @@ export default function Invest() {
             <Text className="dark:text-gray-300 text-black text-xs">Ver todas</Text>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className='fixed bottom-0 p-4'>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <OfferItem name="Empresa X" gems={4000} imageUrl="https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradio/6XQ2V2HNRRMDHDJ55MPMNBJ4E4.jpg" />
             <OfferItem name="Empresa Y" gems={1200} imageUrl="https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradio/6XQ2V2HNRRMDHDJ55MPMNBJ4E4.jpg" />
             <OfferItem name="Empresa Z" gems={850} imageUrl="https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradio/6XQ2V2HNRRMDHDJ55MPMNBJ4E4.jpg" />

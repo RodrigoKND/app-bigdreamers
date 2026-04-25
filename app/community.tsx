@@ -6,7 +6,6 @@ import { CommunityMember, Activity } from '@/types';
 import { Colors } from '@/constants/colors';
 import { getCommunityRanking, getRecentActivities } from '@/services/communityService';
 import MemberCard from '@/components/community/MemberCard';
-import ActivityItem from '@/components/home/ActivitySection';
 
 const CURRENT_USER_ID = '1';
 
@@ -68,11 +67,7 @@ export default function CommunityScreen() {
         contentContainerClassName="px-4 pb-6"
         showsVerticalScrollIndicator={false}
       >
-        {tab === 'ranking'
-          ? members.map((m) => (
-              <MemberCard key={m.id} member={m} isCurrentUser={m.id === CURRENT_USER_ID} />
-            ))
-          : activities.map((a) => <ActivityItem key={a.id} activity={a} />)}
+
       </ScrollView>
 
     </SafeAreaView>

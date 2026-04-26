@@ -44,7 +44,7 @@ export default function ProfileStatCard({ stats, className = '', isDark, onRecha
         style={{
           borderBottomWidth: 1,
           borderBottomColor: divider,
-          backgroundColor: isDark ? 'rgba(0,0,0,0.15)' : 'rgba(234,179,8,0.05)',
+          backgroundColor: isDark ? '#105099' : 'rgba(234,179,8,0.05)',
         }}
       >
         <Text style={{ fontSize: 19, marginBottom: 4 }}>💎</Text>

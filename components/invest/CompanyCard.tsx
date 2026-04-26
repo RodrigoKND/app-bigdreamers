@@ -12,7 +12,7 @@ interface CompanyCardProps {
 export default function CompanyCard({ name, gems, imageUrl }: CompanyCardProps) {
 
   return (
-    <Link href={`/company/${name}`}>
+    <Link href={`/company/${name}` as any}>
       <View className="w-64 h-80 rounded-3xl mr-4 overflow-hidden bg-gray-200">
         <Image
           source={{ uri: imageUrl }}

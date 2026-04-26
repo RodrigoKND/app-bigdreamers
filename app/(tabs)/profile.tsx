@@ -102,12 +102,14 @@ export default function ProfileScreen() {
   }
 
   // Dark: fondo azul #1565C0, cards azul oscuro navy
-  const screenBg = isDark ? '#035380' : Colors.light.bg;  
+  const screenBg = isDark ? Colors.blue.primary : Colors.light.bg;  
   const cardBg     = isDark ? 'rgba(255,255,255,0.07)' : Colors.light.card;
   const cardBorder = isDark ? 'rgba(255,215,64,0.15)'  : 'rgba(0,0,0,0.06)';
   const divider    = isDark ? 'rgba(0,0,0,0.10)'        : 'rgba(0,0,0,0.05)';
   const iconColor  = isDark ? Colors.gold[400]          : Colors.light.accent;
   const iconBgDark = 'rgba(240, 193, 23, 0.12)'; // destello amarillo suave
+
+
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: screenBg }} edges={['top']}>
 

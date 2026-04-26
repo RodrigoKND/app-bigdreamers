@@ -22,7 +22,7 @@ export default function ProfileHeader({ user, isDark, className = '' }: ProfileH
   return (
     <View
       className={`items-center pt-10 pb-4 px-4 gap-2 ${className}`.trim()}
-      style={{ backgroundColor: isDark ? Colors.navy[900] : Colors.light.bg }}
+      style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}
       accessible={true}
       accessibilityLabel={`Perfil de ${user.name}. Nivel ${config.label}.`}
     >

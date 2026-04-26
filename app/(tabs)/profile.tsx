@@ -28,7 +28,7 @@ function MenuItem({ icon, label, onPress, danger, isDark, showChevron = true }: 
 
   const iconBg = danger
     ? 'rgba(255,107,107,0.15)'
-    : isDark ? 'rgba(255,255,255,0.12)' : Colors.light.accentLight;
+    : isDark ? 'rgba(249, 244, 102, 0.17)' : Colors.light.accentLight;
 
   const iconAccent = danger
     ? '#FF6B6B'
@@ -102,12 +102,12 @@ export default function ProfileScreen() {
   }
 
   // Dark: fondo azul #1565C0, cards azul oscuro navy
-  const screenBg   = isDark ? Colors.blue.primary        : Colors.light.bg;
-  const cardBg     = isDark ? 'rgba(0,0,0,0.20)'       : Colors.light.card;
-  const cardBorder = isDark ? 'rgba(0,0,0,0.10)'        : 'rgba(0,0,0,0.06)';
+  const screenBg = isDark ? '#035380' : Colors.light.bg;  
+  const cardBg     = isDark ? 'rgba(255,255,255,0.07)' : Colors.light.card;
+  const cardBorder = isDark ? 'rgba(255,215,64,0.15)'  : 'rgba(0,0,0,0.06)';
   const divider    = isDark ? 'rgba(0,0,0,0.10)'        : 'rgba(0,0,0,0.05)';
-  const iconColor  = isDark ? '#FFFFFF'                   : Colors.light.accent;
-
+  const iconColor  = isDark ? Colors.gold[400]          : Colors.light.accent;
+  const iconBgDark = 'rgba(240, 193, 23, 0.12)'; // destello amarillo suave
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: screenBg }} edges={['top']}>
 
@@ -195,13 +195,13 @@ export default function ProfileScreen() {
             accessibilityRole="button"
           >
             <View
-              className="w-9 h-9 rounded-xl items-center justify-center"
-              style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : Colors.light.accentLight }}
-            >
-              {isDark
-                ? <Sun size={16} color={Colors.gold[400]} />
-                : <Moon size={16} color={Colors.light.accent} />
-              }
+                className="w-9 h-9 rounded-xl items-center justify-center"
+                style={{ backgroundColor: isDark ? 'rgba(255,215,64,0.12)' : Colors.light.accentLight }}
+              >
+                {isDark
+                  ? <Sun size={16} color={Colors.gold[400]} />
+                  : <Moon size={16} color={Colors.light.accent} />
+                }
             </View>
             <Text
               className="font-sans text-[15px] flex-1"

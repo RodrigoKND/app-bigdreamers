@@ -10,7 +10,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (isLoggedIn) {
-      router.replace('/(tabs)');
+      router.replace('/onboarding');
     }
   }, [isLoggedIn]);
 

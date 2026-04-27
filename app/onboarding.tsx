@@ -7,10 +7,10 @@ import {
   SafeAreaView,
   Dimensions,
   ViewToken,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Colors } from '@/constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -20,144 +20,31 @@ const SLIDES = [
     bg: '#035380',
     title: 'Aprende a manejar\ntu dinero',
     text: 'BigDreamers te enseña finanzas personales de forma fácil y divertida, a tu ritmo y desde tu celular.',
-    owlMood: '📚',
+    image: require('../assets/images/morfeus_aprende.png'),
   },
   {
     id: '2',
     bg: '#035380',
     title: 'Crece con cada\nlección',
     text: 'Gana gemas, sube de nivel y desbloquea nuevos módulos mientras construyes hábitos financieros reales.',
-    owlMood: '🚀',
+    image: require('../assets/images/morfeus_dinero.png'),
   },
   {
     id: '3',
     bg: '#035380',
     title: 'Compite y avanza\nen comunidad',
     text: 'Únete al ranking semanal, comparte tu progreso y motívate con otros BigDreamers como tú.',
-    owlMood: '🏆',
+    image: require('../assets/images/morfeus_volando.png'),
   },
 ];
 
-function OwlPlaceholder({ mood }: { mood: string }) {
+function OwlImage({ source }: { source: any }) {
   return (
-    <View
-      className="items-center justify-center rounded-3xl"
-      style={{
-        width: width * 0.72,
-        height: width * 0.72,
-        backgroundColor: 'rgba(255,255,255,0.10)',
-        borderWidth: 2,
-        borderColor: 'rgba(255,255,255,0.15)',
-      }}
-    >
-      {/* Owl body */}
-      <View
-        className="items-center justify-center rounded-full mb-3"
-        style={{
-          width: 130,
-          height: 130,
-          backgroundColor: 'rgba(255,255,255,0.15)',
-          borderWidth: 2,
-          borderColor: 'rgba(255,255,255,0.25)',
-        }}
-      >
-        {/* Ears */}
-        <View className="flex-row justify-between w-full px-6 absolute -top-4">
-          <View
-            style={{
-              width: 0,
-              height: 0,
-              borderLeftWidth: 10,
-              borderRightWidth: 10,
-              borderBottomWidth: 18,
-              borderLeftColor: 'transparent',
-              borderRightColor: 'transparent',
-              borderBottomColor: 'rgba(255,255,255,0.4)',
-            }}
-          />
-          <View
-            style={{
-              width: 0,
-              height: 0,
-              borderLeftWidth: 10,
-              borderRightWidth: 10,
-              borderBottomWidth: 18,
-              borderLeftColor: 'transparent',
-              borderRightColor: 'transparent',
-              borderBottomColor: 'rgba(255,255,255,0.4)',
-            }}
-          />
-        </View>
-
-        {/* Eyes */}
-        <View className="flex-row gap-4 mb-2">
-          <View
-            className="rounded-full items-center justify-center"
-            style={{ width: 30, height: 30, backgroundColor: '#fff' }}
-          >
-            <View
-              className="rounded-full"
-              style={{ width: 15, height: 15, backgroundColor: '#035380' }}
-            />
-          </View>
-          <View
-            className="rounded-full items-center justify-center"
-            style={{ width: 30, height: 30, backgroundColor: '#fff' }}
-          >
-            <View
-              className="rounded-full"
-              style={{ width: 15, height: 15, backgroundColor: '#035380' }}
-            />
-          </View>
-        </View>
-
-        {/* Beak */}
-        <View
-          style={{
-            width: 0,
-            height: 0,
-            borderLeftWidth: 8,
-            borderRightWidth: 8,
-            borderTopWidth: 12,
-            borderLeftColor: 'transparent',
-            borderRightColor: 'transparent',
-            borderTopColor: '#FFD740',
-          }}
-        />
-
-        {/* Wings hint */}
-        <View className="flex-row justify-between w-full px-2 mt-2">
-          <View
-            className="rounded-full"
-            style={{
-              width: 24,
-              height: 14,
-              backgroundColor: 'rgba(255,255,255,0.25)',
-              transform: [{ rotate: '-20deg' }],
-            }}
-          />
-          <View
-            className="rounded-full"
-            style={{
-              width: 24,
-              height: 14,
-              backgroundColor: 'rgba(255,255,255,0.25)',
-              transform: [{ rotate: '20deg' }],
-            }}
-          />
-        </View>
-      </View>
-
-      {/* Mood icon */}
-      <Text style={{ fontSize: 36, marginTop: 8 }}>{mood}</Text>
-
-      <Text
-        className="text-xs font-medium mt-2"
-        style={{ color: 'rgba(255,255,255,0.30)' }}
-      >
-        Ilustración del búho
-      </Text>
-    </View>
+    <Image
+      source={source}
+      style={{ width: width * 0.72, height: width * 0.72 }}
+      resizeMode="contain"
+    />
   );
 }
 
@@ -193,7 +80,7 @@ export default function OnboardingScreen() {
   const isLast = activeIndex === SLIDES.length - 1;
 
   return (
-    <View style={{ flex: 1, backgroundColor: SLIDES[activeIndex].bg }}>
+    <View style={{ flex: 1, backgroundColor: '#035380' }}>
       <FlatList
         ref={flatListRef}
         data={SLIDES}
@@ -205,15 +92,15 @@ export default function OnboardingScreen() {
         viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         renderItem={({ item }) => (
           <View
-            style={{ width, backgroundColor: item.bg }}
+            style={{ width, flex: 1, backgroundColor: item.bg }}
             className="items-center"
           >
             <SafeAreaView style={{ flex: 1, width: '100%', alignItems: 'center' }}>
               {/* Spacer top */}
               <View style={{ flex: 1 }} />
 
-              {/* Owl */}
-              <OwlPlaceholder mood={item.owlMood} />
+              {/* Owl image */}
+              <OwlImage source={item.image} />
 
               {/* Text */}
               <View className="w-full px-8 mt-10 items-center" style={{ flex: 1 }}>

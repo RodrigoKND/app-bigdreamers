@@ -5,10 +5,24 @@ import {
   ScrollView,
   Pressable,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
-import { Lock, Play, Check } from 'lucide-react-native';
+import {
+  Lock,
+  Play,
+  Check,
+  Gem,
+  DollarSign,
+  TrendingUp,
+  PiggyBank,
+  Building2,
+  CheckCircle,
+  CircleDot,
+} from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
+import LearnHeader from '@/components/learn/LearnHeader';
 
 type ModuleStatus = 'completed' | 'active' | 'locked';
 type Category = 'Finanzas' | 'Inversión' | 'Ahorro' | 'Empresa';
@@ -20,10 +34,22 @@ interface LearningModule {
   lessons: number;
   completedLessons: number;
   status: ModuleStatus;
-  icon: string;
 }
 
-const CATEGORIES: Category[] = ['Finanzas', 'Inversión', 'Ahorro', 'Empresa'];
+const CATEGORIES: { label: Category; icon: React.ReactNode }[] = [
+  { label: 'Finanzas', icon: null },
+  { label: 'Inversión', icon: null },
+  { label: 'Ahorro', icon: null },
+  { label: 'Empresa', icon: null },
+];
+
+const MODULE_ICONS: Record<string, React.FC<{ size: number; color: string }>> = {
+  '1': DollarSign,
+  '2': PiggyBank,
+  '3': TrendingUp,
+  '4': TrendingUp,
+  '5': Building2,
+};
 
 const MODULES: LearningModule[] = [
   {
@@ -33,7 +59,6 @@ const MODULES: LearningModule[] = [
     lessons: 5,
     completedLessons: 5,
     status: 'completed',
-    icon: '💡',
   },
   {
     id: '2',
@@ -42,7 +67,6 @@ const MODULES: LearningModule[] = [
     lessons: 6,
     completedLessons: 6,
     status: 'completed',
-    icon: '💳',
   },
   {
     id: '3',
@@ -51,7 +75,6 @@ const MODULES: LearningModule[] = [
     lessons: 7,
     completedLessons: 3,
     status: 'active',
-    icon: '💰',
   },
   {
     id: '4',
@@ -60,7 +83,6 @@ const MODULES: LearningModule[] = [
     lessons: 8,
     completedLessons: 0,
     status: 'locked',
-    icon: '📈',
   },
   {
     id: '5',
@@ -69,7 +91,6 @@ const MODULES: LearningModule[] = [
     lessons: 10,
     completedLessons: 0,
     status: 'locked',
-    icon: '🏛️',
   },
 ];
 
@@ -87,6 +108,7 @@ function ModuleNode({
   const isLocked = module.status === 'locked';
 
   const nodeSize = isActive ? 80 : 68;
+  const IconComponent = MODULE_ICONS[module.id] ?? DollarSign;
 
   const nodeBg = isLocked
     ? isDark ? Colors.navy[700] : '#CBD5E1'
@@ -95,11 +117,11 @@ function ModuleNode({
     : Colors.gold[400];
 
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  const textMuted = isDark ? Colors.text.muted : Colors.light.textMuted;
+  // Fix: usar blanco/oscuro con opacidad suficiente en lugar de gris puro
+  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
   return (
     <View className="items-center">
-      {/* Connector line above */}
       {!isFirst && (
         <View
           style={{
@@ -112,7 +134,6 @@ function ModuleNode({
         />
       )}
 
-      {/* Node */}
       <View
         className="items-center justify-center rounded-full"
         style={{
@@ -125,9 +146,9 @@ function ModuleNode({
         }}
       >
         {isLocked ? (
-          <Lock size={24} color={isDark ? Colors.text.muted : '#94A3B8'} />
+          <Lock size={24} color={isDark ? 'rgba(255,255,255,0.5)' : '#94A3B8'} />
         ) : (
-          <Text style={{ fontSize: isActive ? 34 : 28 }}>{module.icon}</Text>
+          <IconComponent size={isActive ? 32 : 26} color={isDark ? '#000' : '#1e3a5f'} />
         )}
 
         {isCompleted && (
@@ -140,50 +161,56 @@ function ModuleNode({
         )}
       </View>
 
-      {/* Title */}
       <Text
         className="text-sm font-bold mt-3 text-center"
         style={{
           color: isLocked ? textMuted : textPrimary,
-          opacity: isLocked ? 0.5 : 1,
+          opacity: isLocked ? 0.6 : 1,
         }}
       >
         {module.title}
       </Text>
 
-      {/* Description */}
       <Text
         className="text-xs mt-0.5 text-center"
-        style={{ color: textMuted, opacity: isLocked ? 0.45 : 1 }}
+        style={{ color: textMuted, opacity: isLocked ? 0.6 : 1 }}
       >
         {module.description}
       </Text>
 
-      {/* Status badge */}
       <View
-        className="mt-2 mb-1 rounded-full px-3 py-1"
+        className="mt-2 mb-1 rounded-full px-4 py-1.5"
         style={{
           backgroundColor: isCompleted
-            ? isDark ? 'rgba(22,163,74,0.15)' : '#DCFCE7'
+            ? isDark ? 'rgba(22,163,74,0.18)' : '#DCFCE7'
             : isActive
-            ? isDark ? 'rgba(59,130,246,0.15)' : '#DBEAFE'
-            : isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
+            ? isDark ? 'rgba(59,130,246,0.18)' : '#DBEAFE'
+            : isDark ? 'rgba(255,255,255,0.07)' : '#F1F5F9',
         }}
       >
         {isCompleted && (
-          <Text className="text-xs font-bold" style={{ color: isDark ? '#4ADE80' : '#16A34A' }}>
-            ✓ COMPLETADO
-          </Text>
+          <View className="flex-row items-center gap-1">
+            <CheckCircle size={11} color={isDark ? '#4ADE80' : '#16A34A'} />
+            <Text className="text-xs font-bold" style={{ color: isDark ? '#4ADE80' : '#16A34A' }}>
+              COMPLETADO
+            </Text>
+          </View>
         )}
         {isActive && (
-          <Text className="text-xs font-bold" style={{ color: isDark ? '#60A5FA' : Colors.light.accent }}>
-            ▶ EN CURSO
-          </Text>
+          <View className="flex-row items-center gap-1">
+            <CircleDot size={11} color={isDark ? '#60A5FA' : Colors.light.accent} />
+            <Text className="text-xs font-bold" style={{ color: isDark ? '#60A5FA' : Colors.light.accent }}>
+              EN CURSO
+            </Text>
+          </View>
         )}
         {isLocked && (
-          <Text className="text-xs font-bold" style={{ color: textMuted, opacity: 0.6 }}>
-            🔒 BLOQUEADO
-          </Text>
+          <View className="flex-row items-center gap-1">
+            <Lock size={11} color={textMuted} />
+            <Text className="text-xs font-bold" style={{ color: textMuted }}>
+              BLOQUEADO
+            </Text>
+          </View>
         )}
       </View>
     </View>
@@ -196,127 +223,122 @@ export default function LearnScreen() {
 
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  const textMuted = isDark ? Colors.text.muted : Colors.light.textMuted;
+  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+
+  // Fix margen superior en Android
+  const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0;
 
   const activeModule = MODULES.find(m => m.status === 'active');
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-5 pt-3 pb-4">
-        <Text className="text-2xl font-bold" style={{ color: textPrimary }}>
-          Aprender
-        </Text>
-        <View
-          className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
-          style={{
-            backgroundColor: isDark
-              ? 'rgba(255,215,64,0.12)'
-              : 'rgba(234,179,8,0.12)',
-          }}
-        >
-          <Text>💎</Text>
-          <Text
-            className="text-sm font-bold"
-            style={{ color: isDark ? Colors.gold[400] : Colors.light.gold }}
-          >
-            1,240
-          </Text>
-        </View>
-      </View>
+      <View style={{ flex: 1, paddingTop: statusBarHeight }}>
 
-      {/* Category tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
-        className="mb-5 flex-grow-0"
-      >
-        {CATEGORIES.map((cat) => {
-          const active = activeCategory === cat;
-          return (
-            <Pressable
-              key={cat}
-              onPress={() => setActiveCategory(cat)}
-              accessible={true}
-              accessibilityLabel={`Categoría ${cat}`}
-              className="active:opacity-70 rounded-full px-4 py-2"
-              style={{
-                backgroundColor: active
-                  ? isDark ? Colors.gold[400] : Colors.light.accent
-                  : isDark ? Colors.navy[700] : Colors.light.surface,
-              }}
-            >
-              <Text
-                className="text-sm font-semibold"
+        {/* Header */}
+        <LearnHeader gems={1240} />
+
+        {/* Category tabs — padding vertical aumentado para que no se corten */}
+        <View style={{ height: 44, marginBottom: 16 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            gap: 8,
+            alignItems: 'center',
+          }}
+          style={{ flex: 1 }}
+        >
+          {CATEGORIES.map(({ label }) => {
+            const active = activeCategory === label;
+            return (
+              <Pressable
+                key={label}
+                onPress={() => setActiveCategory(label)}
+                accessible
+                accessibilityLabel={`Categoría ${label}`}
+                className="active:opacity-70 rounded-full"
                 style={{
-                  color: active
-                    ? isDark ? '#000' : '#fff'
-                    : textMuted,
+                  paddingHorizontal: 18,
+                  paddingVertical: 8,
+                  backgroundColor: active
+                    ? isDark ? Colors.gold[400] : Colors.light.accent
+                    : isDark ? Colors.navy[700] : Colors.light.surface,
                 }}
               >
-                {cat}
+                <Text
+                  className="text-sm font-semibold"
+                  style={{
+                    color: active
+                      ? isDark ? '#000' : '#fff'
+                      : textMuted,
+                  }}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+        {/* Route label */}
+        <Text
+          className="text-xs font-bold text-center mb-6 tracking-widest"
+          style={{ color: textMuted }}
+        >
+          RUTA · FINANZAS PERSONALES
+        </Text>
+
+        {/* Modules path */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingTop: 16,
+            paddingBottom: 120,
+            alignItems: 'center',
+            paddingHorizontal: 20,
+          }}
+        >
+          {MODULES.map((module, index) => (
+            <ModuleNode
+              key={module.id}
+              module={module}
+              isFirst={index === 0}
+              isDark={isDark}
+            />
+          ))}
+        </ScrollView>
+
+        {/* CTA bottom */}
+        {activeModule && (
+          <View
+            className="absolute bottom-0 left-0 right-0 px-5 pb-6 pt-3"
+            style={{ backgroundColor: bg }}
+          >
+            <Pressable
+              accessible
+              accessibilityLabel={`Continuar lección ${activeModule.completedLessons + 1}`}
+              className="active:opacity-80 flex-row items-center justify-center rounded-2xl py-4 gap-3"
+              style={{
+                backgroundColor: isDark ? Colors.gold[400] : Colors.light.accent,
+              }}
+            >
+              <Play
+                size={18}
+                color={isDark ? '#000' : '#fff'}
+                fill={isDark ? '#000' : '#fff'}
+              />
+              <Text
+                className="text-base font-bold"
+                style={{ color: isDark ? '#000' : '#fff' }}
+              >
+                Continuar lección {activeModule.completedLessons + 1}
               </Text>
             </Pressable>
-          );
-        })}
-      </ScrollView>
-
-      {/* Route label */}
-      <Text
-        className="text-xs font-bold text-center mb-6 tracking-widest"
-        style={{ color: textMuted }}
-      >
-        RUTA · FINANZAS PERSONALES
-      </Text>
-
-      {/* Modules path */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: 100,
-          alignItems: 'center',
-          paddingHorizontal: 20,
-        }}
-      >
-        {MODULES.map((module, index) => (
-          <ModuleNode
-            key={module.id}
-            module={module}
-            isFirst={index === 0}
-            isDark={isDark}
-          />
-        ))}
-      </ScrollView>
-
-      {/* CTA bottom */}
-      {activeModule && (
-        <View
-          className="absolute bottom-0 left-0 right-0 px-5 pb-6 pt-3"
-          style={{ backgroundColor: bg }}
-        >
-          <Pressable
-            accessible={true}
-            accessibilityLabel={`Continuar lección ${activeModule.completedLessons + 1}`}
-            className="active:opacity-80 flex-row items-center justify-center rounded-2xl py-4 gap-3"
-            style={{
-              backgroundColor: isDark ? Colors.gold[400] : Colors.light.accent,
-            }}
-          >
-            <Play
-              size={18}
-              color={isDark ? '#000' : '#fff'}
-              fill={isDark ? '#000' : '#fff'}
-            />
-            <Text
-              className="text-base font-bold"
-              style={{ color: isDark ? '#000' : '#fff' }}
-            >
-              Continuar lección {activeModule.completedLessons + 1}
-            </Text>
-          </Pressable>
-        </View>
-      )}
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 }

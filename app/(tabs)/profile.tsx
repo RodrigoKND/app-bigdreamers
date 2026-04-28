@@ -4,7 +4,7 @@ import {
   Pressable, ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2 } from 'lucide-react-native';
+import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2, Users  } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { User as UserType } from '@/types';
 import { Colors } from '@/constants/colors';
@@ -12,6 +12,7 @@ import { getCurrentUser } from '@/services/userService';
 import { useTheme } from '@/context/ThemeContext';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileStatCard from '@/components/profile/ProfileStatCard';
+
 import ProfileScreenHeader from '@/components/profile/ProfileScreenHeader';
 
 interface MenuItemProps {
@@ -158,6 +159,14 @@ export default function ProfileScreen() {
           className="mx-4 rounded-2xl overflow-hidden"
           style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
         >
+          {/* Community */}
+          <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
+            <MenuItem
+              isDark={isDark}
+              icon={<Users size={16} color={iconColor} />}
+              label="Comunidad"
+              onPress={() => router.push('/(tabs)/community')}
+            />
           {/* Progreso */}
           <MenuItem
             isDark={isDark}

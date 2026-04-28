@@ -16,7 +16,7 @@ export default function LearnHeader({ gems = 1240 }: LearnHeaderProps) {
   return (
     <View
       style={{ 
-        paddingTop: 2, 
+        paddingTop: 20, 
         paddingBottom: 12, 
         paddingHorizontal: 20 
         }}

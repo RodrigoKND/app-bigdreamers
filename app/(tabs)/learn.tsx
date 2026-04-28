@@ -225,14 +225,11 @@ export default function LearnScreen() {
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
-  // Fix margen superior en Android
-  const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0;
-
   const activeModule = MODULES.find(m => m.status === 'active');
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }}>
-      <View style={{ flex: 1, paddingTop: statusBarHeight }}>
+      <View style={{ flex: 1 }}>
 
         {/* Header */}
         <LearnHeader gems={1240} />

@@ -1,21 +1,33 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { Medal, Star, Trophy, Gem } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
 const LEVELS = ['Bronce', 'Plata', 'Oro', 'Diamante'];
-const LEVEL_EMOJIS = ['🥉', '⭐', '🥇', '💎'];
 const CURRENT_LEVEL_INDEX = 1;
+
+type LevelIconProps = { size: number; color: string };
+
+const LEVEL_ICONS: Record<number, React.FC<LevelIconProps>> = {
+  0: Medal,
+  1: Star,
+  2: Trophy,
+  3: Gem,
+};
 
 interface JourneyCardProps {
   isDark: boolean;
 }
 
 export function JourneyCard({ isDark }: JourneyCardProps) {
+  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+  const textSecond = isDark ? 'rgba(255,255,255,0.85)' : Colors.light.textSecond;
+
   return (
     <View
       className="mx-5 mb-4 rounded-2xl overflow-hidden"
       style={{
-        backgroundColor: isDark ? 'rgba(4, 56, 115, 0.85)' : Colors.light.card,
+        backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card,
         borderWidth: 1,
         borderColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.light.border,
       }}
@@ -26,7 +38,7 @@ export function JourneyCard({ isDark }: JourneyCardProps) {
         <View className="items-center mb-4">
           <Text
             className="text-xs font-bold tracking-widest mb-2"
-            style={{ color: isDark ? 'rgba(255,255,255,0.4)' : Colors.light.textMuted }}
+            style={{ color: textMuted }}
           >
             TU JOURNEY
           </Text>
@@ -46,6 +58,7 @@ export function JourneyCard({ isDark }: JourneyCardProps) {
             const isCompleted = index < CURRENT_LEVEL_INDEX;
             const isCurrent = index === CURRENT_LEVEL_INDEX;
             const isLocked = index > CURRENT_LEVEL_INDEX;
+            const IconComponent = LEVEL_ICONS[index];
 
             return (
               <View key={level} className="items-center flex-1" style={{ position: 'relative' }}>
@@ -80,9 +93,16 @@ export function JourneyCard({ isDark }: JourneyCardProps) {
                     zIndex: 1,
                   }}
                 >
-                  <Text style={{ fontSize: isCurrent ? 22 : 18 }}>
-                    {isCurrent ? '⭐' : LEVEL_EMOJIS[index]}
-                  </Text>
+                  <IconComponent
+                    size={isCurrent ? 22 : 18}
+                    color={
+                      isCurrent
+                        ? '#000'
+                        : isCompleted
+                        ? Colors.gold[400]
+                        : isDark ? 'rgba(255,255,255,0.4)' : Colors.light.textMuted
+                    }
+                  />
                 </View>
 
                 <Text
@@ -91,8 +111,8 @@ export function JourneyCard({ isDark }: JourneyCardProps) {
                     color: isCurrent
                       ? Colors.gold[400]
                       : isCompleted
-                      ? isDark ? 'rgba(255,255,255,0.7)' : Colors.light.textSecond
-                      : isDark ? 'rgba(255,255,255,0.3)' : Colors.light.textMuted,
+                      ? textSecond
+                      : textMuted,
                   }}
                 >
                   {level}
@@ -105,16 +125,10 @@ export function JourneyCard({ isDark }: JourneyCardProps) {
         {/* XP bar */}
         <View>
           <View className="flex-row items-center justify-between mb-2">
-            <Text
-              className="text-xs font-semibold"
-              style={{ color: isDark ? 'rgba(255,255,255,0.5)' : Colors.light.textMuted }}
-            >
+            <Text className="text-xs font-semibold" style={{ color: textMuted }}>
               Plata → Oro
             </Text>
-            <Text
-              className="text-xs font-bold"
-              style={{ color: isDark ? 'rgba(255,255,255,0.7)' : Colors.light.textSecond }}
-            >
+            <Text className="text-xs font-bold" style={{ color: textSecond }}>
               620 / 1,000 XP
             </Text>
           </View>

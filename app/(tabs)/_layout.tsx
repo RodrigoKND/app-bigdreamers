@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { House, TrendingUp, BookOpen, Users, Activity, User } from 'lucide-react-native';
+import { House, TrendingUp, BookOpen, User } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -49,17 +49,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="progress"
+        name="invest"
         options={{
-          title: 'Progreso',
-          tabBarIcon: ({ size, color }) => <Activity size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="community"
-        options={{
-          title: 'Comunidad',
-          tabBarIcon: ({ size, color }) => <Users size={size} color={color} />,
+          title: 'Invertir',
+          tabBarIcon: ({ size, color }) => <TrendingUp size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -68,6 +61,16 @@ export default function TabLayout() {
           title: 'Perfil',
           tabBarIcon: ({ size, color }) => <User size={size} color={color} />,
         }}
+      />
+
+      {/* Ocultar del tab bar pero mantener accesibles como rutas */}
+      <Tabs.Screen
+        name="progress"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="community"
+        options={{ href: null }}
       />
     </Tabs>
   );

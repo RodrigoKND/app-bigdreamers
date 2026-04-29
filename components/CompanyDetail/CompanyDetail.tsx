@@ -10,7 +10,7 @@ export default function CompanyDetail({ companyId }: { companyId: string }) {
     <SafeAreaView className="flex-1 bg-blue-primary" edges={['top']}>
       <View className="absolute -top-20 -right-20 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px]" />
       <View className="absolute top-1/2 -left-20 w-72 h-72 bg-purple-600/10 rounded-full blur-[100px]" />
-      <ButtonBackScreen redirectTo="invest" />
+      <ButtonBackScreen redirectTo="/invest" />
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 20, paddingBottom: 100 }}

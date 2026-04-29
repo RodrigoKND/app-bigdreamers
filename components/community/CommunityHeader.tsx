@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, Pressable, Platform } from 'react-native';
+import { Text, Pressable } from 'react-native';
 import { Search } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
+import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
 
 export default function CommunityHeader() {
   const { isDark } = useTheme();
@@ -11,14 +13,8 @@ export default function CommunityHeader() {
   const cardBg = isDark ? 'rgba(255,255,255,0.10)' : Colors.light.card;
 
   return (
-    <View
-      style={{
-        paddingTop: 20,
-        paddingBottom: 12,
-        paddingHorizontal: 20,
-      }}
-      className="flex-row items-center justify-between"
-    >
+    <SafeAreaView className="flex-row items-center justify-between p-4" edges={['top']}>
+      <ButtonBackScreen redirectTo='/profile' className='px-2'/>
       <Text className="text-2xl font-bold" style={{ color: textPrimary }}>
         Comunidad
       </Text>
@@ -30,6 +26,6 @@ export default function CommunityHeader() {
       >
         <Search size={18} color={textSecondary} />
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }

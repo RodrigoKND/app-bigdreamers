@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, Platform } from 'react-native';
+import { View, Text } from 'react-native';
 import { Zap } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
+import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
 
 interface ProgressHeaderProps {
   streakDays?: number;
@@ -13,14 +15,9 @@ export default function ProgressHeader({ streakDays = 12 }: ProgressHeaderProps)
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
 
   return (
-    <View
-      style={{
-        paddingTop: 20,
-        paddingBottom: 12,
-        paddingHorizontal: 20,
-        }}
-      className="flex-row items-center justify-between"
-    >
+    <SafeAreaView className="flex-row items-center justify-between p-4" edges={['top']}>
+      <ButtonBackScreen redirectTo='/profile' className='px-2' />
+
       <Text className="text-2xl font-bold" style={{ color: textPrimary }}>
         Mi Progreso
       </Text>
@@ -38,6 +35,6 @@ export default function ProgressHeader({ streakDays = 12 }: ProgressHeaderProps)
           {streakDays} días
         </Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

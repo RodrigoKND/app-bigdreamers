@@ -1,6 +1,6 @@
 import { Pressable, Text } from "react-native";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCurrentUser } from "@/services/userService";
+import { getCurrentUser } from "@/services/supabase/userService";
 import { useRouter } from "expo-router";
 import AntDesign from '@expo/vector-icons/AntDesign'
 

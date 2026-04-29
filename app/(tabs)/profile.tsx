@@ -8,7 +8,7 @@ import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2, Users  } from
 import { useRouter } from 'expo-router';
 import { User as UserType } from '@/types';
 import { Colors } from '@/constants/colors';
-import { getCurrentUser } from '@/services/userService';
+import { getCurrentUser } from '@/services/supabase/userService';
 import { useTheme } from '@/context/ThemeContext';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileStatCard from '@/components/profile/ProfileStatCard';

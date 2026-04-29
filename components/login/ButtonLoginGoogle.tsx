@@ -12,7 +12,7 @@ export default function ButtonLoginGoogle() {
     try {
       const user = await getCurrentUser();
       login(user);
-      router.replace('/(tabs)');
+      router.replace('/onboarding');
     } catch (error) {
       console.error('Error logging in:', error);
     }

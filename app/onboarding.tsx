@@ -1,49 +1,27 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   View,
   Text,
   FlatList,
   Pressable,
-  SafeAreaView,
   Dimensions,
   ViewToken,
   Image,
 } from 'react-native';
 import { router } from 'expo-router';
+import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SLIDES } from "@/constants/slides";
 
 const { width } = Dimensions.get('window');
-
-const SLIDES = [
-  {
-    id: '1',
-    bg: '#035380',
-    title: 'Aprende a manejar\ntu dinero',
-    text: 'BigDreamers te enseña finanzas personales de forma fácil y divertida, a tu ritmo y desde tu celular.',
-    image: require('../assets/images/morfeus_aprende.png'),
-  },
-  {
-    id: '2',
-    bg: '#035380',
-    title: 'Crece con cada\nlección',
-    text: 'Gana gemas, sube de nivel y desbloquea nuevos módulos mientras construyes hábitos financieros reales.',
-    image: require('../assets/images/morfeus_dinero.png'),
-  },
-  {
-    id: '3',
-    bg: '#035380',
-    title: 'Compite y avanza\nen comunidad',
-    text: 'Únete al ranking semanal, comparte tu progreso y motívate con otros BigDreamers como tú.',
-    image: require('../assets/images/morfeus_volando.png'),
-  },
-];
 
 function OwlImage({ source }: { source: any }) {
   return (
     <Image
       source={source}
       style={{ width: width * 0.72, height: width * 0.72 }}
-      resizeMode="contain"
+      className="self-center"
+      resizeMode="cover"
     />
   );
 }
@@ -80,7 +58,7 @@ export default function OnboardingScreen() {
   const isLast = activeIndex === SLIDES.length - 1;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#035380' }}>
+    <SafeAreaView className="flex-1 bg-blue-primary">
       <FlatList
         ref={flatListRef}
         data={SLIDES}
@@ -91,103 +69,76 @@ export default function OnboardingScreen() {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         renderItem={({ item }) => (
-          <View
-            style={{ width, flex: 1, backgroundColor: item.bg }}
-            className="items-center"
-          >
-            <SafeAreaView style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-              {/* Spacer top */}
-              <View style={{ flex: 1 }} />
+          <View style={{ width }} className="flex-1">
+            <View className="flex-1">
+              <SafeAreaView className="flex-1 justify-center px-8">
+                
+                {/* Imagen del Búho */}
+                <OwlImage source={item.image} />
 
-              {/* Owl image */}
-              <OwlImage source={item.image} />
+                {/* Contenedor de Texto con margen superior para respiro */}
+                <View className="mt-4 items-center">
+                  <Text className="text-3xl font-bold text-center mb-4 text-white">
+                    {item.title}
+                  </Text>
+                  <Text 
+                    className="text-base text-center text-white/80 leading-6"
+                  >
+                    {item.text}
+                  </Text>
+                </View>
 
-              {/* Text */}
-              <View className="w-full px-8 mt-10 items-center" style={{ flex: 1 }}>
-                <Text
-                  className="text-3xl font-bold text-center mb-4"
-                  style={{ color: '#fff' }}
-                >
-                  {item.title}
-                </Text>
-                <Text
-                  className="text-sm text-center"
-                  style={{ color: 'rgba(255,255,255,0.75)', lineHeight: 22 }}
-                >
-                  {item.text}
-                </Text>
-              </View>
-
-              {/* Spacer bottom */}
-              <View style={{ flex: 1 }} />
-            </SafeAreaView>
+                {/* Espacio inferior para que el texto no choque con los controles */}
+                <View className="h-40" /> 
+              </SafeAreaView>
+            </View>
           </View>
         )}
       />
 
-      {/* Bottom controls */}
-      <View
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          paddingHorizontal: 32,
-          paddingBottom: 48,
-          alignItems: 'center',
-          gap: 20,
-        }}
-      >
-        {/* Dots */}
-        <View className="flex-row gap-2 items-center">
+      {/* Controles inferiores (Absolute) */}
+      <View className="absolute bottom-16 left-0 right-0 px-8 items-center">
+        
+        {/* Indicadores (Dots) */}
+        <View className="flex-row items-center mb-8">
           {SLIDES.map((_, index) => (
             <Pressable
               key={index}
               onPress={() => goToSlide(index)}
-              accessible={true}
-              accessibilityLabel={`Ir a slide ${index + 1}`}
-              className="active:opacity-70 rounded-full"
+              className={`h-4 w-4 rounded-full mx-1 ${
+                activeIndex === index ? 'w-7' : 'w-2.5'
+              }`}
               style={{
-                width: activeIndex === index ? 28 : 10,
-                height: 10,
-                backgroundColor: activeIndex === index
-                  ? '#FFD740'
-                  : 'rgba(255,255,255,0.35)',
+                backgroundColor: activeIndex === index 
+                  ? '#FFD740' 
+                  : 'rgba(255,255,255,0.35)'
               }}
             />
           ))}
         </View>
 
-        {/* Next / Start button */}
+        {/* Botón Principal */}
         <Pressable
           onPress={goToNext}
-          accessible={true}
-          accessibilityLabel={isLast ? 'Comenzar' : 'Siguiente'}
-          className="active:opacity-80 w-full rounded-2xl py-4 items-center"
-          style={{ backgroundColor: '#FFD740' }}
+          className="active:opacity-90 w-full rounded-2xl py-4 items-center bg-[#FFD740]"
         >
-          <Text className="text-base font-bold" style={{ color: '#000' }}>
+          <Text className="text-black text-lg font-bold">
             {isLast ? '¡Comenzar!' : 'Siguiente'}
           </Text>
         </Pressable>
 
-        {/* Skip */}
+        {/* Botón Saltar */}
         {!isLast && (
           <Pressable
             onPress={finish}
-            accessible={true}
-            accessibilityLabel="Saltar onboarding"
-            className="active:opacity-70"
+            className="active:opacity-70 mt-5"
           >
-            <Text
-              className="text-sm font-semibold"
-              style={{ color: 'rgba(255,255,255,0.50)' }}
-            >
+            <Text className="text-white/50 text-sm font-semibold">
               Saltar
             </Text>
           </Pressable>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

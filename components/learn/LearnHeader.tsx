@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, Platform, StatusBar } from 'react-native';
+import { View, Text } from 'react-native';
 import { Gem } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 
@@ -14,14 +15,7 @@ export default function LearnHeader({ gems = 1240 }: LearnHeaderProps) {
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
 
   return (
-    <View
-      style={{ 
-        paddingTop: 20, 
-        paddingBottom: 12, 
-        paddingHorizontal: 20 
-        }}
-      className="flex-row items-center justify-between"
-    >
+    <SafeAreaView className="flex-row items-center justify-between p-4" edges={['top']}>
       <Text className="text-2xl font-bold" style={{ color: textPrimary }}>
         Aprender
       </Text>
@@ -42,6 +36,6 @@ export default function LearnHeader({ gems = 1240 }: LearnHeaderProps) {
           {gems.toLocaleString()}
         </Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

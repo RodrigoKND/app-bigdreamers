@@ -4,13 +4,16 @@ import {
   Pressable, ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LogOut, Shield, Edit2, Sun, Moon, ChevronRight, User } from 'lucide-react-native';
+import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2, Users  } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { User as UserType } from '@/types';
 import { Colors } from '@/constants/colors';
 import { getCurrentUser } from '@/services/userService';
 import { useTheme } from '@/context/ThemeContext';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileStatCard from '@/components/profile/ProfileStatCard';
+
+import ProfileScreenHeader from '@/components/profile/ProfileScreenHeader';
 
 interface MenuItemProps {
   icon: React.ReactNode;
@@ -38,7 +41,7 @@ function MenuItem({ icon, label, onPress, danger, isDark, showChevron = true }: 
     <Pressable
       className="flex-row items-center gap-3 px-4 py-[14px] active:opacity-70"
       onPress={onPress}
-      accessible={true}
+      accessible
       accessibilityLabel={label}
       accessibilityRole="button"
     >
@@ -46,7 +49,6 @@ function MenuItem({ icon, label, onPress, danger, isDark, showChevron = true }: 
         className="w-9 h-9 rounded-xl items-center justify-center"
         style={{ backgroundColor: iconBg }}
       >
-        {/* Clonar el ícono con el color correcto */}
         {React.isValidElement(icon)
           ? React.cloneElement(icon as React.ReactElement<any>, { color: iconAccent })
           : icon}
@@ -71,7 +73,7 @@ function SectionLabel({ label, isDark }: { label: string; isDark: boolean }) {
   return (
     <Text
       className="font-semibold text-xs px-4 pt-5 pb-2 tracking-widest"
-      style={{ color: isDark ? 'rgba(255,255,255,0.5)' : Colors.light.textMuted }}
+      style={{ color: isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted }}
     >
       {label}
     </Text>
@@ -82,6 +84,7 @@ export default function ProfileScreen() {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
   const { isDark, toggleTheme } = useTheme();
+  const router = useRouter();
 
   useEffect(() => {
     getCurrentUser().then((u) => {
@@ -101,54 +104,21 @@ export default function ProfileScreen() {
     );
   }
 
-  // Dark: fondo azul #1565C0, cards azul oscuro navy
-  const screenBg = isDark ? Colors.blue.primary : Colors.light.bg;  
-  const cardBg     = isDark ? 'rgba(255,255,255,0.07)' : Colors.light.card;
-  const cardBorder = isDark ? 'rgba(255,215,64,0.15)'  : 'rgba(0,0,0,0.06)';
-  const divider    = isDark ? 'rgba(0,0,0,0.10)'        : 'rgba(0,0,0,0.05)';
-  const iconColor  = isDark ? Colors.gold[400]          : Colors.light.accent;
-  const iconBgDark = 'rgba(240, 193, 23, 0.12)'; // destello amarillo suave
-
+  const screenBg   = isDark ? Colors.blue.primary : Colors.light.bg;
+  const cardBg     = isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card;
+  const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
+  const divider    = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
+  const iconColor  = isDark ? Colors.gold[400] : Colors.light.accent;
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: screenBg }} edges={['top']}>
 
-      {/* Header */}
-      <View
-        className="flex-row items-center justify-between px-4 pt-2 pb-1"
-        style={{ backgroundColor: screenBg }}
-      >
-        <Text
-          className="font-bold text-[24px]"
-          style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}
-        >
-          Perfil
-        </Text>
-
-        <Pressable
-          className="w-9 h-9 rounded-full items-center justify-center active:opacity-70"
-          style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : Colors.light.surface }}
-          accessible={true}
-          accessibilityLabel="Editar perfil"
-          accessibilityRole="button"
-        >
-          <Edit2 size={17} color={iconColor} />
-        </Pressable>
-      </View>
+      <ProfileScreenHeader onEdit={() => console.log('Editar')} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerClassName="pb-10"
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Separador */}
-        <View
-          style={{
-            height: 1,
-            marginTop: 15,
-            backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)',
-          }}
-        />
-
         {/* Avatar + nombre + badge */}
         <ProfileHeader user={user} isDark={isDark} />
 
@@ -158,9 +128,9 @@ export default function ProfileScreen() {
           className="mt-2"
           onRechargeGems={() => console.log('Recargar gemas')}
           stats={[
-            { label: 'GEMAS',   value: user.gems.toLocaleString(), accent: Colors.gold[500], icon: '💎' },
-            { label: 'MÓDULOS', value: user.completedModules,      accent: isDark ? '#FFFFFF' : Colors.light.textPrimary, icon: '📚' },
-            { label: 'RACHA',   value: user.streak,                accent: Colors.warning,   icon: '🔥' },
+            { label: 'GEMAS',   value: user.gems.toLocaleString(), accent: Colors.gold[500] },
+            { label: 'MÓDULOS', value: user.completedModules,      accent: isDark ? '#FFFFFF' : Colors.light.textPrimary },
+            { label: 'RACHA',   value: user.streak,                accent: Colors.warning },
           ]}
         />
 
@@ -189,21 +159,39 @@ export default function ProfileScreen() {
           className="mx-4 rounded-2xl overflow-hidden"
           style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
         >
+          {/* Community */}
+          <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
+            <MenuItem
+              isDark={isDark}
+              icon={<Users size={16} color={iconColor} />}
+              label="Comunidad"
+              onPress={() => router.push('/(tabs)/community')}
+            />
+          {/* Progreso */}
+          <MenuItem
+            isDark={isDark}
+            icon={<BarChart2 size={16} color={iconColor} />}
+            label="Mi Progreso"
+            onPress={() => router.push('/(tabs)/progress')}
+          />
+          <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
+
+          {/* Tema */}
           <Pressable
             className="flex-row items-center gap-3 px-4 py-[14px] active:opacity-70"
             onPress={toggleTheme}
-            accessible={true}
+            accessible
             accessibilityLabel={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
             accessibilityRole="button"
           >
             <View
-                className="w-9 h-9 rounded-xl items-center justify-center"
-                style={{ backgroundColor: isDark ? 'rgba(255,215,64,0.12)' : Colors.light.accentLight }}
-              >
-                {isDark
-                  ? <Sun size={16} color={Colors.gold[400]} />
-                  : <Moon size={16} color={Colors.light.accent} />
-                }
+              className="w-9 h-9 rounded-xl items-center justify-center"
+              style={{ backgroundColor: isDark ? 'rgba(255,215,64,0.12)' : Colors.light.accentLight }}
+            >
+              {isDark
+                ? <Sun size={16} color={Colors.gold[400]} />
+                : <Moon size={16} color={Colors.light.accent} />
+              }
             </View>
             <Text
               className="font-sans text-[15px] flex-1"
@@ -213,7 +201,7 @@ export default function ProfileScreen() {
             </Text>
             <Text
               className="text-[13px]"
-              style={{ color: isDark ? 'rgba(255,255,255,0.5)' : Colors.light.textMuted }}
+              style={{ color: isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted }}
             >
               {isDark ? 'Oscuro' : 'Claro'}
             </Text>
@@ -229,7 +217,7 @@ export default function ProfileScreen() {
               borderWidth: 1,
               borderColor: isDark ? 'rgba(255,107,107,0.20)' : 'rgba(220,38,38,0.12)',
             }}
-            accessible={true}
+            accessible
             accessibilityLabel="Cerrar sesión"
             accessibilityRole="button"
           >
@@ -237,7 +225,7 @@ export default function ProfileScreen() {
               className="w-9 h-9 rounded-xl items-center justify-center"
               style={{ backgroundColor: isDark ? 'rgba(255,107,107,0.12)' : 'rgba(220,38,38,0.1)' }}
             >
-              <LogOut size={16} color='#FF6B6B' />
+              <LogOut size={16} color="#FF6B6B" />
             </View>
             <Text
               className="font-semibold text-[15px] flex-1"

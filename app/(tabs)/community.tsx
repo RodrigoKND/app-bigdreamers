@@ -6,9 +6,10 @@ import {
   Pressable,
   SafeAreaView,
 } from 'react-native';
-import { Search } from 'lucide-react-native';
+import { Search, Gem, Crown } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
+import CommunityHeader from '@/components/community/CommunityHeader';
 
 type Period = 'semanal' | 'mensual' | 'global';
 
@@ -40,10 +41,10 @@ export default function CommunityScreen() {
   const [period, setPeriod] = useState<Period>('semanal');
 
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
-  const cardBg = isDark ? 'rgba(255,255,255,0.10)' : Colors.light.card; 
+  const cardBg = isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card;
+  const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : Colors.light.border;
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  const textSecondary = isDark ? Colors.text.secondary : Colors.light.textSecond;
-  const textMuted = isDark ? Colors.text.muted : Colors.light.textMuted;
+  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
   const top3 = MOCK_USERS.filter(u => u.rank <= 3);
   const rest = MOCK_USERS.filter(u => u.rank > 3);
@@ -60,33 +61,22 @@ export default function CommunityScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-5 pt-3 pb-4">
-        <Text className="text-2xl font-bold" style={{ color: textPrimary }}>
-          Comunidad
-        </Text>
-        <Pressable
-          accessible={true}
-          accessibilityLabel="Buscar en comunidad"
-          className="active:opacity-70 w-9 h-9 rounded-full items-center justify-center"
-          style={{ backgroundColor: cardBg }}
-        >
-          <Search size={18} color={textSecondary} />
-        </Pressable>
-      </View>
+      <CommunityHeader />
 
       {/* Period pills */}
-      <View className="flex-row px-5 gap-2 mb-5">
+      <View className="flex-row px-5 gap-2 mb-5 justify-center">
         {(['semanal', 'mensual', 'global'] as Period[]).map((p) => {
           const active = period === p;
           return (
             <Pressable
               key={p}
               onPress={() => setPeriod(p)}
-              accessible={true}
+              accessible
               accessibilityLabel={`Ranking ${p}`}
-              className="active:opacity-70 rounded-full px-4 py-2"
+              className="active:opacity-70 rounded-full"
               style={{
+                paddingHorizontal: 20,
+                paddingVertical: 9,
                 backgroundColor: active
                   ? isDark ? Colors.gold[400] : Colors.light.accent
                   : isDark ? Colors.navy[700] : Colors.light.surface,
@@ -108,6 +98,7 @@ export default function CommunityScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+
         {/* Podio */}
         <View className="px-5 mb-6">
           <View className="flex-row items-end justify-center gap-4">
@@ -129,7 +120,7 @@ export default function CommunityScreen() {
                 <Text className="text-xs font-bold" style={{ color: isDark ? Colors.gold[400] : Colors.light.accent }}>
                   {second.gems.toLocaleString()}
                 </Text>
-                <Text>💎</Text>
+                <Gem size={11} color={isDark ? Colors.gold[400] : Colors.light.accent} />
               </View>
               <View
                 className="w-full items-center justify-center rounded-lg mt-2 py-2.5"
@@ -141,7 +132,7 @@ export default function CommunityScreen() {
 
             {/* 1ro */}
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">👑</Text>
+              <Crown size={20} color={Colors.gold[400]} style={{ marginBottom: 4 }} />
               <View
                 className="w-16 h-16 rounded-full items-center justify-center mb-2 border-2"
                 style={{ backgroundColor: first.levelBg, borderColor: Colors.gold[400] }}
@@ -157,7 +148,7 @@ export default function CommunityScreen() {
                 <Text className="text-xs font-bold" style={{ color: isDark ? Colors.gold[400] : Colors.light.accent }}>
                   {first.gems.toLocaleString()}
                 </Text>
-                <Text>💎</Text>
+                <Gem size={11} color={isDark ? Colors.gold[400] : Colors.light.accent} />
               </View>
               <View
                 className="w-full items-center justify-center rounded-lg mt-2 py-2.5"
@@ -184,7 +175,7 @@ export default function CommunityScreen() {
                 <Text className="text-xs font-bold" style={{ color: isDark ? Colors.gold[400] : Colors.light.accent }}>
                   {third.gems.toLocaleString()}
                 </Text>
-                <Text>💎</Text>
+                <Gem size={11} color={isDark ? Colors.gold[400] : Colors.light.accent} />
               </View>
               <View
                 className="w-full items-center justify-center rounded-lg mt-2 py-2.5"
@@ -202,17 +193,17 @@ export default function CommunityScreen() {
           {rest.map((user) => (
             <Pressable
               key={user.id}
-              accessible={true}
+              accessible
               accessibilityLabel={`${user.name}, puesto ${user.rank}, ${user.gems} gemas`}
               className="active:opacity-70 flex-row items-center rounded-2xl px-4 py-3"
               style={{
                 backgroundColor: user.isYou
                   ? isDark ? 'rgba(255,215,64,0.08)' : 'rgba(4,138,191,0.08)'
                   : cardBg,
-                borderWidth: user.isYou ? 1 : 0,
+                borderWidth: 1,
                 borderColor: user.isYou
                   ? isDark ? 'rgba(255,215,64,0.3)' : Colors.light.accent
-                  : 'transparent',
+                  : cardBorder,
               }}
             >
               <Text className="text-xs font-bold w-8" style={{ color: textMuted }}>
@@ -253,11 +244,12 @@ export default function CommunityScreen() {
                 <Text className="text-sm font-bold" style={{ color: isDark ? Colors.gold[400] : Colors.light.accent }}>
                   {user.gems.toLocaleString()}
                 </Text>
-                <Text>💎</Text>
+                <Gem size={13} color={isDark ? Colors.gold[400] : Colors.light.accent} />
               </View>
             </Pressable>
           ))}
         </View>
+
       </ScrollView>
     </SafeAreaView>
   );

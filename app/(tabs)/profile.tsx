@@ -126,7 +126,7 @@ export default function ProfileScreen() {
         <ProfileStatCard
           isDark={isDark}
           className="mt-2"
-          onRechargeGems={() => console.log('Recargar gemas')}
+          onRechargeGems={() => router.push('/gems')}
           stats={[
             { label: 'GEMAS',   value: user.gems.toLocaleString(), accent: Colors.gold[500] },
             { label: 'MÓDULOS', value: user.completedModules,      accent: isDark ? '#FFFFFF' : Colors.light.textPrimary },
@@ -140,6 +140,17 @@ export default function ProfileScreen() {
           className="mx-4 rounded-2xl overflow-hidden"
           style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
         >
+          {user.role === 'admin' && (
+            <>
+              <MenuItem
+                isDark={isDark}
+                icon={<Shield size={16} color={iconColor} />}
+                label="Panel de Administrador"
+                onPress={() => router.push('/admin')}
+              />
+              <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
+            </>
+          )}
           <MenuItem
             isDark={isDark}
             icon={<User size={16} color={iconColor} />}

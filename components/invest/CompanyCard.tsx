@@ -2,6 +2,7 @@ import { View, Text, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Button from '@/components/shared/Button';
 import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 interface CompanyCardProps {
   name: string;
@@ -10,6 +11,7 @@ interface CompanyCardProps {
 }
 
 export default function CompanyCard({ name, gems, imageUrl }: CompanyCardProps) {
+  const router = useRouter();
 
   return (
     <Link href={`/company/${name}` as any}>
@@ -38,6 +40,7 @@ export default function CompanyCard({ name, gems, imageUrl }: CompanyCardProps) 
               title="+"
               size="sm"
               className="bg-white/40 border-white p-2 rounded-full shadow-sm"
+              onPress={() => router.push('/gems')}
             />
           </View>
         </View>

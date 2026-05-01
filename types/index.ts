@@ -15,6 +15,7 @@ export interface User {
   completedModules: number;
   communityRank: number;
   totalGemsEarned: number;
+  role: 'admin' | 'user';
 }
 
 export interface CommunityMember {

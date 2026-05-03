@@ -11,7 +11,7 @@ import RequestSentBanner from '@/components/gems/RequestSentBanner';
 import { GEM_PACKAGES } from '@/constants/gemPackages';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-
+//.
 
 const GemsScreen = () => {
   const { isDark } = useTheme();

@@ -16,6 +16,7 @@ import GemRequestCard from '@/components/admin/gems/GemRequestCard';
 import ConfirmApproveModal from '@/components/admin/gems/ConfirmApproveModal';
 import CourseForm from '@/components/admin/courses/CourseForm';
 import CompanyForm from '@/components/admin/companies/CompanyForm';
+import ConfirmRejectModal from '@/components/admin/gems/ConfirmRejectModal';
 
 const AdminScreen = () => {
   const { isDark } = useTheme();
@@ -27,6 +28,8 @@ const AdminScreen = () => {
   const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [courses, setCourses] = useState<Partial<Course>[]>(MOCK_COURSES);
   const [companies, setCompanies] = useState<Partial<Company>[]>(MOCK_COMPANIES);
+  const [pendingRejection, setPendingRejection] = useState<GemRequest | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
 
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
@@ -48,9 +51,17 @@ const AdminScreen = () => {
   };
 
   const handleReject = (id: string) => {
+    const req = gemRequests.find(r => r.id === id);
+    setPendingRejection(req ?? null);
+    setShowRejectModal(true);
+  };
+
+  const confirmReject = () => {
     setGemRequests(prev =>
-      prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r)
+      prev.map(r => r.id === pendingRejection?.id ? { ...r, status: 'rejected' } : r)
     );
+    setShowRejectModal(false);
+    setPendingRejection(null);
   };
 
   const handlePublishCourse = (course: Partial<Course>) => {
@@ -225,6 +236,14 @@ const AdminScreen = () => {
         request={pendingApproval}
         onConfirm={confirmApprove}
         onCancel={() => setShowApproveModal(false)}
+        isDark={isDark}
+      />
+
+      <ConfirmRejectModal
+        visible={showRejectModal}
+        request={pendingRejection}
+        onConfirm={confirmReject}
+        onCancel={() => setShowRejectModal(false)}
         isDark={isDark}
       />
     </SafeAreaView>

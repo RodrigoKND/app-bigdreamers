@@ -73,7 +73,7 @@ const AdminScreen = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}>
-      <AdminHeader isDark={isDark} />
+      <AdminHeader />
       <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} isDark={isDark} />
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>

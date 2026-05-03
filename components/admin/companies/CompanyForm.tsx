@@ -24,13 +24,19 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
 
   const inputStyle = {
     backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : '#F1F5F9',
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
+    borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#E2E8F0',
     color: textPrimary,
-    padding: 12,
-    fontSize: 14,
-    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    fontSize: 15,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: isDark ? 0.15 : 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   };
 
   const addTeamMember = () => {
@@ -63,10 +69,18 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
   const canPublish = name.trim() && description.trim() && level;
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 40 }}>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: textPrimary, marginBottom: 20 }}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 28, paddingBottom: 32 }}>
+      <Text style={{ fontSize: 22, fontWeight: '800', color: textPrimary, marginBottom: 8, letterSpacing: 0.3 }}>
         Nueva Empresa
       </Text>
+      <View style={{
+        width: 32,
+        height: 3,
+        backgroundColor: Colors.gold[400],
+        borderRadius: 2,
+        marginBottom: 20,
+        marginTop: -12,
+      }} />
 
       <TextInput
         placeholder="Nombre de la empresa"
@@ -106,7 +120,7 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
       <LevelSelector selected={level} onSelect={setLevel} isDark={isDark} />
 
       <View style={{ marginTop: 20 }}>
-        <Text style={{ fontWeight: '700', color: textPrimary, marginBottom: 12 }}>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: textPrimary, marginBottom: 10, letterSpacing: 0.4, textTransform: 'uppercase', opacity: 0.9 }}>
           Representantes del equipo
         </Text>
 
@@ -155,10 +169,11 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
             borderRadius: 10,
             paddingVertical: 12,
             marginBottom: 20,
+            marginTop: 12,
           }}
         >
           <UserPlus size={16} color={Colors.gold[400]} />
-          <Text style={{ marginLeft: 8, color: Colors.gold[400], fontWeight: '600' }}>
+          <Text style={{ marginLeft: 8, color: Colors.gold[400], fontWeight: '600', fontSize: 14, letterSpacing: 0.3 }}>
             Agregar representante
           </Text>
         </Pressable>
@@ -169,13 +184,15 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
           onPress={onCancel}
           style={{
             flex: 1,
-            backgroundColor: 'rgba(255,255,255,0.08)',
-            borderRadius: 16,
-            paddingVertical: 16,
+            backgroundColor: 'rgba(255,255,255,0.06)',
+            borderRadius: 14,
+            paddingVertical: 15,
             alignItems: 'center',
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.12)',
           }}
         >
-          <Text style={{ color: textMuted, fontWeight: '600' }}>Cancelar</Text>
+          <Text style={{ color: textMuted, fontWeight: '600', fontSize: 14, letterSpacing: 0.3 }}>Cancelar</Text>
         </Pressable>
 
         <Pressable
@@ -183,14 +200,19 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
           style={{
             flex: 1,
             backgroundColor: canPublish ? Colors.gold[400] : 'rgba(255,255,255,0.08)',
-            borderRadius: 16,
-            paddingVertical: 16,
+            borderRadius: 14,
+            paddingVertical: 15,
             alignItems: 'center',
             opacity: canPublish ? 1 : 0.4,
+            shadowColor: Colors.gold[400],
+            shadowOpacity: canPublish ? 0.4 : 0,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: canPublish ? 4 : 0,
           }}
         >
-          <Text style={{ color: canPublish ? '#000' : textMuted, fontWeight: '800' }}>
-            Publicar empresa
+          <Text style={{ color: canPublish ? '#000' : textMuted, fontWeight: '800', fontSize: 14, letterSpacing: 0.4 }}>
+            Crear empresa
           </Text>
         </Pressable>
       </View>

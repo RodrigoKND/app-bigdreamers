@@ -24,13 +24,19 @@ const CourseForm = ({ isDark, onPublish, onCancel }: CourseFormProps) => {
 
   const inputStyle = {
     backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : '#F1F5F9',
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
+    borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#E2E8F0',
     color: textPrimary,
-    padding: 12,
-    fontSize: 14,
-    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    fontSize: 15,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: isDark ? 0.15 : 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   };
 
   const categories: Course['category'][] = ['Finanzas', 'Inversión', 'Ahorro', 'Empresa'];
@@ -75,10 +81,18 @@ const CourseForm = ({ isDark, onPublish, onCancel }: CourseFormProps) => {
   const canPublish = title.trim() && modules.length > 0;
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 40 }}>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: textPrimary, marginBottom: 20 }}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 28, paddingBottom: 32 }}>
+      <Text style={{ fontSize: 22, fontWeight: '800', color: textPrimary, marginBottom: 8, letterSpacing: 0.3 }}>
         Nuevo Curso
       </Text>
+      <View style={{
+        width: 32,
+        height: 3,
+        backgroundColor: Colors.gold[400],
+        borderRadius: 2,
+        marginBottom: 20,
+        marginTop: -12,
+      }} />
 
       <TextInput
         placeholder="Título del curso"
@@ -98,44 +112,62 @@ const CourseForm = ({ isDark, onPublish, onCancel }: CourseFormProps) => {
         style={[inputStyle, { height: 80, textAlignVertical: 'top' }]}
       />
 
-      <Text style={{ fontWeight: '600', color: textPrimary, marginBottom: 8 }}>Categoría</Text>
+      <Text style={{ fontSize: 13, fontWeight: '700', color: textPrimary, marginBottom: 10, letterSpacing: 0.4, textTransform: 'uppercase', opacity: 0.9 }}>Categoría</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 }}>
         {categories.map((cat) => (
           <Pressable
             key={cat}
             onPress={() => setCategory(cat)}
             style={{
-              paddingHorizontal: 12,
-              paddingVertical: 8,
+              paddingHorizontal: 14,
+              paddingVertical: 9,
               borderRadius: 20,
-              backgroundColor: category === cat ? Colors.gold[400] : 'rgba(255,255,255,0.08)',
+              backgroundColor: category === cat ? Colors.gold[400] : 'rgba(255,255,255,0.06)',
+              borderWidth: 1,
+              borderColor: category === cat ? Colors.gold[400] : 'rgba(255,255,255,0.1)',
               marginRight: 8,
               marginBottom: 8,
+              shadowColor: category === cat ? Colors.gold[400] : 'transparent',
+              shadowOpacity: category === cat ? 0.3 : 0,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 2 },
             }}
           >
-            <Text style={{ fontSize: 12, fontWeight: '600', color: category === cat ? '#000' : textMuted }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: category === cat ? '#000' : textMuted, letterSpacing: 0.3 }}>
               {cat}
             </Text>
           </Pressable>
         ))}
       </View>
 
-      <View style={{ marginBottom: 20 }}>
+      <View style={{
+        marginBottom: 24,
+        padding: 14,
+        backgroundColor: isDark ? 'rgba(0,0,0,0.18)' : 'rgba(0,0,0,0.02)',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+      }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ fontWeight: '700', color: textPrimary }}>Módulos</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: textPrimary, letterSpacing: 0.4, textTransform: 'uppercase', opacity: 0.9 }}>Módulos</Text>
           <Pressable
             onPress={addModule}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
               backgroundColor: Colors.gold[400],
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 8,
+              paddingHorizontal: 14,
+              paddingVertical: 8,
+              borderRadius: 10,
+              shadowColor: Colors.gold[400],
+              shadowOpacity: 0.35,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 3,
             }}
           >
             <Plus size={14} color="#000" />
-            <Text style={{ marginLeft: 6, fontSize: 12, fontWeight: '600', color: '#000' }}>
+            <Text style={{ marginLeft: 6, fontSize: 12, fontWeight: '600', color: '#000', letterSpacing: 0.3 }}>
               Agregar módulo
             </Text>
           </Pressable>
@@ -152,7 +184,7 @@ const CourseForm = ({ isDark, onPublish, onCancel }: CourseFormProps) => {
           />
         ))}
 
-        <Text style={{ fontSize: 12, color: textMuted, marginTop: 8 }}>
+        <Text style={{ fontSize: 12, color: textMuted, marginTop: 10, lineHeight: 18, fontStyle: 'italic', opacity: 0.85 }}>
           Cada módulo puede contener lecciones y tiene su propia insignia.
         </Text>
       </View>
@@ -164,13 +196,15 @@ const CourseForm = ({ isDark, onPublish, onCancel }: CourseFormProps) => {
           onPress={onCancel}
           style={{
             flex: 1,
-            backgroundColor: 'rgba(255,255,255,0.08)',
-            borderRadius: 16,
-            paddingVertical: 16,
+            backgroundColor: 'rgba(255,255,255,0.06)',
+            borderRadius: 14,
+            paddingVertical: 15,
             alignItems: 'center',
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.12)',
           }}
         >
-          <Text style={{ color: textMuted, fontWeight: '600' }}>Cancelar</Text>
+          <Text style={{ color: textMuted, fontWeight: '600', fontSize: 14, letterSpacing: 0.3 }}>Cancelar</Text>
         </Pressable>
 
         <Pressable
@@ -178,13 +212,18 @@ const CourseForm = ({ isDark, onPublish, onCancel }: CourseFormProps) => {
           style={{
             flex: 1,
             backgroundColor: canPublish ? Colors.gold[400] : 'rgba(255,255,255,0.08)',
-            borderRadius: 16,
-            paddingVertical: 16,
+            borderRadius: 14,
+            paddingVertical: 15,
             alignItems: 'center',
             opacity: canPublish ? 1 : 0.4,
+            shadowColor: Colors.gold[400],
+            shadowOpacity: canPublish ? 0.4 : 0,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: canPublish ? 4 : 0,
           }}
         >
-          <Text style={{ color: canPublish ? '#000' : textMuted, fontWeight: '800' }}>
+          <Text style={{ color: canPublish ? '#000' : textMuted, fontWeight: '800', fontSize: 14, letterSpacing: 0.4 }}>
             Publicar curso
           </Text>
         </Pressable>

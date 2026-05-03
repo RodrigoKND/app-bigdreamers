@@ -22,9 +22,9 @@ const AdminTabs = ({ activeTab, onTabChange, isDark }: AdminTabsProps) => {
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 20 }}
-      style={{ marginBottom: 16 }}
+      style={{ marginBottom: 16, flexGrow: 0 }}
     >
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={{ flexDirection: 'row', gap: 8}}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
           const Icon = tab.icon;

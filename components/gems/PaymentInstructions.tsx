@@ -20,7 +20,7 @@ const PaymentInstructions = ({ isDark, hasImage, onPickImage }: PaymentInstructi
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
 
   return (
-    <View style={{ marginBottom: 16 }}>
+    <View style={{ marginBottom: 16, gap: 12 }}>
       <View style={cardStyle}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
           <Info size={16} color={Colors.gold[400]} />

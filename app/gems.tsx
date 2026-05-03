@@ -9,13 +9,17 @@ import PaymentInstructions from '@/components/gems/PaymentInstructions';
 import ConfirmRequestModal from '@/components/gems/ConfirmRequestModal';
 import RequestSentBanner from '@/components/gems/RequestSentBanner';
 import { GEM_PACKAGES } from '@/constants/gemPackages';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+
 
 const GemsScreen = () => {
   const { isDark } = useTheme();
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
-  const [hasImage, setHasImage] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const selectedPackage = GEM_PACKAGES.find((item) => item.id === selectedPackageId) ?? null;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
@@ -26,17 +30,18 @@ const GemsScreen = () => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
     });
-
     if (!result.canceled) {
-      setHasImage(true);
+      setImageUri(result.assets[0].uri);
     }
   };
 
+
   const handleRequestPress = () => {
-    if (selectedPackageId && hasImage) {
+    if (selectedPackageId && imageUri) {
       setShowConfirmModal(true);
     }
   };
+
 
   const handleConfirm = () => {
     setShowConfirmModal(false);
@@ -46,7 +51,7 @@ const GemsScreen = () => {
   const handleBack = () => {
     setRequestSent(false);
     setSelectedPackageId(null);
-    setHasImage(false);
+    setImageUri(null);
   };
 
   return (
@@ -73,21 +78,21 @@ const GemsScreen = () => {
               ))}
             </View>
             <View style={{ height: 24 }} />
-            <PaymentInstructions isDark={isDark} hasImage={hasImage} onPickImage={handlePickImage} />
+            <PaymentInstructions isDark={isDark} imageUri={imageUri} onPickImage={handlePickImage} />
           </ScrollView>
 
-          <View style={{ position: 'absolute', left: 20, right: 20, bottom: 30 }}>
+          <View style={{ position: 'absolute', left: 20, right: 20, bottom: insets.bottom + 20 }}>
             <Pressable
               onPress={handleRequestPress}
               style={{
-                backgroundColor: selectedPackageId && hasImage ? Colors.gold[400] : Colors.navy?.[700] ?? '#1E3A5F',
+                backgroundColor: selectedPackageId && imageUri ? Colors.gold[400] : Colors.navy?.[700] ?? '#1E3A5F',
+                opacity: selectedPackageId && imageUri ? 1 : 0.4,
                 borderRadius: 16,
                 paddingVertical: 16,
                 alignItems: 'center',
-                opacity: selectedPackageId && hasImage ? 1 : 0.4,
               }}
             >
-              <Text style={{ color: '#000', fontWeight: '800', fontSize: 16 }}>Solicitar gemas</Text>
+              <Text style={{ color: '#000', fontWeight: '800', fontSize: 15  }}>Solicitar gemas</Text>
             </Pressable>
           </View>
         </View>

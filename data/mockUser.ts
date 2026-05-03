@@ -15,4 +15,5 @@ export const MOCK_USER: User = {
   completedModules: 8,
   communityRank: 14,
   totalGemsEarned: 3200,
+  role: 'admin',
 };

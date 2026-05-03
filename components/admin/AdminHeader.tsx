@@ -11,19 +11,17 @@ const AdminHeader = () => {
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
   return (
-    <SafeAreaView edges={['top']}>
-      <View className="flex-row items-center justify-between p-4">
-        <ButtonBackScreen redirectTo='/profile' className='px-2'/>
-        <View className="flex-1 items-center">
-          <Text className="text-2xl font-bold" style={{ color: textPrimary }}>
-            Panel Admin
-          </Text>
-          <Text className="text-sm" style={{ color: textMuted, marginTop: 2 }}>
-            Administración de BigDreamers
-          </Text>
-        </View>
-        <View style={{ width: 40 }} />
+    <SafeAreaView className="flex-row items-center justify-between p-4" edges={['top']}>
+      <ButtonBackScreen redirectTo='/profile' className='px-2'/>
+      <View className="flex-1 items-center">
+        <Text className="text-2xl font-bold" style={{ color: textPrimary }}>
+          Panel Admin
+        </Text>
+        <Text className="text-sm" style={{ color: textMuted, marginTop: 2 }}>
+          Administración de BigDreamers
+        </Text>
       </View>
+      <View style={{ width: 40 }} />
     </SafeAreaView>
   );
 };

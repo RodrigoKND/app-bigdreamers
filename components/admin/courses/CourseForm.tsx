@@ -75,7 +75,7 @@ const CourseForm = ({ isDark, onPublish, onCancel }: CourseFormProps) => {
   const canPublish = title.trim() && modules.length > 0;
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 40 }}>
       <Text style={{ fontSize: 18, fontWeight: '800', color: textPrimary, marginBottom: 20 }}>
         Nuevo Curso
       </Text>

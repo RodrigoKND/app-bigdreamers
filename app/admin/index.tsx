@@ -83,7 +83,7 @@ const AdminScreen = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}edges={['bottom']}>
       <AdminHeader />
       <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} isDark={isDark} />
 

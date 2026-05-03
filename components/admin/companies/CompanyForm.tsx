@@ -63,7 +63,7 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
   const canPublish = name.trim() && description.trim() && level;
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 40 }}>
       <Text style={{ fontSize: 18, fontWeight: '800', color: textPrimary, marginBottom: 20 }}>
         Nueva Empresa
       </Text>

@@ -34,3 +34,7 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 package-lock.json
+
+#supabase
+services/supabase/database.md
+services/supabase/schema.sql

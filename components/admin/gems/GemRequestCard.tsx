@@ -68,21 +68,23 @@ const GemRequestCard = ({ request, onApprove, onReject, isDark }: GemRequestCard
         <Text style={{ marginLeft: 8, color: textMuted }}>{request.bsPrice} Bs</Text>
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: statusBadge.bg,
-            paddingHorizontal: 8,
-            paddingVertical: 4,
-            borderRadius: 12,
-          }}
-        >
-          <StatusIcon size={12} color={statusBadge.color} />
-          <Text style={{ marginLeft: 4, fontSize: 10, fontWeight: '800', color: statusBadge.color }}>
-            {statusBadge.text}
-          </Text>
+      <View style={{ gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: statusBadge.bg,
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 12,
+            }}
+          >
+            <StatusIcon size={12} color={statusBadge.color} />
+            <Text style={{ marginLeft: 4, fontSize: 10, fontWeight: '800', color: statusBadge.color }}>
+              {statusBadge.text}
+            </Text>
+          </View>
         </View>
 
         {request.status === 'pending' && (
@@ -90,8 +92,10 @@ const GemRequestCard = ({ request, onApprove, onReject, isDark }: GemRequestCard
             <Pressable
               onPress={() => onReject(request.id)}
               style={{
+                flex: 1,
                 flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent: 'center',
                 backgroundColor: 'rgba(255,107,107,0.15)',
                 paddingHorizontal: 12,
                 paddingVertical: 8,
@@ -104,8 +108,10 @@ const GemRequestCard = ({ request, onApprove, onReject, isDark }: GemRequestCard
             <Pressable
               onPress={() => onApprove(request.id)}
               style={{
+                flex: 1,
                 flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent: 'center',
                 backgroundColor: Colors.gold[400],
                 paddingHorizontal: 12,
                 paddingVertical: 8,

@@ -1,6 +1,6 @@
 import { Pressable, Text } from "react-native";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCurrentUser } from "@/services/supabase/userService";
+import { signInWithGoogle } from "@/services/supabase/googleService";
 import { useRouter } from "expo-router";
 import AntDesign from '@expo/vector-icons/AntDesign'
 
@@ -10,11 +10,12 @@ export default function ButtonLoginGoogle() {
 
   const handleLogin = async () => {
     try {
-      const user = await getCurrentUser();
+      const user = await signInWithGoogle();
       login(user);
       router.replace('/onboarding');
     } catch (error) {
-      console.error('Error logging in:', error);
+      //TODO: MOSTRAR EL MENSAJE DE ERROR EN LA PANTALLA
+      console.error('Error logging in with Google:', error);
     }
   };
 

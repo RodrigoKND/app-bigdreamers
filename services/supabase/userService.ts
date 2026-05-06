@@ -1,5 +1,6 @@
 import { User } from '@/types';
 import { getSupabaseClient} from '@/services/supabase/supabase';
+import { getSession } from './googleService';
 
 function mapUserRow(row: any): User {
   return {
@@ -54,12 +55,13 @@ export async function createUser(user: {
   email: string;
   avatar?: string;
   role?: 'admin' | 'user';
+  id: string;
 }): Promise<User> {
   const supabase = await getSupabaseClient();
-
   const { data, error } = await supabase
     .from('users')
     .insert({
+      id: user.id,
       name: user.name,
       email: user.email,
       avatar: user.avatar ?? null,

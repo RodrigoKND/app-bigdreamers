@@ -1,18 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   Pressable,
   SafeAreaView,
-  Platform,
-  StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import {
   Lock,
   Play,
   Check,
-  Gem,
   DollarSign,
   TrendingUp,
   PiggyBank,
@@ -23,83 +21,45 @@ import {
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import LearnHeader from '@/components/learn/LearnHeader';
+import { useLearningModules } from '@/hooks/learning/useLearningModules';
+import { useUserModulesProgress } from '@/hooks/learning/useUserModulesProgress';
+import { useAuth } from '@/contexts/AuthContext';
+import type { LearningModule } from '@/types';
 
 type ModuleStatus = 'completed' | 'active' | 'locked';
 type Category = 'Finanzas' | 'Inversión' | 'Ahorro' | 'Empresa';
 
-interface LearningModule {
-  id: string;
-  title: string;
-  description: string;
-  lessons: number;
-  completedLessons: number;
-  status: ModuleStatus;
-}
-
-const CATEGORIES: { label: Category; icon: React.ReactNode }[] = [
-  { label: 'Finanzas', icon: null },
-  { label: 'Inversión', icon: null },
-  { label: 'Ahorro', icon: null },
-  { label: 'Empresa', icon: null },
-];
-
-const MODULE_ICONS: Record<string, React.FC<{ size: number; color: string }>> = {
-  '1': DollarSign,
-  '2': PiggyBank,
-  '3': TrendingUp,
-  '4': TrendingUp,
-  '5': Building2,
+const CATEGORY_MAP: Record<Category, string> = {
+  'Finanzas': 'finanzas',
+  'Inversión': 'inversion',
+  'Ahorro': 'ahorro',
+  'Empresa': 'empresa',
 };
 
-const MODULES: LearningModule[] = [
-  {
-    id: '1',
-    title: 'Fundamentos',
-    description: '5 lecciones · completado',
-    lessons: 5,
-    completedLessons: 5,
-    status: 'completed',
-  },
-  {
-    id: '2',
-    title: 'Presupuesto',
-    description: '6 lecciones · completado',
-    lessons: 6,
-    completedLessons: 6,
-    status: 'completed',
-  },
-  {
-    id: '3',
-    title: 'Ahorro Inteligente',
-    description: 'Lección 3 de 7 · en curso',
-    lessons: 7,
-    completedLessons: 3,
-    status: 'active',
-  },
-  {
-    id: '4',
-    title: 'Inversiones Básicas',
-    description: '8 lecciones · bloqueado',
-    lessons: 8,
-    completedLessons: 0,
-    status: 'locked',
-  },
-  {
-    id: '5',
-    title: 'Bolsa de Valores',
-    description: '10 lecciones · bloqueado',
-    lessons: 10,
-    completedLessons: 0,
-    status: 'locked',
-  },
-];
+const CATEGORIES: Category[] = ['Finanzas', 'Inversión', 'Ahorro', 'Empresa'];
+
+const MODULE_ICONS: Record<number, React.FC<{ size: number; color: string }>> = {
+  0: DollarSign,
+  1: PiggyBank,
+  2: TrendingUp,
+  3: TrendingUp,
+  4: Building2,
+};
+
+type EnrichedModule = LearningModule & {
+  status: ModuleStatus;
+  completedLessons: number;
+  totalLessons: number;
+};
 
 function ModuleNode({
   module,
+  index,
   isFirst,
   isDark,
 }: {
-  module: LearningModule;
+  module: EnrichedModule;
+  index: number;
   isFirst: boolean;
   isDark: boolean;
 }) {
@@ -108,7 +68,7 @@ function ModuleNode({
   const isLocked = module.status === 'locked';
 
   const nodeSize = isActive ? 80 : 68;
-  const IconComponent = MODULE_ICONS[module.id] ?? DollarSign;
+  const IconComponent = MODULE_ICONS[index % 5] ?? DollarSign;
 
   const nodeBg = isLocked
     ? isDark ? Colors.navy[700] : '#CBD5E1'
@@ -117,8 +77,13 @@ function ModuleNode({
     : Colors.gold[400];
 
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  // Fix: usar blanco/oscuro con opacidad suficiente en lugar de gris puro
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+
+  const statusLabel = isCompleted
+    ? 'completado'
+    : isActive
+    ? `Lección ${module.completedLessons + 1} de ${module.totalLessons} · en curso`
+    : `${module.totalLessons} lecciones · bloqueado`;
 
   return (
     <View className="items-center">
@@ -163,10 +128,7 @@ function ModuleNode({
 
       <Text
         className="text-sm font-bold mt-3 text-center"
-        style={{
-          color: isLocked ? textMuted : textPrimary,
-          opacity: isLocked ? 0.6 : 1,
-        }}
+        style={{ color: isLocked ? textMuted : textPrimary, opacity: isLocked ? 0.6 : 1 }}
       >
         {module.title}
       </Text>
@@ -175,7 +137,7 @@ function ModuleNode({
         className="text-xs mt-0.5 text-center"
         style={{ color: textMuted, opacity: isLocked ? 0.6 : 1 }}
       >
-        {module.description}
+        {statusLabel}
       </Text>
 
       <View
@@ -219,96 +181,164 @@ function ModuleNode({
 
 export default function LearnScreen() {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState<Category>('Finanzas');
 
-  const bg = isDark ? Colors.blue.primary : Colors.light.bg;
-  const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+  const { modules, loading: modulesLoading, error: modulesError } = useLearningModules({
+    category: CATEGORY_MAP[activeCategory],
+  });
 
-  const activeModule = MODULES.find(m => m.status === 'active');
+  const { progress, loading: progressLoading } = useUserModulesProgress(user?.id ?? null);
+
+  const bg = isDark ? Colors.blue.primary : Colors.light.bg;
+  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+  const accentColor = isDark ? Colors.gold[400] : Colors.light.accent;
+
+  const loading = modulesLoading || progressLoading;
+
+  // Cruzar módulos con progreso del usuario
+  const enrichedModules = useMemo((): EnrichedModule[] => {
+    const progressMap = new Map(progress.map((p) => [p.moduleId, p]));
+    let foundActive = false;
+
+    return modules.map((mod) => {
+      const userProgress = progressMap.get(mod.id);
+      const totalLessons = parseInt(mod.duration) || 5; // fallback
+
+      if (userProgress?.completed) {
+        return {
+          ...mod,
+          status: 'completed',
+          completedLessons: totalLessons,
+          totalLessons,
+        };
+      }
+
+      if (!foundActive) {
+        foundActive = true;
+        const completedLessons = userProgress
+          ? Math.floor((userProgress.progress / 100) * totalLessons)
+          : 0;
+        return {
+          ...mod,
+          status: 'active',
+          completedLessons,
+          totalLessons,
+        };
+      }
+
+      return {
+        ...mod,
+        status: 'locked',
+        completedLessons: 0,
+        totalLessons,
+      };
+    });
+  }, [modules, progress]);
+
+  const activeModule = enrichedModules.find((m) => m.status === 'active');
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }}>
       <View style={{ flex: 1 }}>
 
-        {/* Header */}
-        <LearnHeader gems={1240} />
+        <LearnHeader gems={user?.gems ?? 0} />
 
-        {/* Category tabs — padding vertical aumentado para que no se corten */}
+        {/* Category tabs */}
         <View style={{ height: 44, marginBottom: 16 }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-            gap: 8,
-            alignItems: 'center',
-          }}
-          style={{ flex: 1 }}
-        >
-          {CATEGORIES.map(({ label }) => {
-            const active = activeCategory === label;
-            return (
-              <Pressable
-                key={label}
-                onPress={() => setActiveCategory(label)}
-                accessible
-                accessibilityLabel={`Categoría ${label}`}
-                className="active:opacity-70 rounded-full"
-                style={{
-                  paddingHorizontal: 18,
-                  paddingVertical: 8,
-                  backgroundColor: active
-                    ? isDark ? Colors.gold[400] : Colors.light.accent
-                    : isDark ? Colors.navy[700] : Colors.light.surface,
-                }}
-              >
-                <Text
-                  className="text-sm font-semibold"
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 8, alignItems: 'center' }}
+            style={{ flex: 1 }}
+          >
+            {CATEGORIES.map((label) => {
+              const active = activeCategory === label;
+              return (
+                <Pressable
+                  key={label}
+                  onPress={() => setActiveCategory(label)}
+                  accessible
+                  accessibilityLabel={`Categoría ${label}`}
+                  className="active:opacity-70 rounded-full"
                   style={{
-                    color: active
-                      ? isDark ? '#000' : '#fff'
-                      : textMuted,
+                    paddingHorizontal: 18,
+                    paddingVertical: 8,
+                    backgroundColor: active
+                      ? isDark ? Colors.gold[400] : Colors.light.accent
+                      : isDark ? Colors.navy[700] : Colors.light.surface,
                   }}
                 >
-                  {label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </View>
+                  <Text
+                    className="text-sm font-semibold"
+                    style={{ color: active ? isDark ? '#000' : '#fff' : textMuted }}
+                  >
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
 
         {/* Route label */}
         <Text
           className="text-xs font-bold text-center mb-6 tracking-widest"
           style={{ color: textMuted }}
         >
-          RUTA · FINANZAS PERSONALES
+          RUTA · {activeCategory.toUpperCase()}
         </Text>
 
+        {/* Loading */}
+        {loading && (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator color={accentColor} />
+          </View>
+        )}
+
+        {/* Error */}
+        {!loading && modulesError && (
+          <View className="flex-1 items-center justify-center px-8">
+            <Text className="text-sm text-center" style={{ color: textMuted }}>
+              No se pudieron cargar los módulos.
+            </Text>
+          </View>
+        )}
+
+        {/* Empty state */}
+        {!loading && !modulesError && modules.length === 0 && (
+          <View className="flex-1 items-center justify-center px-8 gap-3">
+            <Text className="text-base font-bold text-center" style={{ color: textMuted }}>
+              No hay módulos en esta categoría aún
+            </Text>
+          </View>
+        )}
+
         {/* Modules path */}
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingTop: 16,
-            paddingBottom: 120,
-            alignItems: 'center',
-            paddingHorizontal: 20,
-          }}
-        >
-          {MODULES.map((module, index) => (
-            <ModuleNode
-              key={module.id}
-              module={module}
-              isFirst={index === 0}
-              isDark={isDark}
-            />
-          ))}
-        </ScrollView>
+        {!loading && !modulesError && modules.length > 0 && (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingTop: 16,
+              paddingBottom: 120,
+              alignItems: 'center',
+              paddingHorizontal: 20,
+            }}
+          >
+            {enrichedModules.map((module, index) => (
+              <ModuleNode
+                key={module.id}
+                module={module}
+                index={index}
+                isFirst={index === 0}
+                isDark={isDark}
+              />
+            ))}
+          </ScrollView>
+        )}
 
         {/* CTA bottom */}
-        {activeModule && (
+        {!loading && activeModule && (
           <View
             className="absolute bottom-0 left-0 right-0 px-5 pb-6 pt-3"
             style={{ backgroundColor: bg }}
@@ -317,24 +347,16 @@ export default function LearnScreen() {
               accessible
               accessibilityLabel={`Continuar lección ${activeModule.completedLessons + 1}`}
               className="active:opacity-80 flex-row items-center justify-center rounded-2xl py-4 gap-3"
-              style={{
-                backgroundColor: isDark ? Colors.gold[400] : Colors.light.accent,
-              }}
+              style={{ backgroundColor: accentColor }}
             >
-              <Play
-                size={18}
-                color={isDark ? '#000' : '#fff'}
-                fill={isDark ? '#000' : '#fff'}
-              />
-              <Text
-                className="text-base font-bold"
-                style={{ color: isDark ? '#000' : '#fff' }}
-              >
+              <Play size={18} color={isDark ? '#000' : '#fff'} fill={isDark ? '#000' : '#fff'} />
+              <Text className="text-base font-bold" style={{ color: isDark ? '#000' : '#fff' }}>
                 Continuar lección {activeModule.completedLessons + 1}
               </Text>
             </Pressable>
           </View>
         )}
+
       </View>
     </SafeAreaView>
   );

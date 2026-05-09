@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types';
+import { getSession } from '@/services/supabase/googleService';
+import { getUserById } from '@/services/supabase/userService';
 
 interface AuthContextType {
   user: User | null;
@@ -18,9 +20,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Simular carga del usuario guardado
     const loadUser = async () => {
-      // Aquí puedes agregar lógica para verificar si hay un usuario guardado
-      // Por ahora, iniciamos sin usuario (requiere login)
-      setIsLoading(false);
+      try {
+        const session = await getSession();
+        if (session?.user?.id) {
+          const dbUser = await getUserById(session.user.id);
+          if (dbUser) setUser(dbUser);
+        }
+      } catch (error) {
+        console.error('Error restoring session:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadUser();

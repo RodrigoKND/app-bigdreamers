@@ -1,7 +1,12 @@
 import { View, Text, ScrollView } from "react-native";
 import CompanyCard from "@/components/invest/CompanyCard";
+import { Company } from "@/constants/mockCompanies";
 
-export default function LevelGold() {
+interface LevelGoldProps {
+  companies: Company[];
+}
+
+export default function LevelGold({ companies }: LevelGoldProps) {
     return (
         <View className="flex-1 my-6">
             <View className="flex-row justify-between items-center mb-5">
@@ -19,16 +24,14 @@ export default function LevelGold() {
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: 16, paddingRight: 20 }}>
-                <CompanyCard
-                    name="Tech Innovate"
-                    gems={4500}
-                    imageUrl="https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradio/6XQ2V2HNRRMDHDJ55MPMNBJ4E4.jpg"
-                />
-                <CompanyCard
-                    name="Green Earth"
-                    gems={2800}
-                    imageUrl="https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradio/6XQ2V2HNRRMDHDJ55MPMNBJ4E4.jpg"
-                />
+                {companies.map((company) => (
+                  <CompanyCard
+                    key={company.id}
+                    name={company.name}
+                    gems={company.gems}
+                    imageUrl={company.imageUrl}
+                  />
+                ))}
             </ScrollView>
         </View>
     );

@@ -125,11 +125,11 @@ const AdminScreen = () => {
   };
 
   if (showCourseForm) {
-    return <CourseForm isDark={isDark} onPublish={handlePublishCourse} onCancel={() => setShowCourseForm(false)} />;
+    return <CourseForm onPublish={handlePublishCourse} onCancel={() => setShowCourseForm(false)} />;
   }
 
   if (showCompanyForm) {
-    return <CompanyForm isDark={isDark} onPublish={handlePublishCompany} onCancel={() => setShowCompanyForm(false)} />;
+    return <CompanyForm onPublish={handlePublishCompany} onCancel={() => setShowCompanyForm(false)} />;
   }
 
   return (

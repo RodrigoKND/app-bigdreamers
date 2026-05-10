@@ -5,14 +5,16 @@ import { Colors } from '@/constants/colors';
 import { Course, CourseModule, CourseObjective } from '@/constants/mockCourses';
 import ModuleForm from './ModuleForm';
 import ObjectiveForm from './ObjectiveForm';
+import { useTheme } from '@/context/ThemeContext';
+import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
 
 interface CourseFormProps {
-  isDark: boolean;
   onPublish: (course: Partial<Course>) => void;
   onCancel: () => void;
 }
 
-const CourseForm = ({ isDark, onPublish, onCancel }: CourseFormProps) => {
+const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
+  const { isDark } = useTheme();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Course['category']>('Finanzas');
@@ -32,11 +34,6 @@ const CourseForm = ({ isDark, onPublish, onCancel }: CourseFormProps) => {
     paddingVertical: 14,
     fontSize: 15,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: isDark ? 0.15 : 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
   };
 
   const categories: Course['category'][] = ['Finanzas', 'Inversión', 'Ahorro', 'Empresa'];
@@ -81,10 +78,16 @@ const CourseForm = ({ isDark, onPublish, onCancel }: CourseFormProps) => {
   const canPublish = title.trim() && modules.length > 0;
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 28, paddingBottom: 32 }}>
-      <Text style={{ fontSize: 22, fontWeight: '800', color: textPrimary, marginBottom: 8, letterSpacing: 0.3 }}>
-        Nuevo Curso
-      </Text>
+    <ScrollView style={{ flex: 1, backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }} contentContainerStyle={{ padding: 20, paddingTop: 28, paddingBottom: 32 }}>
+      <View className="flex-row items-center mb-6 pt-2">
+        <ButtonBackScreen />
+        <Text
+          className="flex-1 text-center text-2xl font-bold mr-8"
+          style={{ color: isDark ? '#FFFFFF' : Colors.text.primary }}
+        >
+          Nuevo Curso
+        </Text>
+      </View>
       <View style={{
         width: 32,
         height: 3,

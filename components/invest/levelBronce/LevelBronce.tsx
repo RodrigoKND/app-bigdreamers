@@ -1,7 +1,13 @@
 import { View, Text, ScrollView } from "react-native";
 import CompanyCard from "@/components/invest/CompanyCard";
+import { Company } from "@/constants/mockCompanies";
+import { Building } from 'lucide-react-native';
 
-export default function LevelBronce() {
+interface LevelBronceProps {
+  companies: Company[];
+}
+
+export default function LevelBronce({ companies }: LevelBronceProps) {
     return (
         <View className="flex-1 mt-6 mb-4">
             <View className="flex-row justify-between items-center mb-5">
@@ -18,16 +24,23 @@ export default function LevelBronce() {
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: 16, paddingRight: 20 }}>
-                <CompanyCard
-                    name="Tech Innovate"
-                    gems={4500}
-                    imageUrl="https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradio/6XQ2V2HNRRMDHDJ55MPMNBJ4E4.jpg"
-                />
-                <CompanyCard
-                    name="Green Earth"
-                    gems={2800}
-                    imageUrl="https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradio/6XQ2V2HNRRMDHDJ55MPMNBJ4E4.jpg"
-                />
+                {companies.length === 0 ? (
+                  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40, minWidth: 200 }}>
+                    <Building size={32} color="rgba(255,255,255,0.65)" style={{ marginBottom: 12 }} />
+                    <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, textAlign: 'center' }}>
+                      No hay empresas disponibles en este nivel
+                    </Text>
+                  </View>
+                ) : (
+                  companies.map((company) => (
+                    <CompanyCard
+                      key={company.id}
+                      name={company.name}
+                      gems={company.gems}
+                      imageUrl={company.imageUrl}
+                    />
+                  ))
+                )}
             </ScrollView>
         </View>
     );

@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
-import { Plus } from 'lucide-react-native';
+import { Plus, Package, BookOpen, Building } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
-import { MOCK_GEM_REQUESTS } from '@/constants/mockGemRequests';
-import { MOCK_COURSES } from '@/constants/mockCourses';
-import { MOCK_COMPANIES } from '@/constants/mockCompanies';
-import { GemRequest } from '@/constants/mockGemRequests';
+import { useAuth } from '@/contexts/AuthContext';
+import { useGemRequests } from '@/hooks/gem/useGemRequests';
+import { useApproveGemRequest } from '@/hooks/gem/useApproveGemRequest';
+import { useRejectGemRequest } from '@/hooks/gem/useRejectGemRequest';
+import { useCourses } from '@/hooks/course/useCourses';
+import { useCreateCourse } from '@/hooks/course/useCreateCourse';
+import { useCompanies } from '@/hooks/company/useCompanies';
+import { useCreateCompany } from '@/hooks/company/useCreateCompany';
 import { Course } from '@/constants/mockCourses';
 import { Company } from '@/constants/mockCompanies';
 import AdminHeader from '@/components/admin/AdminHeader';
@@ -20,15 +24,27 @@ import ConfirmRejectModal from '@/components/admin/gems/ConfirmRejectModal';
 
 const AdminScreen = () => {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'gems' | 'courses' | 'companies'>('gems');
-  const [gemRequests, setGemRequests] = useState<GemRequest[]>(MOCK_GEM_REQUESTS);
-  const [pendingApproval, setPendingApproval] = useState<GemRequest | null>(null);
+  
+  // Gem requests hooks
+  const { requests: gemRequests, loading: gemRequestsLoading, refetch: refetchGemRequests } = useGemRequests();
+  const { approve: approveGemRequest, loading: approving } = useApproveGemRequest();
+  const { reject: rejectGemRequest, loading: rejecting } = useRejectGemRequest();
+  
+  // Courses hooks
+  const { courses, loading: coursesLoading, refetch: refetchCourses } = useCourses();
+  const { create: createCourse, loading: creatingCourse } = useCreateCourse();
+  
+  // Companies hooks
+  const { companies, loading: companiesLoading, refetch: refetchCompanies } = useCompanies();
+  const { create: createCompany, loading: creatingCompany } = useCreateCompany();
+  
+  const [pendingApproval, setPendingApproval] = useState<any | null>(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showCourseForm, setShowCourseForm] = useState(false);
   const [showCompanyForm, setShowCompanyForm] = useState(false);
-  const [courses, setCourses] = useState<Partial<Course>[]>(MOCK_COURSES);
-  const [companies, setCompanies] = useState<Partial<Company>[]>(MOCK_COMPANIES);
-  const [pendingRejection, setPendingRejection] = useState<GemRequest | null>(null);
+  const [pendingRejection, setPendingRejection] = useState<any | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
 
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
@@ -42,12 +58,17 @@ const AdminScreen = () => {
     setShowApproveModal(true);
   };
 
-  const confirmApprove = () => {
-    setGemRequests(prev =>
-      prev.map(r => r.id === pendingApproval?.id ? { ...r, status: 'approved' } : r)
-    );
-    setShowApproveModal(false);
-    setPendingApproval(null);
+  const confirmApprove = async () => {
+    if (!pendingApproval || !user?.id) return;
+    
+    try {
+      await approveGemRequest(pendingApproval.id, user.id);
+      setShowApproveModal(false);
+      setPendingApproval(null);
+      refetchGemRequests();
+    } catch (error) {
+      console.error('Error approving gem request:', error);
+    }
   };
 
   const handleReject = (id: string) => {
@@ -56,30 +77,59 @@ const AdminScreen = () => {
     setShowRejectModal(true);
   };
 
-  const confirmReject = () => {
-    setGemRequests(prev =>
-      prev.map(r => r.id === pendingRejection?.id ? { ...r, status: 'rejected' } : r)
-    );
-    setShowRejectModal(false);
-    setPendingRejection(null);
+  const confirmReject = async () => {
+    if (!pendingRejection) return;
+    
+    try {
+      await rejectGemRequest(pendingRejection.id);
+      setShowRejectModal(false);
+      setPendingRejection(null);
+      refetchGemRequests();
+    } catch (error) {
+      console.error('Error rejecting gem request:', error);
+    }
   };
 
-  const handlePublishCourse = (course: Partial<Course>) => {
-    setCourses(prev => [...prev, { ...course, id: `c${Date.now()}`, published: true }]);
-    setShowCourseForm(false);
+  const handlePublishCourse = async (course: Partial<Course>) => {
+    try {
+      await createCourse({
+        title: course.title || '',
+        description: course.description || '',
+        category: (course.category as 'Finanzas' | 'Inversion' | 'Ahorro' | 'Empresa') || 'Finanzas',
+        totalLessons: course.modules?.length || 0,
+        published: true,
+      });
+      setShowCourseForm(false);
+      refetchCourses();
+    } catch (error) {
+      console.error('Error creating course:', error);
+    }
   };
 
-  const handlePublishCompany = (company: Partial<Company>) => {
-    setCompanies(prev => [...prev, { ...company, id: `co${Date.now()}`, published: true }]);
-    setShowCompanyForm(false);
+  const handlePublishCompany = async (company: Partial<Company>) => {
+    try {
+      await createCompany({
+        name: company.name || '',
+        description: company.description || '',
+        gems: company.gems || 0,
+        imageUrl: company.imageUrl || '',
+        level: company.level || 'bronze',
+        teamMembers: company.teamMembers || [],
+        published: true,
+      });
+      setShowCompanyForm(false);
+      refetchCompanies();
+    } catch (error) {
+      console.error('Error creating company:', error);
+    }
   };
 
   if (showCourseForm) {
-    return <CourseForm isDark={isDark} onPublish={handlePublishCourse} onCancel={() => setShowCourseForm(false)} />;
+    return <CourseForm onPublish={handlePublishCourse} onCancel={() => setShowCourseForm(false)} />;
   }
 
   if (showCompanyForm) {
-    return <CompanyForm isDark={isDark} onPublish={handlePublishCompany} onCancel={() => setShowCompanyForm(false)} />;
+    return <CompanyForm onPublish={handlePublishCompany} onCancel={() => setShowCompanyForm(false)} />;
   }
 
   return (
@@ -111,15 +161,28 @@ const AdminScreen = () => {
               )}
             </View>
 
-            {gemRequests.map((request) => (
-              <GemRequestCard
-                key={request.id}
-                request={request}
-                onApprove={handleApprove}
-                onReject={handleReject}
-                isDark={isDark}
-              />
-            ))}
+            {gemRequestsLoading ? (
+              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
+                <Text style={{ color: textMuted }}>Cargando solicitudes...</Text>
+              </View>
+            ) : gemRequests.length === 0 ? (
+              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
+                <Package size={48} color={textMuted} style={{ marginBottom: 16 }} />
+                <Text style={{ color: textMuted, fontSize: 16, textAlign: 'center' }}>
+                  No hay solicitudes de gemas pendientes
+                </Text>
+              </View>
+            ) : (
+              gemRequests.map((request) => (
+                <GemRequestCard
+                  key={request.id}
+                  request={request}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  isDark={isDark}
+                />
+              ))
+            )}
           </View>
         )}
 
@@ -143,35 +206,48 @@ const AdminScreen = () => {
               </Text>
             </Pressable>
 
-            {courses.map((course) => (
-              <View
-                key={course.id}
-                style={{
-                  backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.surface,
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
-                  borderWidth: 1,
-                  borderRadius: 16,
-                  padding: 16,
-                  marginBottom: 12,
-                }}
-              >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary }}>{course.title}</Text>
-                  <View
-                    style={{
-                      backgroundColor: Colors.gold[400],
-                      borderRadius: 12,
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
-                    }}
-                  >
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#000' }}>PUBLICADO</Text>
-                  </View>
-                </View>
-                <Text style={{ color: textMuted, marginBottom: 8 }}>{course.category}</Text>
-                <Text style={{ color: textMuted }}>{course.modules?.length || 0} módulos</Text>
+            {coursesLoading ? (
+              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
+                <Text style={{ color: textMuted }}>Cargando cursos...</Text>
               </View>
-            ))}
+            ) : courses.length === 0 ? (
+              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
+                <BookOpen size={48} color={textMuted} style={{ marginBottom: 16 }} />
+                <Text style={{ color: textMuted, fontSize: 16, textAlign: 'center' }}>
+                  No hay cursos publicados
+                </Text>
+              </View>
+            ) : (
+              courses.map((course) => (
+                <View
+                  key={course.id}
+                  style={{
+                    backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.surface,
+                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
+                    borderWidth: 1,
+                    borderRadius: 16,
+                    padding: 16,
+                    marginBottom: 12,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary }}>{course.title}</Text>
+                    <View
+                      style={{
+                        backgroundColor: Colors.gold[400],
+                        borderRadius: 12,
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#000' }}>PUBLICADO</Text>
+                    </View>
+                  </View>
+                  <Text style={{ color: textMuted, marginBottom: 8 }}>{course.category}</Text>
+                  <Text style={{ color: textMuted }}>{course.modules?.length || 0} módulos</Text>
+                </View>
+              ))
+            )}
           </View>
         )}
 
@@ -195,38 +271,51 @@ const AdminScreen = () => {
               </Text>
             </Pressable>
 
-            {companies.map((company) => (
-              <View
-                key={company.id}
-                style={{
-                  backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.surface,
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
-                  borderWidth: 1,
-                  borderRadius: 16,
-                  padding: 16,
-                  marginBottom: 12,
-                }}
-              >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary }}>{company.name}</Text>
-                  <View
-                    style={{
-                      backgroundColor:
-                        company.level === 'gold' ? '#FFD700' :
-                        company.level === 'silver' ? '#C0C0C0' : '#CD7F32',
-                      borderRadius: 12,
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
-                    }}
-                  >
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#000' }}>
-                      {company.level?.toUpperCase()}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={{ color: textMuted }}>{company.gems} gemas</Text>
+            {companiesLoading ? (
+              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
+                <Text style={{ color: textMuted }}>Cargando empresas...</Text>
               </View>
-            ))}
+            ) : companies.length === 0 ? (
+              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
+                <Building size={48} color={textMuted} style={{ marginBottom: 16 }} />
+                <Text style={{ color: textMuted, fontSize: 16, textAlign: 'center' }}>
+                  No hay empresas publicadas
+                </Text>
+              </View>
+            ) : (
+              companies.map((company) => (
+                <View
+                  key={company.id}
+                  style={{
+                    backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.surface,
+                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
+                    borderWidth: 1,
+                    borderRadius: 16,
+                    padding: 16,
+                    marginBottom: 12,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary }}>{company.name}</Text>
+                    <View
+                      style={{
+                        backgroundColor:
+                          company.level === 'gold' ? '#FFD700' :
+                          company.level === 'silver' ? '#C0C0C0' : '#CD7F32',
+                        borderRadius: 12,
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#000' }}>
+                        {company.level?.toUpperCase()}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={{ color: textMuted }}>{company.gems} gemas</Text>
+                </View>
+              ))
+            )}
           </View>
         )}
       </ScrollView>

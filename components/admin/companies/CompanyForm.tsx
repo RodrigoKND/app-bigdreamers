@@ -5,14 +5,16 @@ import * as ImagePicker from 'expo-image-picker';
 import { Colors } from '@/constants/colors';
 import { CompanyLevel, CompanyTeamMember, Company } from '@/constants/mockCompanies';
 import LevelSelector from './LevelSelector';
+import { useTheme } from '@/context/ThemeContext';
+import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
 
 interface CompanyFormProps {
-  isDark: boolean;
   onPublish: (company: Partial<Company>) => void;
   onCancel: () => void;
 }
 
-const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
+const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
+  const { isDark } = useTheme();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [gems, setGems] = useState('');
@@ -27,17 +29,12 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
     backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : '#F1F5F9',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#E2E8F0',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0)' : '#E2E8F0',
     color: textPrimary,
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 15,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: isDark ? 0.15 : 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
   };
 
   const pickImage = async () => {
@@ -88,10 +85,16 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
   const canPublish = name.trim() && description.trim() && level;
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 28, paddingBottom: 32 }}>
-      <Text style={{ fontSize: 22, fontWeight: '800', color: textPrimary, marginBottom: 8, letterSpacing: 0.3 }}>
-        Nueva Empresa
-      </Text>
+    <ScrollView style={{ flex: 1, backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }} contentContainerStyle={{ padding: 20, paddingTop: 28, paddingBottom: 32 }}>
+      <View className="flex-row items-center mb-6 pt-2">
+        <ButtonBackScreen />
+        <Text
+          className="flex-1 text-center text-2xl font-bold mr-8"
+          style={{ color: isDark ? '#FFFFFF' : Colors.text.primary }}
+        >
+          Nueva Empresa
+        </Text>
+      </View>
       <View style={{
         width: 32,
         height: 3,

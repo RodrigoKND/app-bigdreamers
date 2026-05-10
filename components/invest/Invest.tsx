@@ -5,8 +5,15 @@ import SearchBar from '@/components/shared/SearchBar';
 import LevelGold from '@/components/invest/levelGold/LevelGold';
 import LevelSilver from '@/components/invest/levelSilver/LevelSilver';
 import LevelBronce from '@/components/invest/levelBronce/LevelBronce';
+import { useCompanies } from '@/hooks/company/useCompanies';
 
 export default function Invest() {
+  const { companies, loading } = useCompanies();
+
+  const goldCompanies = companies.filter((c) => c.level === 'gold');
+  const silverCompanies = companies.filter((c) => c.level === 'silver');
+  const bronzeCompanies = companies.filter((c) => c.level === 'bronze');
+
   return (
     <SafeAreaView className="flex-1 bg-blue-primary" edges={['top']}>
 
@@ -26,9 +33,13 @@ export default function Invest() {
         <View className="px-6 mt-6">
           
           <SearchBar />
-          <LevelGold />
-          <LevelSilver />
-          <LevelBronce />
+          {!loading && (
+            <>
+              <LevelGold companies={goldCompanies} />
+              <LevelSilver companies={silverCompanies} />
+              <LevelBronce companies={bronzeCompanies} />
+            </>
+          )}
 
           <View className="mt-8 mb-4 flex-row justify-between items-center">
             <Text className="text-lg font-bold dark:text-white text-black">Ofertas</Text>

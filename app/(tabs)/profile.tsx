@@ -1,18 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import {
+import React from 'react';import {
   View, Text, ScrollView,
   Pressable, ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2, Users  } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { User as UserType } from '@/types';
 import { Colors } from '@/constants/colors';
-import { getCurrentUser } from '@/services/supabase/userService';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUser } from '@/hooks/user/useCurrentUser';
 import { useTheme } from '@/context/ThemeContext';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileStatCard from '@/components/profile/ProfileStatCard';
-
 import ProfileScreenHeader from '@/components/profile/ProfileScreenHeader';
 
 interface MenuItemProps {
@@ -81,18 +79,11 @@ function SectionLabel({ label, isDark }: { label: string; isDark: boolean }) {
 }
 
 export default function ProfileScreen() {
-  const [user, setUser] = useState<UserType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user: authUser, logout } = useAuth();
+  const { user, loading } = useCurrentUser(authUser?.id ?? null); 
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
-
-  useEffect(() => {
-    getCurrentUser().then((u) => {
-      setUser(u);
-      setLoading(false);
-    });
-  }, []);
-
+  
   if (loading || !user) {
     return (
       <View
@@ -109,6 +100,11 @@ export default function ProfileScreen() {
   const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
   const divider    = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
   const iconColor  = isDark ? Colors.gold[400] : Colors.light.accent;
+
+  const handleLogout = () => {
+    logout();
+    router.replace('/login');
+  };
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: screenBg }} edges={['top']}>
@@ -223,6 +219,7 @@ export default function ProfileScreen() {
         <View className="mx-4 mt-3 mb-2">
           <Pressable
             className="flex-row items-center gap-3 px-4 py-[15px] rounded-2xl active:opacity-70"
+            onPress={handleLogout}  
             style={{
               backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.errorBg,
               borderWidth: 1,

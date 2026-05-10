@@ -38,8 +38,8 @@ export default function HomeScreen() {
         <UserProfileCard user={user} />
         <View className="flex-row px-3 mt-4">
           <StatCard label="Gemas" value={user.gems.toLocaleString()} />
-          <StatCard label="Módulos" value={user.modules?.toLocaleString() ?? '1'} />
-          <StatCard label="Ranking" value={`#${user.ranking}`} />
+          <StatCard label="Módulos" value={String(user.completedModules)} />
+          <StatCard label="Ranking" value={user.ranking != null ? `#${user.ranking}` : '—'} />
         </View>
         <View className="mt-8">
           <View className="flex-row justify-between px-4 mb-3">

@@ -33,6 +33,7 @@ export default function AuthCallback() {
 
         if (!existingUser) {
           existingUser = await createUser({
+            id : user.id,
             name: user.user_metadata?.full_name || user.email.split('@')[0] || 'User',
             email: user.email,
             avatar: user.user_metadata?.avatar_url || undefined,

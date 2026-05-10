@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGemPackages } from '@/hooks/gem/useGemPackages';
 import { useCreateGemRequest } from '@/hooks/gem/useCreateGemRequest';
+import { Package } from 'lucide-react-native';
 
 //.
 
@@ -85,6 +86,13 @@ const GemsScreen = () => {
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
               {packagesLoading ? (
                 <Text style={{ color: textMuted }}>Cargando paquetes...</Text>
+              ) : packages.length === 0 ? (
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
+                  <Package size={48} color={textMuted} style={{ marginBottom: 16 }} />
+                  <Text style={{ color: textMuted, fontSize: 16, textAlign: 'center' }}>
+                    No hay paquetes disponibles en este momento
+                  </Text>
+                </View>
               ) : (
                 packages.map((gemPackage) => (
                   <GemPackageCard

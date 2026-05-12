@@ -9,10 +9,10 @@ import { useGemRequests } from '@/hooks/gem/useGemRequests';
 import { useApproveGemRequest } from '@/hooks/gem/useApproveGemRequest';
 import { useRejectGemRequest } from '@/hooks/gem/useRejectGemRequest';
 import { useCourses } from '@/hooks/course/useCourses';
-import { useCreateCourse } from '@/hooks/course/useCreateCourse';
+import { useCreateLearningModule } from '@/hooks/learning/useCreateLearningModule';
 import { useCompanies } from '@/hooks/company/useCompanies';
 import { useCreateCompany } from '@/hooks/company/useCreateCompany';
-import { Course } from '@/constants/mockCourses';
+import { LearningModuleFormData } from '@/components/admin/courses/CourseForm';
 import { Company } from '@/constants/mockCompanies';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminTabs from '@/components/admin/AdminTabs';
@@ -34,7 +34,7 @@ const AdminScreen = () => {
   
   // Courses hooks
   const { courses, loading: coursesLoading, refetch: refetchCourses } = useCourses();
-  const { create: createCourse, loading: creatingCourse } = useCreateCourse();
+  const { create: createLearningModule, loading: creatingCourse } = useCreateLearningModule();
   
   // Companies hooks
   const { companies, loading: companiesLoading, refetch: refetchCompanies } = useCompanies();
@@ -90,19 +90,13 @@ const AdminScreen = () => {
     }
   };
 
-  const handlePublishCourse = async (course: Partial<Course>) => {
+  const handlePublishCourse = async (data: LearningModuleFormData) => {
     try {
-      await createCourse({
-        title: course.title || '',
-        description: course.description || '',
-        category: (course.category as 'Finanzas' | 'Inversion' | 'Ahorro' | 'Empresa') || 'Finanzas',
-        totalLessons: course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || 0,
-        published: true,
-      });
+      await createLearningModule(data);
       setShowCourseForm(false);
       refetchCourses();
     } catch (error) {
-      console.error('Error creating course:', error);
+      console.error('Error creating learning module:', error);
     }
   };
 

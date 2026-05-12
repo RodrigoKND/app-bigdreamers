@@ -223,6 +223,14 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
       </View>
 
       <TextInput
+        placeholder="Nombre de la empresa"
+        placeholderTextColor={textMuted}
+        value={name}
+        onChangeText={setName}
+        style={inputStyle}
+      />
+
+      <TextInput
         placeholder="Descripción"
         placeholderTextColor={textMuted}
         value={description}

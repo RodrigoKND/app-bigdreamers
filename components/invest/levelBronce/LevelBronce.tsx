@@ -35,6 +35,7 @@ export default function LevelBronce({ companies }: LevelBronceProps) {
                   companies.map((company) => (
                     <CompanyCard
                       key={company.id}
+                      id={company.id}
                       name={company.name}
                       gems={company.gems}
                       imageUrl={company.imageUrl}

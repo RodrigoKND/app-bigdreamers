@@ -38,7 +38,7 @@ export default function CompanyDetail({ companyId }: { companyId: string }) {
           />
 
           <View className="mb-10">
-            <InvestmentControls currentGems={user?.gems ?? 0} />
+            <InvestmentControls currentGems={user?.gems ?? 0} description={company?.description ?? ''} />
           </View>
 
           {company?.teamMembers && company.teamMembers.length > 0 && (

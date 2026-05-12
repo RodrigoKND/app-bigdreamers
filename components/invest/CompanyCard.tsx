@@ -5,16 +5,17 @@ import { Link } from 'expo-router';
 import { useRouter } from 'expo-router';
 
 interface CompanyCardProps {
+  id: string;
   name: string;
   gems: number;
   imageUrl: string;
 }
 
-export default function CompanyCard({ name, gems, imageUrl }: CompanyCardProps) {
+export default function CompanyCard({ id, name, gems, imageUrl }: CompanyCardProps) {
   const router = useRouter();
 
   return (
-    <Link href={`/company/${name}` as any}>
+    <Link href={`/company/${id}` as any}>
       <View className="w-64 h-80 rounded-3xl mr-4 overflow-hidden bg-gray-200">
         <Image
           source={{ uri: imageUrl }}

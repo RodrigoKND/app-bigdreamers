@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native';
 import Button from '@/components/shared/Button';
 
-export default function InvestmentControls({ currentGems }: { currentGems: number }) {
+export default function InvestmentControls({ currentGems, description }: { currentGems: number; description: string }) {
     return (
         <View className="mb-8">
             <Text className="text-xl font-bold mb-2 dark:text-white text-black">Sobre la empresa</Text>
             <Text className="dark:text-gray-100 text-gray-600 leading-5 mb-6">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat.
+                {description}
             </Text>
 
             <View className="flex-row items-center justify-between bg-white/5 p-4 rounded-3xl border dark:border-gold-500 border-blue-primary">

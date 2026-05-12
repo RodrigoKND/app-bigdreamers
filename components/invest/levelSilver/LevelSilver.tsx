@@ -36,6 +36,7 @@ export default function LevelSilver({ companies }: LevelSilverProps) {
                   companies.map((company) => (
                     <CompanyCard
                       key={company.id}
+                      id={company.id}
                       name={company.name}
                       gems={company.gems}
                       imageUrl={company.imageUrl}

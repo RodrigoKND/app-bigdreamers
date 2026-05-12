@@ -129,7 +129,7 @@ const { history, loading: loadingHistory }             = useUserGemHistory(user?
               <Text className="text-xl font-bold mt-1" style={{ color: stat.color }}>
                 {stat.value}
               </Text>
-              <Text className="text-xs font-semibold tracking-wider" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              <Text className="text-xs font-semibold tracking-wider" style={{ color: textMuted }}>
                 {stat.label}
               </Text>
             </View>

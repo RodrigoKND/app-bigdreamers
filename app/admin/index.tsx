@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useGemRequests } from '@/hooks/gem/useGemRequests';
 import { useApproveGemRequest } from '@/hooks/gem/useApproveGemRequest';
 import { useRejectGemRequest } from '@/hooks/gem/useRejectGemRequest';
-import { useCourses } from '@/hooks/course/useCourses';
+import { useLearningModules } from '@/hooks/learning/useLearningModules';
 import { useCreateLearningModule } from '@/hooks/learning/useCreateLearningModule';
 import { useCompanies } from '@/hooks/company/useCompanies';
 import { useCreateCompany } from '@/hooks/company/useCreateCompany';
@@ -32,9 +32,9 @@ const AdminScreen = () => {
   const { approve: approveGemRequest, loading: approving } = useApproveGemRequest();
   const { reject: rejectGemRequest, loading: rejecting } = useRejectGemRequest();
   
-  // Courses hooks
-  const { courses, loading: coursesLoading, refetch: refetchCourses } = useCourses();
-  const { create: createLearningModule, loading: creatingCourse } = useCreateLearningModule();
+  // Learning modules hooks
+  const { modules, loading: modulesLoading, refetch: refetchModules } = useLearningModules();
+  const { create: createLearningModule, loading: creatingModule } = useCreateLearningModule();
   
   // Companies hooks
   const { companies, loading: companiesLoading, refetch: refetchCompanies } = useCompanies();
@@ -94,7 +94,7 @@ const AdminScreen = () => {
     try {
       await createLearningModule(data);
       setShowCourseForm(false);
-      refetchCourses();
+      refetchModules();
     } catch (error) {
       console.error('Error creating learning module:', error);
     }
@@ -200,21 +200,21 @@ const AdminScreen = () => {
               </Text>
             </Pressable>
 
-            {coursesLoading ? (
+            {modulesLoading ? (
               <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
-                <Text style={{ color: textMuted }}>Cargando cursos...</Text>
+                <Text style={{ color: textMuted }}>Cargando módulos...</Text>
               </View>
-            ) : courses.length === 0 ? (
+            ) : modules.length === 0 ? (
               <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
                 <BookOpen size={48} color={textMuted} style={{ marginBottom: 16 }} />
                 <Text style={{ color: textMuted, fontSize: 16, textAlign: 'center' }}>
-                  No hay cursos publicados
+                  No hay módulos publicados
                 </Text>
               </View>
             ) : (
-              courses.map((course) => (
+              modules.map((mod) => (
                 <View
-                  key={course.id}
+                  key={mod.id}
                   style={{
                     backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.surface,
                     borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
@@ -225,7 +225,7 @@ const AdminScreen = () => {
                   }}
                 >
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary }}>{course.title}</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary }}>{mod.title}</Text>
                     <View
                       style={{
                         backgroundColor: Colors.gold[400],
@@ -237,8 +237,8 @@ const AdminScreen = () => {
                       <Text style={{ fontSize: 10, fontWeight: '800', color: '#000' }}>PUBLICADO</Text>
                     </View>
                   </View>
-                  <Text style={{ color: textMuted, marginBottom: 8 }}>{course.category}</Text>
-                  <Text style={{ color: textMuted }}>{course.modules?.length || 0} módulos</Text>
+                  <Text style={{ color: textMuted, marginBottom: 8 }}>{mod.category}</Text>
+                  <Text style={{ color: textMuted }}>{mod.difficulty}</Text>
                 </View>
               ))
             )}

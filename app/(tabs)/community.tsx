@@ -117,10 +117,6 @@ export default function CommunityScreen() {
     );
   };
 
-  console.log('top3:', JSON.stringify(top3));
-  console.log('first:', first?.name, '| second:', second?.name);
-  
-  console.log('loading:', loading, '| error:', error, '| members:', members.length);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }}>
       <CommunityHeader />

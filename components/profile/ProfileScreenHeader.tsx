@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, Platform } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Edit2 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';

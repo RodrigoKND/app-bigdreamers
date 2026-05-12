@@ -139,9 +139,9 @@ export default function ProfileScreen() {
           className="mt-2"
           onRechargeGems={() => router.push('/gems')}
           stats={[
-            { label: 'GEMAS',   value: user.gems.toLocaleString(), accent: Colors.gold[500] },
-            { label: 'MÓDULOS', value: user.completedModules,      accent: isDark ? '#FFFFFF' : Colors.light.textPrimary },
-            { label: 'RACHA',   value: user.streak,                accent: Colors.warning },
+            { label: 'GEMAS',   value: user.gems.toLocaleString(),         accent: Colors.gold[500] },
+            { label: 'MÓDULOS', value: String(user.completedModules),     accent: isDark ? '#FFFFFF' : Colors.light.textPrimary },
+            { label: 'RACHA',   value: String(user.streak),               accent: Colors.warning },
           ]}
         />
 

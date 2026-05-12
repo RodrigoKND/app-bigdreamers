@@ -96,7 +96,7 @@ const AdminScreen = () => {
         title: course.title || '',
         description: course.description || '',
         category: (course.category as 'Finanzas' | 'Inversion' | 'Ahorro' | 'Empresa') || 'Finanzas',
-        totalLessons: course.modules?.length || 0,
+        totalLessons: course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || 0,
         published: true,
       });
       setShowCourseForm(false);

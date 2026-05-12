@@ -36,7 +36,7 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
     marginBottom: 12,
   };
 
-  const categories: Course['category'][] = ['Finanzas', 'Inversión', 'Ahorro', 'Empresa'];
+  const categories: Course['category'][] = ['Finanzas', 'Inversion', 'Ahorro', 'Empresa'];
 
   const addModule = () => {
     const newModule: Partial<CourseModule> = {
@@ -60,7 +60,7 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
   };
 
   const handlePublish = () => {
-    if (!title.trim() || modules.length === 0) return;
+    if (!title.trim()) return;
 
     onPublish({
       title: title.trim(),
@@ -75,7 +75,7 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
     });
   };
 
-  const canPublish = title.trim() && modules.length > 0;
+  const canPublish = title.trim();
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }} contentContainerStyle={{ padding: 20, paddingTop: 28, paddingBottom: 32 }}>

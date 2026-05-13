@@ -27,7 +27,6 @@ export default function EditProfileScreen() {
   const [name, setName]     = useState('');
   const [avatar, setAvatar] = useState('');
 
-  // Pre-cargar valores actuales cuando llega el usuario
   useEffect(() => {
     if (user) {
       setName(user.name);
@@ -58,38 +57,23 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: bg }} edges={['top']}>
 
       {/* Header */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: 16,
-          paddingTop: 20,
-          paddingBottom: 12,
-        }}
-      >
+      <View className="flex-row items-center justify-between px-4 pt-5 pb-3">
         {/* Izquierda: back + título */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View className="flex-row items-center gap-3">
           <Pressable
             onPress={() => router.back()}
             accessible
             accessibilityLabel="Volver"
             accessibilityRole="button"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : Colors.light.surface,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="w-9 h-9 rounded-full items-center justify-center"
+            style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : Colors.light.surface }}
           >
             <ArrowLeft size={18} color={iconColor} />
           </Pressable>
-          <Text style={{ fontSize: 22, fontWeight: '700', color: textPrimary }}>
+          <Text className="text-[22px] font-bold" style={{ color: textPrimary }}>
             Editar perfil
           </Text>
         </View>
@@ -101,10 +85,8 @@ export default function EditProfileScreen() {
           accessible
           accessibilityLabel="Guardar cambios"
           accessibilityRole="button"
+          className="px-[18px] py-[9px] rounded-xl"
           style={{
-            paddingHorizontal: 18,
-            paddingVertical: 9,
-            borderRadius: 12,
             backgroundColor: canSave
               ? isDark ? Colors.gold[400] : Colors.light.accent
               : isDark ? 'rgba(255,255,255,0.08)' : Colors.light.surface,
@@ -115,13 +97,8 @@ export default function EditProfileScreen() {
             <ActivityIndicator size="small" color={isDark ? '#000' : '#fff'} />
           ) : (
             <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '700',
-                color: canSave
-                  ? isDark ? '#000' : '#fff'
-                  : textMuted,
-              }}
+              className="text-sm font-bold"
+              style={{ color: canSave ? (isDark ? '#000' : '#fff') : textMuted }}
             >
               Guardar
             </Text>
@@ -131,7 +108,7 @@ export default function EditProfileScreen() {
 
       {/* Contenido */}
       {loadingUser ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={Colors.gold[400]} />
         </View>
       ) : (
@@ -141,25 +118,14 @@ export default function EditProfileScreen() {
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
         >
           <View
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: cardBorder,
-              padding: 20,
-              marginTop: 8,
-              gap: 20,
-            }}
+            className="rounded-[20px] border p-5 mt-2 gap-5"
+            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
           >
             {/* Campo: Nombre */}
-            <View style={{ gap: 8 }}>
+            <View className="gap-2">
               <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '600',
-                  color: textMuted,
-                  letterSpacing: 0.5,
-                }}
+                className="text-[11px] font-semibold uppercase"
+                style={{ color: textMuted, letterSpacing: 0.5 }}
               >
                 NOMBRE
               </Text>
@@ -174,14 +140,10 @@ export default function EditProfileScreen() {
             </View>
 
             {/* Campo: Avatar */}
-            <View style={{ gap: 8 }}>
+            <View className="gap-2">
               <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '600',
-                  color: textMuted,
-                  letterSpacing: 0.5,
-                }}
+                className="text-[11px] font-semibold uppercase"
+                style={{ color: textMuted, letterSpacing: 0.5 }}
               >
                 AVATAR (URL de imagen)
               </Text>
@@ -195,9 +157,7 @@ export default function EditProfileScreen() {
                 onSubmitEditing={handleSave}
                 leftIcon={<ImageIcon size={18} color={Colors.text.muted} />}
               />
-              <Text
-                style={{ fontSize: 12, color: textMuted }}
-              >
+              <Text className="text-xs" style={{ color: textMuted }}>
                 Dejá vacío para conservar el avatar actual.
               </Text>
             </View>

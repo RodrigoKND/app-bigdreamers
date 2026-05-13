@@ -29,66 +29,51 @@ export default function PersonalInfoScreen() {
   const { user: authUser } = useAuth();
   const { user, loading } = useCurrentUser(authUser?.id ?? null);
 
-  const bg          = isDark ? Colors.blue.primary : Colors.light.bg;
-  const cardBg      = isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card;
-  const cardBorder  = isDark ? 'rgba(255,255,255,0.1)' : Colors.light.border;
+  const bg         = isDark ? Colors.blue.primary : Colors.light.bg;
+  const cardBg     = isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card;
+  const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : Colors.light.border;
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  const textMuted   = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
-  const divider     = isDark ? 'rgba(255,255,255,0.08)' : Colors.light.border;
-  const iconBg      = isDark ? 'rgba(255,215,64,0.12)' : Colors.light.accentLight;
-  const iconColor   = isDark ? Colors.gold[400] : Colors.light.accent;
+  const textMuted  = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+  const divider    = isDark ? 'rgba(255,255,255,0.08)' : Colors.light.border;
+  const iconBg     = isDark ? 'rgba(255,215,64,0.12)' : Colors.light.accentLight;
+  const iconColor  = isDark ? Colors.gold[400] : Colors.light.accent;
 
   const levelConfig = user ? getLevelConfig(user.level) : null;
 
   const rows = user
     ? [
-        { label: 'Nombre',               value: user.name,                          Icon: User     },
-        { label: 'Email',                 value: user.email,                         Icon: Mail     },
-        { label: 'Nivel',                 value: levelConfig?.label ?? user.level,   Icon: Zap      },
-        { label: 'Gemas',                 value: user.gems.toLocaleString(),         Icon: Gem      },
-        { label: 'Módulos completados',   value: String(user.completedModules),      Icon: BookOpen },
-        { label: 'Racha',                 value: `${user.streak} días`,              Icon: Flame    },
+        { label: 'Nombre',             value: user.name,                        Icon: User     },
+        { label: 'Email',              value: user.email,                       Icon: Mail     },
+        { label: 'Nivel',              value: levelConfig?.label ?? user.level, Icon: Zap      },
+        { label: 'Gemas',              value: user.gems.toLocaleString(),       Icon: Gem      },
+        { label: 'Módulos completados', value: String(user.completedModules),   Icon: BookOpen },
+        { label: 'Racha',              value: `${user.streak} días`,            Icon: Flame    },
       ]
     : [];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: bg }} edges={['top']}>
 
       {/* Header */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingHorizontal: 16,
-          paddingTop: 20,
-          paddingBottom: 12,
-          gap: 12,
-        }}
-      >
+      <View className="flex-row items-center px-4 pt-5 pb-3 gap-3">
         <Pressable
           onPress={() => router.back()}
           accessible
           accessibilityLabel="Volver"
           accessibilityRole="button"
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : Colors.light.surface,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="w-9 h-9 rounded-full items-center justify-center"
+          style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : Colors.light.surface }}
         >
           <ArrowLeft size={18} color={iconColor} />
         </Pressable>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: textPrimary }}>
+        <Text className="text-[22px] font-bold" style={{ color: textPrimary }}>
           Información personal
         </Text>
       </View>
 
       {/* Loading */}
       {loading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={Colors.gold[400]} />
         </View>
       ) : (
@@ -97,57 +82,31 @@ export default function PersonalInfoScreen() {
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
         >
           <View
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: cardBorder,
-              overflow: 'hidden',
-              marginTop: 8,
-            }}
+            className="rounded-[20px] border overflow-hidden mt-2"
+            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
           >
             {rows.map(({ label, value, Icon }, index) => (
               <View key={label}>
                 {index > 0 && (
-                  <View
-                    style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }}
-                  />
+                  <View className="h-px mx-4" style={{ backgroundColor: divider }} />
                 )}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 16,
-                    paddingVertical: 16,
-                    gap: 12,
-                  }}
-                >
+                <View className="flex-row items-center px-4 py-4 gap-3">
                   <View
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      backgroundColor: iconBg,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
+                    className="w-9 h-9 rounded-[10px] items-center justify-center"
+                    style={{ backgroundColor: iconBg }}
                   >
                     <Icon size={16} color={iconColor} />
                   </View>
-                  <View style={{ flex: 1 }}>
+                  <View className="flex-1">
                     <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: '600',
-                        color: textMuted,
-                        letterSpacing: 0.5,
-                        marginBottom: 2,
-                      }}
+                      className="text-[11px] font-semibold uppercase mb-0.5"
+                      style={{ color: textMuted, letterSpacing: 0.5 }}
                     >
-                      {label.toUpperCase()}
+                      {label}
                     </Text>
                     <Text
-                      style={{ fontSize: 15, fontWeight: '500', color: textPrimary }}
+                      className="text-[15px] font-medium"
+                      style={{ color: textPrimary }}
                       numberOfLines={1}
                     >
                       {value}

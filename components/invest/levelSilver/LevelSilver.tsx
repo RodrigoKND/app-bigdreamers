@@ -11,7 +11,7 @@ export default function LevelSilver({ companies }: LevelSilverProps) {
     return (
         <View className="flex-1 my-6">
             <View className="flex-row justify-between items-center mb-5">
-                <View className="flex-column">
+                <View className="flex-col">
                     <Text className="text-lg font-bold dark:text-white text-black">
                         Empresas Destacadas
                     </Text>
@@ -26,7 +26,7 @@ export default function LevelSilver({ companies }: LevelSilverProps) {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: 16, paddingRight: 20 }}>
                 {companies.length === 0 ? (
-                  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40, minWidth: 200 }}>
+                  <View className="flex-1 items-center justify-center py-10 min-w-[200px]">
                     <Building size={32} color="rgba(255,255,255,0.65)" style={{ marginBottom: 12 }} />
                     <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, textAlign: 'center' }}>
                       No hay empresas disponibles en este nivel

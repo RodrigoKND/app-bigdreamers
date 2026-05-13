@@ -159,7 +159,7 @@ export default function ProfileScreen() {
                 label="Panel de Administrador"
                 onPress={() => router.push('/admin')}
               />
-              <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
+              <View className="h-px mx-4" style={{ backgroundColor: divider }} />
             </>
           )}
           <MenuItem
@@ -168,7 +168,7 @@ export default function ProfileScreen() {
             label="Información personal"
             onPress={() => router.push('/personal-info' as any)}
           />
-          <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
+          <View className="h-px mx-4" style={{ backgroundColor: divider }} />
           <MenuItem
             isDark={isDark}
             icon={<Shield size={16} color={iconColor} />}
@@ -183,13 +183,13 @@ export default function ProfileScreen() {
           style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
         >
           {/* Community */}
-          <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
-            <MenuItem
-              isDark={isDark}
-              icon={<Users size={16} color={iconColor} />}
-              label="Comunidad"
-              onPress={() => router.push('/(tabs)/community')}
-            />
+          <MenuItem
+            isDark={isDark}
+            icon={<Users size={16} color={iconColor} />}
+            label="Comunidad"
+            onPress={() => router.push('/(tabs)/community')}
+          />
+          <View className="h-px mx-4" style={{ backgroundColor: divider }} />
           {/* Progreso */}
           <MenuItem
             isDark={isDark}
@@ -197,7 +197,7 @@ export default function ProfileScreen() {
             label="Mi Progreso"
             onPress={() => router.push('/(tabs)/progress')}
           />
-          <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
+          <View className="h-px mx-4" style={{ backgroundColor: divider }} />
 
           {/* Tema */}
           <Pressable

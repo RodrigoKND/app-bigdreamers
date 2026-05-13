@@ -34,7 +34,7 @@ const GemsScreen = () => {
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaType.Images,
       quality: 0.8,
     });
     if (!result.canceled) {
@@ -72,24 +72,27 @@ const GemsScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}>
       <GemsHeader currentGems={user?.gems ?? 0} />
 
       {requestSent ? (
         <RequestSentBanner gems={selectedPackage?.gems ?? 0} isDark={isDark} onBack={handleBack} />
       ) : (
-        <View style={{ flex: 1 }}>
+        <View className="flex-1">
           <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 160 }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: textMuted, letterSpacing: 0.5, marginBottom: 16 }}>
+            <Text
+              className="text-base font-bold mb-4"
+              style={{ color: textMuted, letterSpacing: 0.5 }}
+            >
               Elige tu paquete
             </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+            <View className="flex-row flex-wrap justify-between">
               {packagesLoading ? (
                 <Text style={{ color: textMuted }}>Cargando paquetes...</Text>
               ) : packages.length === 0 ? (
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
-                  <Package size={48} color={textMuted} style={{ marginBottom: 16 }} />
-                  <Text style={{ color: textMuted, fontSize: 16, textAlign: 'center' }}>
+                <View className="flex-1 items-center justify-center py-10">
+                  <Package size={48} color={textMuted} />
+                  <Text className="text-base text-center mt-4" style={{ color: textMuted }}>
                     No hay paquetes disponibles en este momento
                   </Text>
                 </View>
@@ -105,23 +108,26 @@ const GemsScreen = () => {
                 ))
               )}
             </View>
-            <View style={{ height: 24 }} />
+            <View className="h-6" />
             <PaymentInstructions isDark={isDark} imageUri={imageUri} onPickImage={handlePickImage} />
           </ScrollView>
 
-          <View style={{ position: 'absolute', left: 20, right: 20, bottom: insets.bottom + 20 }}>
+          <View
+            className="absolute left-5 right-5"
+            style={{ bottom: insets.bottom + 20 }}
+          >
             <Pressable
               onPress={handleRequestPress}
               disabled={!selectedPackageId || !imageUri || creatingRequest}
+              className="rounded-2xl py-4 items-center"
               style={{
-                backgroundColor: selectedPackageId && imageUri && !creatingRequest ? Colors.gold[400] : Colors.navy?.[700] ?? '#1E3A5F',
+                backgroundColor: selectedPackageId && imageUri && !creatingRequest
+                  ? Colors.gold[400]
+                  : Colors.navy?.[700] ?? '#1E3A5F',
                 opacity: selectedPackageId && imageUri && !creatingRequest ? 1 : 0.4,
-                borderRadius: 16,
-                paddingVertical: 16,
-                alignItems: 'center',
               }}
             >
-              <Text style={{ color: '#000', fontWeight: '800', fontSize: 15  }}>
+              <Text className="font-extrabold text-[15px]" style={{ color: '#000' }}>
                 {creatingRequest ? 'Enviando...' : 'Solicitar gemas'}
               </Text>
             </Pressable>

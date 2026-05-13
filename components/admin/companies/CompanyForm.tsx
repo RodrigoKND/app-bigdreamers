@@ -36,7 +36,7 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
     if (!permission.granted) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [16, 9],
       quality: 0.8,

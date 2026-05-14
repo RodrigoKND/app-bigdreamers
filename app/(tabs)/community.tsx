@@ -117,12 +117,8 @@ export default function CommunityScreen() {
     );
   };
 
-  console.log('top3:', JSON.stringify(top3));
-  console.log('first:', first?.name, '| second:', second?.name);
-  
-  console.log('loading:', loading, '| error:', error, '| members:', members.length);
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: bg }}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
       <CommunityHeader />
 
       {/* Period pills */}
@@ -135,10 +131,8 @@ export default function CommunityScreen() {
               onPress={() => setPeriod(p)}
               accessible
               accessibilityLabel={`Ranking ${p}`}
-              className="active:opacity-70 rounded-full"
+              className="active:opacity-70 rounded-full px-5 py-[9px]"
               style={{
-                paddingHorizontal: 20,
-                paddingVertical: 9,
                 backgroundColor: active
                   ? isDark ? Colors.gold[400] : Colors.light.accent
                   : isDark ? Colors.navy[700] : Colors.light.surface,
@@ -190,7 +184,7 @@ export default function CommunityScreen() {
           
           {/* Empty state */}
           {members.length === 0 && (
-            <View className="items-center px-8 gap-3" style={{ marginTop: 120 }}>
+            <View className="items-center px-8 gap-3 mt-[120px]">
               <Crown size={48} color={textMuted} />
               <Text className="text-base font-bold text-center" style={{ color: textPrimary }}>
                 Aún no hay miembros en el ranking

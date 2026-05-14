@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import ButtonSocialMedia from '@/components/shared/ButtonSocialMedia';
 
-export default function DetailHeader({ name, description, gems, imageUrl }: { name: string; description: string; gems: number; imageUrl: string }) {
+export default function DetailHeader({ name, description, gems, imageUrl, instagramUrl, facebookUrl }: { name: string; description: string; gems: number; imageUrl: string; instagramUrl?: string; facebookUrl?: string }) {
     return (
         <View className="mb-8 overflow-hidden rounded-[40px] border border-white/20  shadow-2xl">
             <LinearGradient
@@ -29,10 +29,12 @@ export default function DetailHeader({ name, description, gems, imageUrl }: { na
                     </View>
                 </View>
 
-                <View className="flex-row items-center mt-4 gap-3">
-                    <ButtonSocialMedia icon={<FontAwesome name="instagram" size={24} color="yellow" />} url="https://instagram.com/bytetwoo" />
-                    <ButtonSocialMedia icon={<FontAwesome name="facebook-f" size={24} color="yellow" />} url="https://facebook.com/bytetwo" />
-                </View>
+                {(instagramUrl || facebookUrl) && (
+                  <View className="flex-row items-center mt-4 gap-3">
+                    {instagramUrl && <ButtonSocialMedia icon={<FontAwesome name="instagram" size={24} color="yellow" />} url={instagramUrl} />}
+                    {facebookUrl && <ButtonSocialMedia icon={<FontAwesome name="facebook-f" size={24} color="yellow" />} url={facebookUrl} />}
+                  </View>
+                )}
 
                 <View className="mt-8 flex-row items-baseline">
                     <Text className="text-2xl font-black text-yellow-400 tracking-tighter">G {gems.toLocaleString()}</Text>

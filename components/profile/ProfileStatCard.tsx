@@ -2,9 +2,6 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Plus, Gem, BookOpen, Flame } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
-import { useRouter } from 'expo-router';
-
-const router = useRouter();
 
 interface StatItem {
   label: string;

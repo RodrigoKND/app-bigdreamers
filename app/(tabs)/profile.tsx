@@ -1,10 +1,11 @@
-import React from 'react';import {
+import React, { useCallback, useRef } from 'react';
+import {
   View, Text, ScrollView,
   Pressable, ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2, Users  } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUser } from '@/hooks/user/useCurrentUser';
@@ -80,9 +81,23 @@ function SectionLabel({ label, isDark }: { label: string; isDark: boolean }) {
 
 export default function ProfileScreen() {
   const { user: authUser, logout } = useAuth();
-  const { user, loading } = useCurrentUser(authUser?.id ?? null); 
+  const { user, loading, refetch } = useCurrentUser(authUser?.id ?? null);
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
+
+  // Refresca al volver de otra pantalla (ej: edit-profile).
+  // El ref evita el double-fetch en el mount inicial,
+  // ya que useCurrentUser ya hace su propio fetch al montar.
+  const hasMounted = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasMounted.current) {
+        hasMounted.current = true;
+        return;
+      }
+      refetch();
+    }, [refetch])
+  );
   
   if (loading || !user) {
     return (
@@ -109,7 +124,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: screenBg }} edges={['top']}>
 
-      <ProfileScreenHeader onEdit={() => console.log('Editar')} />
+      <ProfileScreenHeader onEdit={() => router.push('/edit-profile' as any)} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -124,9 +139,9 @@ export default function ProfileScreen() {
           className="mt-2"
           onRechargeGems={() => router.push('/gems')}
           stats={[
-            { label: 'GEMAS',   value: user.gems.toLocaleString(), accent: Colors.gold[500] },
-            { label: 'MÓDULOS', value: user.completedModules,      accent: isDark ? '#FFFFFF' : Colors.light.textPrimary },
-            { label: 'RACHA',   value: user.streak,                accent: Colors.warning },
+            { label: 'GEMAS',   value: user.gems.toLocaleString(),         accent: Colors.gold[500] },
+            { label: 'MÓDULOS', value: String(user.completedModules),     accent: isDark ? '#FFFFFF' : Colors.light.textPrimary },
+            { label: 'RACHA',   value: String(user.streak),               accent: Colors.warning },
           ]}
         />
 
@@ -144,15 +159,16 @@ export default function ProfileScreen() {
                 label="Panel de Administrador"
                 onPress={() => router.push('/admin')}
               />
-              <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
+              <View className="h-px mx-4" style={{ backgroundColor: divider }} />
             </>
           )}
           <MenuItem
             isDark={isDark}
             icon={<User size={16} color={iconColor} />}
             label="Información personal"
+            onPress={() => router.push('/personal-info' as any)}
           />
-          <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
+          <View className="h-px mx-4" style={{ backgroundColor: divider }} />
           <MenuItem
             isDark={isDark}
             icon={<Shield size={16} color={iconColor} />}
@@ -167,13 +183,13 @@ export default function ProfileScreen() {
           style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
         >
           {/* Community */}
-          <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
-            <MenuItem
-              isDark={isDark}
-              icon={<Users size={16} color={iconColor} />}
-              label="Comunidad"
-              onPress={() => router.push('/(tabs)/community')}
-            />
+          <MenuItem
+            isDark={isDark}
+            icon={<Users size={16} color={iconColor} />}
+            label="Comunidad"
+            onPress={() => router.push('/(tabs)/community')}
+          />
+          <View className="h-px mx-4" style={{ backgroundColor: divider }} />
           {/* Progreso */}
           <MenuItem
             isDark={isDark}
@@ -181,7 +197,7 @@ export default function ProfileScreen() {
             label="Mi Progreso"
             onPress={() => router.push('/(tabs)/progress')}
           />
-          <View style={{ height: 1, backgroundColor: divider, marginHorizontal: 16 }} />
+          <View className="h-px mx-4" style={{ backgroundColor: divider }} />
 
           {/* Tema */}
           <Pressable

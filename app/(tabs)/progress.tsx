@@ -12,7 +12,9 @@ import ProgressHeader from '@/components/progress/ProgressHeader';
 import { useCurrentUser } from '@/hooks/user/useCurrentUser';
 import { useUserCompletedModules } from '@/hooks/learning/useUserCompletedModules';
 import { useUserMilestones } from '@/hooks/progress/useUserMilestones';
+import { useUserGemHistory } from '@/hooks/gem/useUserGemHistory';
 import { useAuth } from '@/contexts/AuthContext';
+import GemHistoryCard from '@/components/progress/GemHistoryCard';
 
 // Mapa de categoría → ícono y color para las insignias
 const MILESTONE_STYLE: Record<string, { color: string; bg: string; Icon: React.FC<{ size: number; color: string }> }> = {
@@ -30,8 +32,22 @@ const { user: authUser } = useAuth();
 const { user, loading: loadingUser }                   = useCurrentUser(authUser?.id ?? null);
 const { completedModuleIds, loading: loadingModules }  = useUserCompletedModules(user?.id ?? null);
 const { milestones, loading: loadingMilestones }       = useUserMilestones(user?.id ?? null);
+const { history, loading: loadingHistory }             = useUserGemHistory(user?.id ?? null);
 
-  const isLoading = loadingUser || loadingModules || loadingMilestones;
+  const isLoading = loadingUser || loadingModules || loadingMilestones || loadingHistory;
+
+  const totalEarned = useMemo(
+    () => history.filter((r) => r.status === 'approved').reduce((sum, r) => sum + r.gems, 0),
+    [history]
+  );
+
+  const weeklyGrowth = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 7);
+    return history
+      .filter((r) => r.status === 'approved' && new Date(r.date) >= cutoff)
+      .reduce((sum, r) => sum + r.gems, 0);
+  }, [history]);
 
   // Cuántas insignias están completadas
   const earnedCount = useMemo(
@@ -92,6 +108,13 @@ const { milestones, loading: loadingMilestones }       = useUserMilestones(user?
           gems={user?.gems ?? 0}
         />
 
+        {/* Historial de gemas */}
+        <GemHistoryCard
+          currentGems={user?.gems ?? 0}
+          totalEarned={totalEarned}
+          weeklyGrowth={weeklyGrowth}
+        />
+
         {/* Stats row */}
         <View className="flex-row px-5 gap-3 mb-5">
           {stats.map((stat) => (
@@ -106,7 +129,7 @@ const { milestones, loading: loadingMilestones }       = useUserMilestones(user?
               <Text className="text-xl font-bold mt-1" style={{ color: stat.color }}>
                 {stat.value}
               </Text>
-              <Text className="text-xs font-semibold tracking-wider" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              <Text className="text-xs font-semibold tracking-wider" style={{ color: textMuted }}>
                 {stat.label}
               </Text>
             </View>

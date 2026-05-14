@@ -16,7 +16,7 @@ export interface Course {
   id: string;
   title: string;
   description: string;
-  category: 'Finanzas' | 'Inversión' | 'Ahorro' | 'Empresa';
+  category: 'Finanzas' | 'Inversion' | 'Ahorro' | 'Empresa';
   totalLessons: number;
   modules: CourseModule[];
   objectives: CourseObjective[];

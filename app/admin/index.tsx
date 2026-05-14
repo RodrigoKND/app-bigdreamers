@@ -8,11 +8,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useGemRequests } from '@/hooks/gem/useGemRequests';
 import { useApproveGemRequest } from '@/hooks/gem/useApproveGemRequest';
 import { useRejectGemRequest } from '@/hooks/gem/useRejectGemRequest';
-import { useCourses } from '@/hooks/course/useCourses';
-import { useCreateCourse } from '@/hooks/course/useCreateCourse';
+import { useLearningModules } from '@/hooks/learning/useLearningModules';
+import { useCreateLearningModule } from '@/hooks/learning/useCreateLearningModule';
 import { useCompanies } from '@/hooks/company/useCompanies';
 import { useCreateCompany } from '@/hooks/company/useCreateCompany';
-import { Course } from '@/constants/mockCourses';
+import { LearningModuleFormData } from '@/components/admin/courses/CourseForm';
 import { Company } from '@/constants/mockCompanies';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminTabs from '@/components/admin/AdminTabs';
@@ -32,9 +32,9 @@ const AdminScreen = () => {
   const { approve: approveGemRequest, loading: approving } = useApproveGemRequest();
   const { reject: rejectGemRequest, loading: rejecting } = useRejectGemRequest();
   
-  // Courses hooks
-  const { courses, loading: coursesLoading, refetch: refetchCourses } = useCourses();
-  const { create: createCourse, loading: creatingCourse } = useCreateCourse();
+  // Learning modules hooks
+  const { modules, loading: modulesLoading, refetch: refetchModules } = useLearningModules();
+  const { create: createLearningModule, loading: creatingModule } = useCreateLearningModule();
   
   // Companies hooks
   const { companies, loading: companiesLoading, refetch: refetchCompanies } = useCompanies();
@@ -90,19 +90,13 @@ const AdminScreen = () => {
     }
   };
 
-  const handlePublishCourse = async (course: Partial<Course>) => {
+  const handlePublishCourse = async (data: LearningModuleFormData) => {
     try {
-      await createCourse({
-        title: course.title || '',
-        description: course.description || '',
-        category: (course.category as 'Finanzas' | 'Inversion' | 'Ahorro' | 'Empresa') || 'Finanzas',
-        totalLessons: course.modules?.length || 0,
-        published: true,
-      });
+      await createLearningModule(data);
       setShowCourseForm(false);
-      refetchCourses();
+      refetchModules();
     } catch (error) {
-      console.error('Error creating course:', error);
+      console.error('Error creating learning module:', error);
     }
   };
 
@@ -133,28 +127,23 @@ const AdminScreen = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}edges={['bottom']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }} edges={['bottom']}>
       <AdminHeader />
       <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} isDark={isDark} />
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
         {activeTab === 'gems' && (
           <View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: textPrimary }}>
+            <View className="flex-row items-center mb-4">
+              <Text className="text-lg font-extrabold" style={{ color: textPrimary }}>
                 Solicitudes de Gemas
               </Text>
               {pendingCount > 0 && (
                 <View
-                  style={{
-                    backgroundColor: Colors.gold[400],
-                    borderRadius: 12,
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    marginLeft: 8,
-                  }}
+                  className="rounded-xl px-2 py-1 ml-2"
+                  style={{ backgroundColor: Colors.gold[400] }}
                 >
-                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#000' }}>
+                  <Text className="text-xs font-extrabold" style={{ color: '#000' }}>
                     {pendingCount}
                   </Text>
                 </View>
@@ -162,13 +151,13 @@ const AdminScreen = () => {
             </View>
 
             {gemRequestsLoading ? (
-              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
+              <View className="items-center justify-center py-10">
                 <Text style={{ color: textMuted }}>Cargando solicitudes...</Text>
               </View>
             ) : gemRequests.length === 0 ? (
-              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
-                <Package size={48} color={textMuted} style={{ marginBottom: 16 }} />
-                <Text style={{ color: textMuted, fontSize: 16, textAlign: 'center' }}>
+              <View className="items-center justify-center py-10">
+                <Package size={48} color={textMuted} className="mb-4" />
+                <Text className="text-base text-center" style={{ color: textMuted }}>
                   No hay solicitudes de gemas pendientes
                 </Text>
               </View>
@@ -190,61 +179,47 @@ const AdminScreen = () => {
           <View>
             <Pressable
               onPress={() => setShowCourseForm(true)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: Colors.gold[400],
-                borderRadius: 16,
-                paddingVertical: 16,
-                marginBottom: 20,
-              }}
+              className="flex-row items-center justify-center rounded-2xl py-4 mb-5"
+              style={{ backgroundColor: Colors.gold[400] }}
             >
               <Plus size={20} color="#000" />
-              <Text style={{ marginLeft: 8, fontSize: 16, fontWeight: '800', color: '#000' }}>
+              <Text className="ml-2 text-base font-extrabold" style={{ color: '#000' }}>
                 Nuevo curso
               </Text>
             </Pressable>
 
-            {coursesLoading ? (
-              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
-                <Text style={{ color: textMuted }}>Cargando cursos...</Text>
+            {modulesLoading ? (
+              <View className="items-center justify-center py-10">
+                <Text style={{ color: textMuted }}>Cargando módulos...</Text>
               </View>
-            ) : courses.length === 0 ? (
-              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
-                <BookOpen size={48} color={textMuted} style={{ marginBottom: 16 }} />
-                <Text style={{ color: textMuted, fontSize: 16, textAlign: 'center' }}>
-                  No hay cursos publicados
+            ) : modules.length === 0 ? (
+              <View className="items-center justify-center py-10">
+                <BookOpen size={48} color={textMuted} className="mb-4" />
+                <Text className="text-base text-center" style={{ color: textMuted }}>
+                  No hay módulos publicados
                 </Text>
               </View>
             ) : (
-              courses.map((course) => (
+              modules.map((mod) => (
                 <View
-                  key={course.id}
+                  key={mod.id}
+                  className="border rounded-2xl p-4 mb-3"
                   style={{
                     backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.surface,
-                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
-                    borderWidth: 1,
-                    borderRadius: 16,
-                    padding: 16,
-                    marginBottom: 12,
+                    borderColor:     isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
                   }}
                 >
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary }}>{course.title}</Text>
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-base font-bold" style={{ color: textPrimary }}>{mod.title}</Text>
                     <View
-                      style={{
-                        backgroundColor: Colors.gold[400],
-                        borderRadius: 12,
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                      }}
+                      className="rounded-xl px-2 py-1"
+                      style={{ backgroundColor: Colors.gold[400] }}
                     >
-                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#000' }}>PUBLICADO</Text>
+                      <Text className="text-[10px] font-extrabold" style={{ color: '#000' }}>PUBLICADO</Text>
                     </View>
                   </View>
-                  <Text style={{ color: textMuted, marginBottom: 8 }}>{course.category}</Text>
-                  <Text style={{ color: textMuted }}>{course.modules?.length || 0} módulos</Text>
+                  <Text className="mb-2" style={{ color: textMuted }}>{mod.category}</Text>
+                  <Text style={{ color: textMuted }}>{mod.difficulty}</Text>
                 </View>
               ))
             )}
@@ -255,30 +230,23 @@ const AdminScreen = () => {
           <View>
             <Pressable
               onPress={() => setShowCompanyForm(true)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: Colors.gold[400],
-                borderRadius: 16,
-                paddingVertical: 16,
-                marginBottom: 20,
-              }}
+              className="flex-row items-center justify-center rounded-2xl py-4 mb-5"
+              style={{ backgroundColor: Colors.gold[400] }}
             >
               <Plus size={20} color="#000" />
-              <Text style={{ marginLeft: 8, fontSize: 16, fontWeight: '800', color: '#000' }}>
+              <Text className="ml-2 text-base font-extrabold" style={{ color: '#000' }}>
                 Nueva empresa
               </Text>
             </Pressable>
 
             {companiesLoading ? (
-              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
+              <View className="items-center justify-center py-10">
                 <Text style={{ color: textMuted }}>Cargando empresas...</Text>
               </View>
             ) : companies.length === 0 ? (
-              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
-                <Building size={48} color={textMuted} style={{ marginBottom: 16 }} />
-                <Text style={{ color: textMuted, fontSize: 16, textAlign: 'center' }}>
+              <View className="items-center justify-center py-10">
+                <Building size={48} color={textMuted} className="mb-4" />
+                <Text className="text-base text-center" style={{ color: textMuted }}>
                   No hay empresas publicadas
                 </Text>
               </View>
@@ -286,28 +254,23 @@ const AdminScreen = () => {
               companies.map((company) => (
                 <View
                   key={company.id}
+                  className="border rounded-2xl p-4 mb-3"
                   style={{
                     backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.surface,
-                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
-                    borderWidth: 1,
-                    borderRadius: 16,
-                    padding: 16,
-                    marginBottom: 12,
+                    borderColor:     isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
                   }}
                 >
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary }}>{company.name}</Text>
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-base font-bold" style={{ color: textPrimary }}>{company.name}</Text>
                     <View
+                      className="rounded-xl px-2 py-1"
                       style={{
                         backgroundColor:
-                          company.level === 'gold' ? '#FFD700' :
+                          company.level === 'gold'   ? '#FFD700' :
                           company.level === 'silver' ? '#C0C0C0' : '#CD7F32',
-                        borderRadius: 12,
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
                       }}
                     >
-                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#000' }}>
+                      <Text className="text-[10px] font-extrabold" style={{ color: '#000' }}>
                         {company.level?.toUpperCase()}
                       </Text>
                     </View>

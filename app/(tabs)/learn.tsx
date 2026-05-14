@@ -89,9 +89,8 @@ function ModuleNode({
     <View className="items-center">
       {!isFirst && (
         <View
+          className="w-[3px] h-7"
           style={{
-            width: 3,
-            height: 28,
             backgroundColor: isLocked
               ? isDark ? 'rgba(255,255,255,0.1)' : '#CBD5E1'
               : Colors.gold[400],
@@ -239,13 +238,13 @@ export default function LearnScreen() {
   const activeModule = enrichedModules.find((m) => m.status === 'active');
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: bg }}>
-      <View style={{ flex: 1 }}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
+      <View className="flex-1">
 
         <LearnHeader gems={user?.gems ?? 0} />
 
         {/* Category tabs */}
-        <View style={{ height: 44, marginBottom: 16 }}>
+        <View className="h-11 mb-4">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -260,10 +259,8 @@ export default function LearnScreen() {
                   onPress={() => setActiveCategory(label)}
                   accessible
                   accessibilityLabel={`Categoría ${label}`}
-                  className="active:opacity-70 rounded-full"
+                  className="active:opacity-70 rounded-full px-[18px] py-2"
                   style={{
-                    paddingHorizontal: 18,
-                    paddingVertical: 8,
                     backgroundColor: active
                       ? isDark ? Colors.gold[400] : Colors.light.accent
                       : isDark ? Colors.navy[700] : Colors.light.surface,

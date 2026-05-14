@@ -10,7 +10,7 @@ interface LearnHeaderProps {
   gems?: number;
 }
 
-export default function LearnHeader({ gems = 1240 }: LearnHeaderProps) {
+export default function LearnHeader({ gems = 0 }: LearnHeaderProps) {
   const { isDark } = useTheme();
   const router = useRouter();
 

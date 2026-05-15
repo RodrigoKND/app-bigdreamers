@@ -1,6 +1,7 @@
-import { View, Text, Pressable, Image } from 'react-native';
-import { Info, Upload, CheckCircle } from 'lucide-react-native';
+import { View, Text } from 'react-native';
+import { Info } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import ImagePickerField from '@/components/shared/ImagePickerField';
 
 interface PaymentInstructionsProps {
   isDark: boolean;
@@ -42,34 +43,12 @@ const PaymentInstructions = ({ isDark, imageUri, onPickImage }: PaymentInstructi
         </Text>
       </View>
 
-      <Pressable onPress={onPickImage} style={cardStyle}>
-        {imageUri ? (
-          <View style={{ alignItems: 'center' }}>
-            <Image
-              source={{ uri: imageUri }}
-              style={{
-                width: '100%',
-                height: 220,
-                borderRadius: 12,
-                resizeMode: 'cover',
-              }}
-            />
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
-              <CheckCircle size={18} color="#4ADE80" />
-              <Text style={{ color: '#4ADE80', fontWeight: '700', marginLeft: 8 }}>Comprobante cargado</Text>
-            </View>
-            <Text style={{ color: textMuted, fontSize: 12, marginTop: 4 }}>Toca para cambiar</Text>
-          </View>
-        ) : (
-          <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 24 }}>
-            <Upload size={28} color={Colors.gold[400]} />
-            <View style={{ marginTop: 12, alignItems: 'center' }}>
-              <Text style={{ color: textMuted, marginBottom: 4 }}>Toca para subir comprobante</Text>
-              <Text style={{ color: textMuted, fontSize: 12 }}>JPG, PNG · Máx 5MB</Text>
-            </View>
-          </View>
-        )}
-      </Pressable>
+      <ImagePickerField
+        isDark={isDark}
+        imageUri={imageUri}
+        onPick={onPickImage}
+        variant="receipt"
+      />
     </View>
   );
 };

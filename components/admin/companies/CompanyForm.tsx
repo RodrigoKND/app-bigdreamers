@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Image } from 'react-native';
-import { Plus, Trash2, UserPlus, ImagePlus, X } from 'lucide-react-native';
+import { View, Text, TextInput, Pressable, ScrollView } from 'react-native';
+import { Trash2, UserPlus } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import ImagePickerField from '@/components/shared/ImagePickerField';
 import { Colors } from '@/constants/colors';
 import { CompanyLevel, CompanyTeamMember, Company } from '@/constants/mockCompanies';
 import LevelSelector from '@/components/admin/companies/LevelSelector';
@@ -99,77 +100,14 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
       />
 
       {/* Imagen */}
-      <View className="mb-3">
-        <Text
-          className="text-[13px] font-bold uppercase opacity-90 mb-[10px]"
-          style={{ color: textPrimary, letterSpacing: 0.4 }}
-        >
-          Imagen de la empresa
-        </Text>
-
-        {imageUrl ? (
-          <View
-            className="relative rounded-xl overflow-hidden border mb-3"
-            style={{
-              borderColor:   isDark ? 'rgba(255,255,255,0.12)' : '#E2E8F0',
-              shadowColor:   '#000',
-              shadowOpacity: isDark ? 0.2 : 0.08,
-              shadowRadius:  8,
-              shadowOffset:  { width: 0, height: 3 },
-              elevation:     2,
-            }}
-          >
-            <Image
-              source={{ uri: imageUrl }}
-              className="w-full h-[180px]"
-              style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}
-              resizeMode="cover"
-            />
-            <Pressable
-              onPress={removeImage}
-              className="absolute top-[10px] right-[10px] w-8 h-8 rounded-full items-center justify-center"
-              style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-            >
-              <X size={16} color="#fff" />
-            </Pressable>
-            <Pressable
-              onPress={pickImage}
-              className="absolute bottom-[10px] right-[10px] flex-row items-center px-3 py-1.5 rounded-lg"
-              style={{ backgroundColor: Colors.gold[400] }}
-            >
-              <ImagePlus size={14} color="#000" />
-              <Text
-                className="ml-1.5 text-xs font-bold"
-                style={{ color: '#000', letterSpacing: 0.3 }}
-              >
-                Cambiar
-              </Text>
-            </Pressable>
-          </View>
-        ) : (
-          <Pressable
-            onPress={pickImage}
-            className="rounded-xl border-2 border-dashed py-7 px-4 items-center justify-center"
-            style={{
-              backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : '#F1F5F9',
-              borderColor:     isDark ? 'rgba(255,255,255,0.12)' : '#E2E8F0',
-            }}
-          >
-            <View
-              className="w-12 h-12 rounded-full items-center justify-center mb-[10px]"
-              style={{ backgroundColor: 'rgba(212,175,55,0.15)' }}
-            >
-              <ImagePlus size={22} color={Colors.gold[400]} />
-            </View>
-            <Text className="font-bold text-sm mb-1" style={{ color: textPrimary }}>
-              Subir imagen
-            </Text>
-            <Text className="text-xs text-center" style={{ color: textMuted }}>
-              Toca para elegir una foto desde tu galería
-            </Text>
-          </Pressable>
-        )}
-      </View>
+      <ImagePickerField
+        isDark={isDark}
+        imageUri={imageUrl}
+        onPick={pickImage}
+        onRemove={removeImage}
+        variant="cover"
+        label="Imagen de la empresa"
+      />
 
       <TextInput
         placeholder="Nombre de la empresa"

@@ -24,16 +24,16 @@ export default function DetailHeader({ name, description, gems, imageUrl, instag
                     <View className="relative">
                         <View className="absolute w-32 h-32 bg-blue-400/30 blur-3xl rounded-full -top-4 -left-4" />
                         <View className="bg-white/90 rounded-[30px] p-4 shadow-lg rotate-3">
-                            <Image source={{ uri: imageUrl }} className="w-24 h-24" resizeMode="contain" />
+                            <Image source={{ uri: imageUrl }} style={{ width: 96, height: 96 }} resizeMode="contain" />
                         </View>
                     </View>
                 </View>
 
                 {(instagramUrl || facebookUrl) && (
-                  <View className="flex-row items-center mt-4 gap-3">
+                <View className="flex-row items-center mt-4 gap-3">
                     {instagramUrl && <ButtonSocialMedia icon={<FontAwesome name="instagram" size={24} color="yellow" />} url={instagramUrl} />}
                     {facebookUrl && <ButtonSocialMedia icon={<FontAwesome name="facebook-f" size={24} color="yellow" />} url={facebookUrl} />}
-                  </View>
+                </View>
                 )}
 
                 <View className="mt-8 flex-row items-baseline">

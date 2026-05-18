@@ -168,12 +168,6 @@ export default function ProfileScreen() {
             label="Información personal"
             onPress={() => router.push('/personal-info' as any)}
           />
-          <View className="h-px mx-4" style={{ backgroundColor: divider }} />
-          <MenuItem
-            isDark={isDark}
-            icon={<Shield size={16} color={iconColor} />}
-            label="Seguridad"
-          />
         </View>
 
         {/* PREFERENCIAS */}

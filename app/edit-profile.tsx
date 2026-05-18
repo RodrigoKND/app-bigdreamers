@@ -8,14 +8,16 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, User, Image as ImageIcon } from 'lucide-react-native';
+import { ArrowLeft, User } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUser } from '@/hooks/user/useCurrentUser';
 import { useUpdateUser } from '@/hooks/user/useUpdateUser';
 import BaseInput from '@/components/shared/BaseInput';
+import ImagePickerField from '@/components/shared/ImagePickerField';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -43,6 +45,22 @@ export default function EditProfileScreen() {
 
   const canSave = name.trim().length > 0 && !updating && !loadingUser;
 
+  const handlePickAvatar = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setAvatar(result.assets[0].uri);
+    }
+  };
+
   const handleSave = async () => {
     if (!user?.id || !canSave) return;
     try {
@@ -61,7 +79,6 @@ export default function EditProfileScreen() {
 
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 pt-5 pb-3">
-        {/* Izquierda: back + título */}
         <View className="flex-row items-center gap-3">
           <Pressable
             onPress={() => router.back()}
@@ -78,7 +95,6 @@ export default function EditProfileScreen() {
           </Text>
         </View>
 
-        {/* Derecha: botón Guardar */}
         <Pressable
           onPress={handleSave}
           disabled={!canSave}
@@ -141,25 +157,14 @@ export default function EditProfileScreen() {
 
             {/* Campo: Avatar */}
             <View className="gap-2">
-              <Text
-                className="text-[11px] font-semibold uppercase"
-                style={{ color: textMuted, letterSpacing: 0.5 }}
-              >
-                AVATAR (URL de imagen)
-              </Text>
-              <BaseInput
-                value={avatar}
-                onChangeText={setAvatar}
-                placeholder="https://..."
-                autoCapitalize="none"
-                keyboardType="url"
-                returnKeyType="done"
-                onSubmitEditing={handleSave}
-                leftIcon={<ImageIcon size={18} color={Colors.text.muted} />}
+              <ImagePickerField
+                isDark={isDark}
+                imageUri={avatar || null}
+                onPick={handlePickAvatar}
+                onRemove={() => setAvatar('')}
+                variant="cover"
+                label="Foto de perfil"
               />
-              <Text className="text-xs" style={{ color: textMuted }}>
-                Dejá vacío para conservar el avatar actual.
-              </Text>
             </View>
           </View>
         </ScrollView>

@@ -1,5 +1,5 @@
 import { Course, CourseModule, Lesson, CourseObjective } from '@/constants/mockCourses';
-import { getSupabase } from './supabase';
+import { getSupabaseClient } from './supabase';
 
 function mapCourseRow(row: any): Course {
   const modules: CourseModule[] = (row.modules || []).map((m: any) => ({
@@ -35,7 +35,7 @@ function mapCourseRow(row: any): Course {
 }
 
 export async function getCourses(): Promise<Course[]> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from('courses')
     .select(`
@@ -54,7 +54,7 @@ export async function getCourses(): Promise<Course[]> {
 }
 
 export async function getCourseById(id: string): Promise<Course | null> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from('courses')
     .select(`
@@ -83,7 +83,7 @@ export async function createCourse(course: {
   totalLessons: number;
   published?: boolean;
 }): Promise<Course> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase
     .from('courses')
@@ -116,7 +116,7 @@ export async function updateCourse(
     published: boolean;
   }>
 ): Promise<void> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const dbUpdates: Record<string, any> = {};
   if (updates.title !== undefined) dbUpdates.title = updates.title;
@@ -134,7 +134,7 @@ export async function updateCourse(
 }
 
 export async function deleteCourse(id: string): Promise<void> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const { data: modules } = await supabase
     .from('course_modules')
@@ -161,7 +161,7 @@ export async function addModuleToCourse(
   courseId: string,
   module: { title: string; description: string; badgeId?: string | null }
 ): Promise<CourseModule> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase
     .from('course_modules')
@@ -189,7 +189,7 @@ export async function updateModule(
   moduleId: string,
   updates: Partial<{ title: string; description: string; badgeId: string | null }>
 ): Promise<void> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const dbUpdates: Record<string, any> = {};
   if (updates.title !== undefined) dbUpdates.title = updates.title;
@@ -205,7 +205,7 @@ export async function updateModule(
 }
 
 export async function deleteModule(moduleId: string): Promise<void> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   await supabase.from('lessons').delete().eq('module_id', moduleId);
 
@@ -221,7 +221,7 @@ export async function addLessonToModule(
   moduleId: string,
   lesson: { title: string; durationMinutes: number }
 ): Promise<Lesson> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase
     .from('lessons')
@@ -246,7 +246,7 @@ export async function updateLesson(
   lessonId: string,
   updates: Partial<{ title: string; durationMinutes: number }>
 ): Promise<void> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const dbUpdates: Record<string, any> = {};
   if (updates.title !== undefined) dbUpdates.title = updates.title;
@@ -261,7 +261,7 @@ export async function updateLesson(
 }
 
 export async function deleteLesson(lessonId: string): Promise<void> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const { error } = await supabase
     .from('lessons')
@@ -275,7 +275,7 @@ export async function addObjectiveToCourse(
   courseId: string,
   objective: { description: string; triggerType: 'module' | 'gems'; triggerValue: string; badgeId: string }
 ): Promise<CourseObjective> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase
     .from('course_objectives')
@@ -304,7 +304,7 @@ export async function updateObjective(
   objectiveId: string,
   updates: Partial<{ description: string; triggerType: 'module' | 'gems'; triggerValue: string; badgeId: string }>
 ): Promise<void> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const dbUpdates: Record<string, any> = {};
   if (updates.description !== undefined) dbUpdates.description = updates.description;
@@ -321,7 +321,7 @@ export async function updateObjective(
 }
 
 export async function deleteObjective(objectiveId: string): Promise<void> {
-  const supabase = await getSupabase();
+  const supabase = await getSupabaseClient();
 
   const { error } = await supabase
     .from('course_objectives')

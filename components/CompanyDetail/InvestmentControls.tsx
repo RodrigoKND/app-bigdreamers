@@ -1,22 +1,20 @@
+import React from 'react';
 import { View, Text } from 'react-native';
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 import Button from '@/components/shared/Button';
 
-export default function InvestmentControls({ currentGems, description }: { currentGems: number; description: string }) {
+export default function InvestmentControls({ currentGems }: { currentGems: number }) {
+    const { isDark } = useTheme();
+
     return (
         <View className="mb-8">
-            <Text className="text-xl font-bold mb-2 dark:text-white text-black">Sobre la empresa</Text>
-            <Text className="dark:text-gray-100 text-gray-600 leading-5 mb-6">
-                {description}
-            </Text>
-
-            <View className="flex-row items-center justify-between bg-white/5 p-4 rounded-3xl border dark:border-gold-500 border-blue-primary">
+            <View className="flex-row items-center justify-between p-4 rounded-3xl border" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : Colors.light.card, borderColor: isDark ? Colors.gold[400] : Colors.light.borderAccent }}>
                 <View>
                     <Text className="text-xs text-gold-500 uppercase font-bold">Tus Gemas</Text>
-                    <Text className="text-lg font-bold dark:text-white text-black">{currentGems} G</Text>
+                    <Text className="text-lg font-bold" style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}>{currentGems} G</Text>
                 </View>
                 
-                {/* TODO: Implementar el método para invertir y deshabilitar el button
-                si las currentGems es menor a las gemas actuales de la empresa */}
                 <Button
                     title="Invertir"
                     variant='secondary'                    

@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Button from '@/components/shared/Button';
@@ -11,14 +12,16 @@ interface CompanyCardProps {
   imageUrl: string;
 }
 
-export default function CompanyCard({ id, name, gems, imageUrl }: CompanyCardProps) {
+const FALLBACK_IMAGE = 'https://cdn-icons-png.flaticon.com/512/2611/2611152.png';
+
+const CompanyCard = React.memo(function CompanyCard({ id, name, gems, imageUrl }: CompanyCardProps) {
   const router = useRouter();
 
   return (
     <Link href={`/company/${id}` as any}>
       <View className="w-64 h-80 rounded-3xl mr-4 overflow-hidden bg-gray-200">
         <Image
-          source={{ uri: imageUrl }}
+          source={{ uri: imageUrl || FALLBACK_IMAGE }}
           className="absolute w-full h-full"
           resizeMode="cover"
         />
@@ -49,4 +52,6 @@ export default function CompanyCard({ id, name, gems, imageUrl }: CompanyCardPro
       </View>
     </Link>
   );
-};
+});
+
+export default CompanyCard;

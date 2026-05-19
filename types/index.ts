@@ -1,4 +1,4 @@
-export type Level = 'gold' | 'bronze' | 'silver';
+export type Level = 'gold' | 'bronze' | 'silver' | 'diamond';
 
 export interface User {
   id: string;

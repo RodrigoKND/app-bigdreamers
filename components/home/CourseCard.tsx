@@ -1,20 +1,25 @@
+import React from 'react';
 import { View, Text } from 'react-native';
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function CourseCard({ title, lesson, progress = 0 }: { 
   title: string; 
   lesson: string;
   progress: number;
 }) {
+  const { isDark } = useTheme();
+
   return (
-    <View className="mx-4 p-4 rounded-2xl flex-row items-center justify-between dark:bg-blue-card bg-gray-200 shadow-sm">
+    <View className="mx-4 p-4 rounded-2xl flex-row items-center justify-between shadow-sm" style={{ backgroundColor: isDark ? Colors.blue.card : Colors.light.card }}>
       <View className="flex-row items-center flex-1">
-        <View className="w-12 h-12 rounded-xl bg-gray-200 items-center justify-center mr-3">
+        <View className="w-12 h-12 rounded-xl items-center justify-center mr-3" style={{ backgroundColor: isDark ? '#1E3A5F' : Colors.light.surface }}>
           <Text>💰</Text>
         </View>
         <View className="flex-1">
-          <Text className="font-bold text-base dark:text-white text-black">{title}</Text>
-          <Text className="text-xs opacity-70 dark:text-white text-black">{lesson}</Text>
-          <View className="h-1 w-24 bg-gray-300 rounded-full mt-2">
+          <Text className="font-bold text-base" style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}>{title}</Text>
+          <Text className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,0.7)' : Colors.light.textSecond }}>{lesson}</Text>
+          <View className="h-1 w-24 rounded-full mt-2" style={{ backgroundColor: isDark ? '#1E3A5F' : Colors.light.border }}>
             <View style={{ width: `${progress}%` }} className="h-full bg-gold-500 rounded-full" />
           </View>
         </View>

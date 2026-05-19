@@ -1,8 +1,13 @@
+import React from 'react';
 import { View, Text, Image } from 'react-native';
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function OfferItem({ name, gems, imageUrl }: { name: string; gems: number; imageUrl: string }) {
+  const { isDark } = useTheme();
+
   return (
-    <View className="bg-gray-200 rounded-2xl mr-3 overflow-hidden w-28 h-32">
+    <View className="rounded-2xl mr-3 overflow-hidden w-28 h-32" style={{ backgroundColor: isDark ? '#374151' : Colors.light.surface }}>
       <Image 
         source={{ uri: imageUrl }} 
         className="absolute w-full h-full" 

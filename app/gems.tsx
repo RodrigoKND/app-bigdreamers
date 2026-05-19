@@ -33,6 +33,8 @@ const GemsScreen = () => {
   const secondaryText = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textPrimary;
 
   const handlePickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.8,

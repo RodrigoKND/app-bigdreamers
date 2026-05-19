@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, TextInputProps } from 'react-native';
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 import BaseInput from './BaseInput';
 
 interface FormInputProps extends TextInputProps {
@@ -18,10 +20,12 @@ export default function FormInput({
   className = '',
   ...props
 }: FormInputProps) {
+  const { isDark } = useTheme();
+
   return (
     <View className={`w-full ${className}`.trim()}>
       {label && (
-        <Text className="text-sm font-medium text-text-secondary mb-1.5 ml-1">
+        <Text className="text-sm font-medium mb-1.5 ml-1" style={{ color: isDark ? Colors.text.secondary : Colors.light.textSecond }}>
           {label}
         </Text>
       )}
@@ -33,7 +37,8 @@ export default function FormInput({
       />
       {error && (
         <Text
-          className="text-xs font-medium text-error mt-1.5 ml-1"
+          className="text-xs font-medium mt-1.5 ml-1"
+          style={{ color: isDark ? Colors.error : Colors.light.error }}
           accessibilityRole="alert"
         >
           {error}

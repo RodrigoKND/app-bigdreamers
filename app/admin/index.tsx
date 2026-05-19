@@ -14,6 +14,7 @@ import { useCompanies } from '@/hooks/company/useCompanies';
 import { useCreateCompany } from '@/hooks/company/useCreateCompany';
 import { LearningModuleFormData } from '@/components/admin/courses/CourseForm';
 import { Company } from '@/constants/mockCompanies';
+import { uploadCompanyImage } from '@/services/supabase/storageService';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminTabs from '@/components/admin/AdminTabs';
 import GemRequestCard from '@/components/admin/gems/GemRequestCard';
@@ -102,11 +103,17 @@ const AdminScreen = () => {
 
   const handlePublishCompany = async (company: Partial<Company>) => {
     try {
+      let imageUrl = company.imageUrl || '';
+
+      if (imageUrl && !imageUrl.startsWith('http')) {
+        imageUrl = await uploadCompanyImage(imageUrl);
+      }
+
       await createCompany({
         name: company.name || '',
         description: company.description || '',
         gems: company.gems || 0,
-        imageUrl: company.imageUrl || '',
+        imageUrl,
         level: company.level || 'bronze',
         teamMembers: company.teamMembers || [],
         published: true,

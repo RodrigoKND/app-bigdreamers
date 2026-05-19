@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, TextInputProps } from 'react-native';
 import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 
 interface BaseInputProps extends TextInputProps {
   leftIcon?: React.ReactNode;
@@ -16,22 +17,25 @@ export default function BaseInput({
   className = '',
   ...props
 }: BaseInputProps) {
+  const { isDark } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
 
-  const borderColorClass = hasError
-    ? 'border-error'
+  const borderColor = hasError
+    ? Colors.error
     : isFocused
-    ? 'border-blue-primary'
-    : 'border-navy-600';
+    ? Colors.blue.primary
+    : isDark ? '#0A1E3D' : Colors.light.border;
 
   return (
     <View
-      className={`flex-row items-center bg-navy-800 rounded-xl px-4 h-14 border ${borderColorClass} ${className}`.trim()}
+      className={`flex-row items-center rounded-xl px-4 h-14 border ${className}`.trim()}
+      style={{ backgroundColor: isDark ? '#0A1E3D' : Colors.light.surface, borderColor }}
     >
       {leftIcon && <View className="mr-3">{leftIcon}</View>}
       <TextInput
-        className="flex-1 text-white font-sans text-base h-full"
-        placeholderTextColor={Colors.text.muted}
+        className="flex-1 font-sans text-base h-full"
+        style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}
+        placeholderTextColor={isDark ? Colors.text.muted : Colors.light.textMuted}
         onFocus={(e) => {
           setIsFocused(true);
           props.onFocus?.(e);

@@ -10,6 +10,7 @@ const LEVEL_INDEX: Record<Level, number> = {
   bronze: 0,
   silver: 1,
   gold:   2,
+  diamond: 3,
 };
 
 // Diamante no está en Level todavía, pero lo reservamos en el mapa visual

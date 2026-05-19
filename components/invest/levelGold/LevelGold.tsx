@@ -1,4 +1,7 @@
+import React from 'react';
 import { View, Text, ScrollView } from "react-native";
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 import CompanyCard from "@/components/invest/CompanyCard";
 import { Company } from "@/constants/mockCompanies";
 import { Building } from 'lucide-react-native';
@@ -8,18 +11,20 @@ interface LevelGoldProps {
 }
 
 export default function LevelGold({ companies }: LevelGoldProps) {
+    const { isDark } = useTheme();
+
     return (
         <View className="flex-1 my-6">
             <View className="flex-row justify-between items-center mb-5">
                 <View className="flex-col">
-                    <Text className="text-lg font-bold dark:text-white text-black">
+                    <Text className="text-lg font-bold" style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}>
                         Empresas Destacadas
                     </Text>
                     <Text className="text-lg font-bold text-levels-gold">
                         Nivel Oro
                     </Text>
                 </View>
-                <Text className="dark:text-gray-300 text-black">Ver todas</Text>
+                <Text style={{ color: isDark ? '#D1D5DB' : Colors.light.textSecond }}>Ver todas</Text>
             </View>
 
 
@@ -27,8 +32,8 @@ export default function LevelGold({ companies }: LevelGoldProps) {
                 contentContainerStyle={{ gap: 16, paddingRight: 20 }}>
                 {companies.length === 0 ? (
                   <View className="flex-1 items-center justify-center py-10 min-w-[200px]">
-                    <Building size={32} color="rgba(255,255,255,0.65)" style={{ marginBottom: 12 }} />
-                    <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, textAlign: 'center' }}>
+                    <Building size={32} color={isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted} className="mb-3" />
+                    <Text className="text-sm text-center" style={{ color: isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted }}>
                       No hay empresas disponibles en este nivel
                     </Text>
                   </View>

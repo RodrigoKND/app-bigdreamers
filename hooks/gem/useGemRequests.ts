@@ -1,32 +1,26 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useCachedQuery } from '@/hooks/useCachedQuery';
 import { GemRequest } from '@/constants/mockGemRequests';
 import { getGemRequests } from '@/services/supabase/gemService';
+import { CacheKeys } from '@/services/cache/cacheService';
 
 export function useGemRequests(filters?: {
   status?: 'pending' | 'approved' | 'rejected';
   userId?: string;
 }) {
-  const [requests, setRequests] = useState<GemRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const cacheKey = filters?.status
+    ? CacheKeys.gemRequests(filters.status)
+    : CacheKeys.gemRequests();
 
-  const fetchRequests = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const fetchFn = useCallback(
+    () => getGemRequests(filters),
+    [filters?.status, filters?.userId],
+  );
 
-    try {
-      const data = await getGemRequests(filters);
-      setRequests(data);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-    } finally {
-      setLoading(false);
-    }
-  }, [filters?.status, filters?.userId]);
+  const { data, loading, error, refetch } = useCachedQuery<GemRequest[]>(
+    cacheKey,
+    fetchFn,
+  );
 
-  useEffect(() => {
-    fetchRequests();
-  }, [fetchRequests]);
-
-  return { requests, loading, error, refetch: fetchRequests };
+  return { requests: data || [], loading, error, refetch };
 }

@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { Company } from '@/constants/mockCompanies';
 import { createCompany } from '@/services/supabase/companyService';
+import { invalidateCache } from '@/services/cache/cacheService';
+import { CacheKeys } from '@/services/cache/cacheService';
 
 export function useCreateCompany() {
   const [loading, setLoading] = useState(false);
@@ -22,6 +24,7 @@ export function useCreateCompany() {
     try {
       const data = await createCompany(params);
       setCompany(data);
+      await invalidateCache(CacheKeys.companies);
       return data;
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));

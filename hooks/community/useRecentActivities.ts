@@ -1,29 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useCachedQuery } from '@/hooks/useCachedQuery';
 import { Activity } from '@/types';
 import { getRecentActivities } from '@/services/supabase/communityService';
+import { CacheKeys } from '@/services/cache/cacheService';
 
 export function useRecentActivities(limit = 10) {
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const fetchFn = useCallback(
+    () => getRecentActivities(limit),
+    [limit],
+  );
 
-  const fetchActivities = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const { data, loading, error, refetch } = useCachedQuery<Activity[]>(
+    CacheKeys.recentActivities(limit),
+    fetchFn,
+  );
 
-    try {
-      const data = await getRecentActivities(limit);
-      setActivities(data);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-    } finally {
-      setLoading(false);
-    }
-  }, [limit]);
-
-  useEffect(() => {
-    fetchActivities();
-  }, [fetchActivities]);
-
-  return { activities, loading, error, refetch: fetchActivities };
+  return { activities: data || [], loading, error, refetch };
 }

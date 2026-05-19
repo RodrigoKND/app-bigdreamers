@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 
-export default function CourseCard({ title, lesson, progress = 0 }: { 
+const CourseCard = React.memo(function CourseCard({ title, lesson, progress = 0 }: { 
   title: string; 
   lesson: string;
   progress: number;
@@ -29,4 +29,6 @@ export default function CourseCard({ title, lesson, progress = 0 }: {
       </View>
     </View>
   );
-}
+});
+
+export default CourseCard;

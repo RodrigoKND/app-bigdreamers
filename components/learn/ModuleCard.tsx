@@ -25,7 +25,7 @@ interface ModuleCardProps {
   className?: string;
 }
 
-export default function ModuleCard({ module, onPress, className = '' }: ModuleCardProps) {
+const ModuleCard = React.memo(function ModuleCard({ module, onPress, className = '' }: ModuleCardProps) {
   const { isDark } = useTheme();
   const diffColor = DIFFICULTY_COLORS[module.difficulty];
 
@@ -94,4 +94,6 @@ export default function ModuleCard({ module, onPress, className = '' }: ModuleCa
       </View>
     </Pressable>
   );
-}
+});
+
+export default ModuleCard;

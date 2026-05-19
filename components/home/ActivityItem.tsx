@@ -4,7 +4,7 @@ import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 import { Activity } from '@/types';
 
-export default function ActivityItem({ activity }: { activity: Activity }) {
+const ActivityItem = React.memo(function ActivityItem({ activity }: { activity: Activity }) {
     const { isDark } = useTheme();
 
     return (
@@ -18,4 +18,6 @@ export default function ActivityItem({ activity }: { activity: Activity }) {
             </View>
         </View>
     );
-}
+});
+
+export default ActivityItem;

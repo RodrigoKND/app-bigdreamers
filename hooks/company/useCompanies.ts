@@ -1,29 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCachedQuery } from '@/hooks/useCachedQuery';
 import { Company } from '@/constants/mockCompanies';
 import { getCompanies } from '@/services/supabase/companyService';
+import { CacheKeys } from '@/services/cache/cacheService';
 
 export function useCompanies() {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const { data, loading, error, refetch } = useCachedQuery<Company[]>(
+    CacheKeys.companies,
+    getCompanies,
+  );
 
-  const fetchCompanies = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await getCompanies();
-      setCompanies(data);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCompanies();
-  }, [fetchCompanies]);
-
-  return { companies, loading, error, refetch: fetchCompanies };
+  return { companies: data || [], loading, error, refetch };
 }

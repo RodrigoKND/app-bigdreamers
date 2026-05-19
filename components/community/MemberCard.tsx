@@ -19,7 +19,7 @@ const RANK_COLORS: Record<number, string> = {
   3: Colors.levels.bronze,
 };
 
-export default function MemberCard({ member, isCurrentUser = false }: MemberCardProps) {
+const MemberCard = React.memo(function MemberCard({ member, isCurrentUser = false }: MemberCardProps) {
   const { isDark } = useTheme();
   const rankColor = RANK_COLORS[member.rank] ?? (isDark ? Colors.text.muted : Colors.light.textMuted);
 
@@ -75,4 +75,6 @@ export default function MemberCard({ member, isCurrentUser = false }: MemberCard
       </View>
     </View>
   );
-}
+});
+
+export default MemberCard;

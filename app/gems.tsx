@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, Pressable, SafeAreaView, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
@@ -34,7 +34,10 @@ const GemsScreen = () => {
 
   const handlePickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
+    if (!permission.granted) {
+      Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para subir el comprobante de pago. Puedes habilitarlo en Ajustes > Privacidad.');
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.8,

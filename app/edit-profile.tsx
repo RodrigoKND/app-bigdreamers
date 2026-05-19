@@ -47,7 +47,10 @@ export default function EditProfileScreen() {
 
   const handlePickAvatar = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
+    if (!permission.granted) {
+      Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para cambiar tu foto de perfil. Puedes habilitarlo en Ajustes > Privacidad.');
+      return;
+    }
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],

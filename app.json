@@ -22,7 +22,15 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "La aplicación necesita acceder a tu galería para subir imágenes de perfil y comprobantes de pago.",
+          "cameraPermission": "La aplicación necesita acceder a tu cámara para tomar fotos."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

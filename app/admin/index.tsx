@@ -106,7 +106,12 @@ const AdminScreen = () => {
       let imageUrl = company.imageUrl || '';
 
       if (imageUrl && !imageUrl.startsWith('http')) {
-        imageUrl = await uploadCompanyImage(imageUrl);
+        try {
+          imageUrl = await uploadCompanyImage(imageUrl);
+        } catch (uploadError) {
+          console.error('Error uploading image, creating company without image:', uploadError);
+          imageUrl = '';
+        }
       }
 
       await createCompany({

@@ -14,6 +14,12 @@ interface CompanyCardProps {
 
 const FALLBACK_IMAGE = 'https://cdn-icons-png.flaticon.com/512/2611/2611152.png';
 
+function isValidImageUrl(url: string): string {
+  if (!url) return FALLBACK_IMAGE;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return FALLBACK_IMAGE;
+}
+
 const CompanyCard = React.memo(function CompanyCard({ id, name, gems, imageUrl }: CompanyCardProps) {
   const router = useRouter();
 
@@ -21,7 +27,7 @@ const CompanyCard = React.memo(function CompanyCard({ id, name, gems, imageUrl }
     <Link href={`/company/${id}` as any}>
       <View className="w-64 h-80 rounded-3xl mr-4 overflow-hidden bg-gray-200">
         <Image
-          source={{ uri: imageUrl || FALLBACK_IMAGE }}
+          source={{ uri: isValidImageUrl(imageUrl) }}
           className="absolute w-full h-full"
           resizeMode="cover"
         />

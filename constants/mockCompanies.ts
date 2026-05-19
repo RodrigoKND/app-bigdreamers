@@ -1,4 +1,4 @@
-export type CompanyLevel = 'gold' | 'silver' | 'bronze';
+export type CompanyLevel = 'gold' | 'silver' | 'bronze' | 'diamond';
 
 export interface CompanyTeamMember {
   name: string;

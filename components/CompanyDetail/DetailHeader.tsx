@@ -4,6 +4,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const FALLBACK_IMAGE = 'https://cdn-icons-png.flaticon.com/512/2611/2611152.png';
 
+function isValidImageUrl(url: string): string {
+  if (!url) return FALLBACK_IMAGE;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return FALLBACK_IMAGE;
+}
+
 const DetailHeader = React.memo(function DetailHeader({ name, description, gems, imageUrl }: { name: string; description: string; gems: number; imageUrl: string }) {
     return (
         <View className="mb-8 overflow-hidden rounded-[40px] border border-white/20  shadow-2xl">
@@ -25,7 +31,7 @@ const DetailHeader = React.memo(function DetailHeader({ name, description, gems,
                     <View className="relative">
                         <View className="absolute w-32 h-32 bg-blue-400/30 blur-3xl rounded-full -top-4 -left-4" />
                         <View className="bg-white/90 rounded-[30px] p-4 shadow-lg rotate-3">
-                            <Image source={{ uri: imageUrl || FALLBACK_IMAGE }} style={{ width: 96, height: 96 }} resizeMode="contain" />
+                            <Image source={{ uri: isValidImageUrl(imageUrl) }} style={{ width: 96, height: 96 }} resizeMode="contain" />
                         </View>
                     </View>
                 </View>

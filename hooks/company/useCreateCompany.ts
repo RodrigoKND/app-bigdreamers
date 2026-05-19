@@ -12,7 +12,7 @@ export function useCreateCompany() {
     description: string;
     gems: number;
     imageUrl: string;
-    level: 'gold' | 'silver' | 'bronze';
+    level: 'gold' | 'silver' | 'bronze' | 'diamond';
     teamMembers: { name: string; role: string }[];
     published?: boolean;
   }) => {

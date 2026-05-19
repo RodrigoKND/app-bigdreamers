@@ -59,7 +59,7 @@ export async function createCompany(company: {
   description: string;
   gems: number;
   imageUrl: string;
-  level: 'gold' | 'silver' | 'bronze';
+  level: 'gold' | 'silver' | 'bronze' | 'diamond';
   teamMembers: { name: string; role: string }[];
   published?: boolean;
 }): Promise<Company> {
@@ -113,7 +113,7 @@ export async function updateCompany(
     description: string;
     gems: number;
     imageUrl: string;
-    level: 'gold' | 'silver' | 'bronze';
+    level: 'gold' | 'silver' | 'bronze' | 'diamond';
     published: boolean;
   }>
 ): Promise<void> {

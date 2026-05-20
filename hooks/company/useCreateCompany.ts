@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { Company } from '@/constants/mockCompanies';
 import { createCompany } from '@/services/supabase/companyService';
+import { invalidateCache } from '@/services/cache/cacheService';
+import { CacheKeys } from '@/services/cache/cacheService';
 
 export function useCreateCompany() {
   const [loading, setLoading] = useState(false);
@@ -12,7 +14,7 @@ export function useCreateCompany() {
     description: string;
     gems: number;
     imageUrl: string;
-    level: 'gold' | 'silver' | 'bronze';
+    level: 'gold' | 'silver' | 'bronze' | 'diamond';
     teamMembers: { name: string; role: string }[];
     published?: boolean;
   }) => {
@@ -22,11 +24,11 @@ export function useCreateCompany() {
     try {
       const data = await createCompany(params);
       setCompany(data);
+      await invalidateCache(CacheKeys.companies);
       return data;
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
-      throw error;
     } finally {
       setLoading(false);
     }

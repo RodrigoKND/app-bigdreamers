@@ -18,6 +18,7 @@ import {
   CheckCircle,
   CircleDot,
 } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import LearnHeader from '@/components/learn/LearnHeader';
@@ -179,6 +180,7 @@ function ModuleNode({
 }
 
 export default function LearnScreen() {
+  const router = useRouter();
   const { isDark } = useTheme();
   const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState<Category>('Finanzas');
@@ -343,6 +345,7 @@ export default function LearnScreen() {
             <Pressable
               accessible
               accessibilityLabel={`Continuar lección ${activeModule.completedLessons + 1}`}
+              onPress={() => router.push(`/module/${activeModule.id}` as any)}
               className="active:opacity-80 flex-row items-center justify-center rounded-2xl py-4 gap-3"
               style={{ backgroundColor: accentColor }}
             >

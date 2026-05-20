@@ -1,32 +1,26 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useCachedQuery } from '@/hooks/useCachedQuery';
 import { LearningModule } from '@/types';
 import { getLearningModules } from '@/services/supabase/learningService';
+import { CacheKeys } from '@/services/cache/cacheService';
 
 export function useLearningModules(filters?: {
   category?: string;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
 }) {
-  const [modules, setModules] = useState<LearningModule[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const cacheKey = filters?.category
+    ? `${CacheKeys.learningModules}_${filters.category}${filters?.difficulty ? `_${filters.difficulty}` : ''}`
+    : CacheKeys.learningModules;
 
-  const fetchModules = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const fetchFn = useCallback(
+    () => getLearningModules(filters),
+    [filters?.category, filters?.difficulty],
+  );
 
-    try {
-      const data = await getLearningModules(filters);
-      setModules(data);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-    } finally {
-      setLoading(false);
-    }
-  }, [filters?.category, filters?.difficulty]);
+  const { data, loading, error, refetch } = useCachedQuery<LearningModule[]>(
+    cacheKey,
+    fetchFn,
+  );
 
-  useEffect(() => {
-    fetchModules();
-  }, [fetchModules]);
-
-  return { modules, loading, error, refetch: fetchModules };
+  return { modules: data || [], loading, error, refetch };
 }

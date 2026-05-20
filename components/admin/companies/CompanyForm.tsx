@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
 import { Trash2, UserPlus } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import ImagePickerField from '@/components/shared/ImagePickerField';
@@ -34,7 +34,10 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
+    if (!permission.granted) {
+      Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para seleccionar una imagen de portada. Puedes habilitarlo en Ajustes > Privacidad.');
+      return;
+    }
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],

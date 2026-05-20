@@ -1,5 +1,8 @@
+import React from 'react';
 import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 import DetailHeader from '@/components/CompanyDetail/DetailHeader';
 import InvestmentControls from '@/components/CompanyDetail/InvestmentControls';
 import TeamMember from '@/components/CompanyDetail/TeamMember';
@@ -9,6 +12,7 @@ import { useCurrentUser } from '@/hooks/user/useCurrentUser';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function CompanyDetail({ companyId }: { companyId: string }) {
+  const { isDark } = useTheme();
   const { company, loading: loadingCompany } = useCompanyById(companyId);
   const { user: authUser } = useAuth();
   const { user, loading: loadingUser } = useCurrentUser(authUser?.id ?? null);
@@ -16,19 +20,19 @@ export default function CompanyDetail({ companyId }: { companyId: string }) {
   const loading = loadingCompany || loadingUser;
 
   return (
-    <SafeAreaView className="flex-1 bg-blue-primary" edges={['top']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }} edges={['top']}>
       <View className="absolute -top-20 -right-20 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px]" />
       <View className="absolute top-1/2 -left-20 w-72 h-72 bg-purple-600/10 rounded-full blur-[100px]" />
       <ButtonBackScreen redirectTo="/invest" />
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#FFD740" />
+          <ActivityIndicator size="large" color={Colors.gold[400]} />
         </View>
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+          contentContainerClassName="p-5 pb-[100px]"
         >
           <DetailHeader
             name={company?.name ?? ''}
@@ -38,14 +42,14 @@ export default function CompanyDetail({ companyId }: { companyId: string }) {
           />
 
           <View className="mb-10">
-            <InvestmentControls currentGems={user?.gems ?? 0} description={company?.description ?? ''} />
+            <InvestmentControls currentGems={user?.gems ?? 0} />
           </View>
 
           {company?.teamMembers && company.teamMembers.length > 0 && (
             <View>
               <View className="flex-row items-center justify-between mb-6 px-2">
-                <Text className="font-black text-2xl text-white tracking-tight">Representantes</Text>
-                <View className="h-[2px] flex-1 bg-white/10 ml-4 rounded-full" />
+                <Text className="font-black text-2xl tracking-tight" style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}>Representantes</Text>
+                <View className="h-[2px] flex-1 ml-4 rounded-full" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : Colors.light.border }} />
               </View>
 
               {company.teamMembers.map((member, index) => (

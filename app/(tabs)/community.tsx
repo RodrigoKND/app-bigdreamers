@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   Pressable,
   SafeAreaView,
   ActivityIndicator,
@@ -31,6 +31,8 @@ function getLevelColors(level: Level, isDark: boolean) {
       return { color: '#B0C4DE', bg: '#1A2A3A', label: 'Nivel Plata' };
     case 'bronze':
       return { color: '#CD7F32', bg: '#2E1A00', label: 'Nivel Bronce' };
+    case 'diamond':
+      return { color: '#B9F2FF', bg: '#0A2030', label: 'Nivel Diamante' };
   }
 }
 
@@ -47,6 +49,7 @@ export default function CommunityScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const [period, setPeriod] = useState<Period>('semanal');
+  const handlePeriodChange = useCallback((p: Period) => setPeriod(p), []);
 
   const { members, loading, error, refetch } = useRankingByPeriod(
     PERIOD_MAP[period],
@@ -60,9 +63,9 @@ export default function CommunityScreen() {
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
   const accentColor = isDark ? Colors.gold[400] : Colors.light.accent;
 
-  const rankedMembers = members.map((m, index) => ({ ...m, rank: index + 1 }));  //cambie dos lineas de aqui porque no generaba el ranking, porque como ambos usuarios eran nivel 0 no sabia la app como hacer el ranking, pero ahora si estan empatados lo hace por orden en que llegaron al nivel 0, entonces el que llego primero al nivel 0 va a ser el numero 1 del ranking, y asi sucesivamente, entonces ahora si se genera el ranking aunque haya muchos usuarios en nivel 0
-  const top3 = rankedMembers.filter((u) => u.rank <= 3);
-  const rest = rankedMembers.filter((u) => u.rank > 3);
+  const rankedMembers = useMemo(() => members.map((m, index) => ({ ...m, rank: index + 1 })), [members]);
+  const top3 = useMemo(() => rankedMembers.filter((u) => u.rank <= 3), [rankedMembers]);
+  const rest = useMemo(() => rankedMembers.filter((u) => u.rank > 3), [rankedMembers]);
 
   const first = top3.find((u) => u.rank === 1);
   const second = top3.find((u) => u.rank === 2);
@@ -128,7 +131,7 @@ export default function CommunityScreen() {
           return (
             <Pressable
               key={p}
-              onPress={() => setPeriod(p)}
+              onPress={() => handlePeriodChange(p)}
               accessible
               accessibilityLabel={`Ranking ${p}`}
               className="active:opacity-70 rounded-full px-5 py-[9px]"
@@ -180,10 +183,8 @@ export default function CommunityScreen() {
 
       {/* Content */}
       {!loading && !error && (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-          
-          {/* Empty state */}
-          {members.length === 0 && (
+        <>
+          {members.length === 0 ? (
             <View className="items-center px-8 gap-3 mt-[120px]">
               <Crown size={48} color={textMuted} />
               <Text className="text-base font-bold text-center" style={{ color: textPrimary }}>
@@ -193,93 +194,93 @@ export default function CommunityScreen() {
                 Completa módulos y gana gemas para aparecer aquí
               </Text>
             </View>
-          )}
-
-
-          {members.length > 0 && (
-            <>
-              {/* Podio */}
-              {top3.length > 0 && (
-                <View className="px-5 mb-6">
-                  <View className="flex-row items-end justify-center gap-4">
-                    {second && renderPodiumUser(second, 2)}
-                    {first && renderPodiumUser(first, 1)}
-                    {third && renderPodiumUser(third, 3)}
+          ) : (
+            <FlatList
+              data={rest}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 24 }}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              ListHeaderComponent={
+                top3.length > 0 ? (
+                  <View className="px-5 mb-6 pt-4">
+                    <View className="flex-row items-end justify-center gap-4">
+                      {second && renderPodiumUser(second, 2)}
+                      {first && renderPodiumUser(first, 1)}
+                      {third && renderPodiumUser(third, 3)}
+                    </View>
                   </View>
-                </View>
-              )}
+                ) : null
+              }
+              renderItem={({ item: member }) => {
+                const { color, bg: levelBg, label } = getLevelColors(member.level, isDark);
+                const initials = getInitials(member.name);
+                const isYou = member.id === user?.id;
 
-              
-              {/* Lista */}
-              <View className="px-5 gap-2">
-                {rest.map((member) => {
-                  const { color, bg: levelBg, label } = getLevelColors(member.level, isDark);
-                  const initials = getInitials(member.name);
-                  const isYou = member.id === user?.id;
+                return (
+                  <Pressable
+                    key={member.id}
+                    accessible
+                    accessibilityLabel={`${member.name}, puesto ${member.rank}, ${member.gems} gemas`}
+                    className="active:opacity-70 flex-row items-center rounded-2xl px-5 py-3 mb-2"
+                    style={{
+                      backgroundColor: isYou
+                        ? isDark ? 'rgba(255,215,64,0.08)' : 'rgba(4,138,191,0.08)'
+                        : cardBg,
+                      borderWidth: 1,
+                      borderColor: isYou
+                        ? isDark ? 'rgba(255,215,64,0.3)' : Colors.light.accent
+                        : cardBorder,
+                    }}
+                  >
+                    <Text className="text-xs font-bold w-8" style={{ color: textMuted }}>
+                      #{member.rank}
+                    </Text>
 
-                  return (
-                    <Pressable
-                      key={member.id}
-                      accessible
-                      accessibilityLabel={`${member.name}, puesto ${member.rank}, ${member.gems} gemas`}
-                      className="active:opacity-70 flex-row items-center rounded-2xl px-4 py-3"
-                      style={{
-                        backgroundColor: isYou
-                          ? isDark ? 'rgba(255,215,64,0.08)' : 'rgba(4,138,191,0.08)'
-                          : cardBg,
-                        borderWidth: 1,
-                        borderColor: isYou
-                          ? isDark ? 'rgba(255,215,64,0.3)' : Colors.light.accent
-                          : cardBorder,
-                      }}
+                    <View
+                      className="w-9 h-9 rounded-full items-center justify-center mr-3"
+                      style={{ backgroundColor: levelBg }}
                     >
-                      <Text className="text-xs font-bold w-8" style={{ color: textMuted }}>
-                        #{member.rank}
+                      <Text className="text-xs font-bold" style={{ color }}>
+                        {initials}
                       </Text>
+                    </View>
 
-                      <View
-                        className="w-9 h-9 rounded-full items-center justify-center mr-3"
-                        style={{ backgroundColor: levelBg }}
-                      >
-                        <Text className="text-xs font-bold" style={{ color }}>
-                          {initials}
+                    <View className="flex-1">
+                      <View className="flex-row items-center gap-1.5">
+                        <Text className="text-sm font-semibold" style={{ color: textPrimary }}>
+                          {member.name}
                         </Text>
+                        {isYou && (
+                          <View
+                            className="rounded px-1.5 py-0.5"
+                            style={{ backgroundColor: accentColor }}
+                          >
+                            <Text className="text-xs font-bold" style={{ color: isDark ? '#000' : '#fff' }}>
+                              Tú
+                            </Text>
+                          </View>
+                        )}
                       </View>
+                      <Text className="text-xs mt-0.5" style={{ color: textMuted }}>
+                        {label}
+                      </Text>
+                    </View>
 
-                      <View className="flex-1">
-                        <View className="flex-row items-center gap-1.5">
-                          <Text className="text-sm font-semibold" style={{ color: textPrimary }}>
-                            {member.name}
-                          </Text>
-                          {isYou && (
-                            <View
-                              className="rounded px-1.5 py-0.5"
-                              style={{ backgroundColor: accentColor }}
-                            >
-                              <Text className="text-xs font-bold" style={{ color: isDark ? '#000' : '#fff' }}>
-                                Tú
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                        <Text className="text-xs mt-0.5" style={{ color: textMuted }}>
-                          {label}
-                        </Text>
-                      </View>
-
-                      <View className="flex-row items-center gap-1">
-                        <Text className="text-sm font-bold" style={{ color: accentColor }}>
-                          {member.gems.toLocaleString()}
-                        </Text>
-                        <Gem size={13} color={accentColor} />
-                      </View>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </>
+                    <View className="flex-row items-center gap-1">
+                      <Text className="text-sm font-bold" style={{ color: accentColor }}>
+                        {member.gems.toLocaleString()}
+                      </Text>
+                      <Gem size={13} color={accentColor} />
+                    </View>
+                  </Pressable>
+                );
+              }}
+            />
           )}
-        </ScrollView>
+        </>
       )}
     </SafeAreaView>
   );

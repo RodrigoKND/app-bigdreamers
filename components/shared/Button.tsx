@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, Pressable, ActivityIndicator } from 'react-native';
 import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ButtonProps {
   title: string;
@@ -43,7 +44,14 @@ const SIZE_CLASSES = {
   lg: { container: 'px-6 py-4 rounded-2xl', text: 'text-lg' },
 };
 
-export default function Button({
+const VARIANT_LIGHT: Record<string, { container: string; text: string; spinner: string }> = {
+  primary: { container: 'bg-[#048ABF] active:bg-[#036A94] border border-transparent', text: 'text-white', spinner: '#FFFFFF' },
+  secondary: { container: 'bg-[#EEF3F8] active:bg-[#DDEAF5] border border-transparent', text: 'text-[#0F172A]', spinner: '#0F172A' },
+  outline: { container: 'bg-transparent border border-[#048ABF] active:bg-[#048ABF]/10', text: 'text-[#048ABF]', spinner: '#048ABF' },
+  ghost: { container: 'bg-transparent active:bg-black/5 border border-transparent', text: 'text-[#475569]', spinner: '#475569' },
+};
+
+const Button = React.memo(function Button({
   title,
   onPress,
   variant = 'primary',
@@ -52,7 +60,8 @@ export default function Button({
   isLoading = false,
   className = '',
 }: ButtonProps) {
-  const v = VARIANT_CLASSES[variant] || VARIANT_CLASSES.primary;
+  const { isDark } = useTheme();
+  const v = isDark ? VARIANT_CLASSES[variant] || VARIANT_CLASSES.primary : VARIANT_LIGHT[variant] || VARIANT_LIGHT.primary;
   const s = SIZE_CLASSES[size] || SIZE_CLASSES.md;
   
   const isDisabled = disabled || isLoading;
@@ -80,4 +89,6 @@ export default function Button({
       </Text>
     </Pressable>
   );
-}
+});
+
+export default Button;

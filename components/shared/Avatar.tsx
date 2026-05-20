@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Image, Text } from 'react-native';
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 
 interface AvatarProps {
   uri?: string;
   name: string;
   size?: number;
-  // Permite al componente padre inyectar márgenes o posiciones (ej. mt-4)
   className?: string; 
 }
 
@@ -18,9 +19,8 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-export default function Avatar({ uri, name, size = 40, className = '' }: AvatarProps) {
-  //  Valores dinámicos calculados.
-  // Mantenemos esto en objeto para no forzar al motor de Tailwind en tiempo real
+const Avatar = React.memo(function Avatar({ uri, name, size = 40, className = '' }: AvatarProps) {
+  const { isDark } = useTheme();
   const dynamicSizeStyle = {
     width: size,
     height: size,
@@ -29,8 +29,8 @@ export default function Avatar({ uri, name, size = 40, className = '' }: AvatarP
 
   return (
     <View
-      className={`items-center justify-center overflow-hidden bg-navy-600 ${className}`.trim()}
-      style={dynamicSizeStyle}
+      className={`items-center justify-center overflow-hidden ${className}`.trim()}
+      style={[dynamicSizeStyle, { backgroundColor: isDark ? Colors.navy[600] : Colors.light.surface }]}
     >
       {uri ? (
         <Image
@@ -40,12 +40,14 @@ export default function Avatar({ uri, name, size = 40, className = '' }: AvatarP
         />
       ) : (
         <Text
-          className="text-white font-bold"
-          style={{ fontSize: size * 0.36 }} // Cálculo de fuente dinámico
+          className="font-bold"
+          style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary, fontSize: size * 0.36 }}
         >
           {getInitials(name)}
         </Text>
       )}
     </View>
   );
-}
+});
+
+export default Avatar;

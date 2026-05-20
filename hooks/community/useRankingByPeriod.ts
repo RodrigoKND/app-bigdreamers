@@ -1,32 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useCachedQuery } from '@/hooks/useCachedQuery';
 import { CommunityMember } from '@/types';
 import { getRankingByPeriod } from '@/services/supabase/communityService';
+import { CacheKeys } from '@/services/cache/cacheService';
 
 export function useRankingByPeriod(
   period: 'weekly' | 'monthly' | 'all' = 'all',
   limit = 10
 ) {
-  const [members, setMembers] = useState<CommunityMember[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const fetchFn = useCallback(
+    () => getRankingByPeriod(period, limit),
+    [period, limit],
+  );
 
-  const fetchRanking = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const { data, loading, error, refetch } = useCachedQuery<CommunityMember[]>(
+    CacheKeys.rankingByPeriod(period, limit),
+    fetchFn,
+  );
 
-    try {
-      const data = await getRankingByPeriod(period, limit);
-      setMembers(data);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-    } finally {
-      setLoading(false);
-    }
-  }, [period, limit]);
-
-  useEffect(() => {
-    fetchRanking();
-  }, [fetchRanking]);
-
-  return { members, loading, error, refetch: fetchRanking };
+  return { members: data || [], loading, error, refetch };
 }

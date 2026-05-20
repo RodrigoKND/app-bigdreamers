@@ -1,8 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, Text } from 'react-native';
 import { Flame } from 'lucide-react-native';
 import { CommunityMember } from '@/types';
 import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 import Avatar from '@/components/shared/Avatar';
 import LevelBadge from '@/components/shared/LevelBadge';
 import GemBadge from '@/components/shared/GemBadge';
@@ -18,18 +19,18 @@ const RANK_COLORS: Record<number, string> = {
   3: Colors.levels.bronze,
 };
 
-export default function MemberCard({ member, isCurrentUser = false }: MemberCardProps) {
-  const rankColor = RANK_COLORS[member.rank] ?? Colors.text.muted;
+const MemberCard = React.memo(function MemberCard({ member, isCurrentUser = false }: MemberCardProps) {
+  const { isDark } = useTheme();
+  const rankColor = RANK_COLORS[member.rank] ?? (isDark ? Colors.text.muted : Colors.light.textMuted);
 
-  // Lógica de clases condicionales para el usuario actual
-  // Usamos valores arbitrarios de Tailwind para igualar tus rgba originales
-  const containerClass = isCurrentUser
-    ? 'border-[#F5C200]/40 bg-[#F5C200]/[0.06]' 
-    : 'border-white/5 bg-blue-card';
+  const containerStyle = isCurrentUser
+    ? { borderColor: 'rgba(245,194,0,0.4)', backgroundColor: 'rgba(245,194,0,0.06)' }
+    : { borderColor: isDark ? 'rgba(255,255,255,0.05)' : Colors.light.border, backgroundColor: isDark ? Colors.blue.card : Colors.light.card };
 
   return (
     <View 
-      className={`flex-row items-center gap-3 p-[14px] mb-2 rounded-[14px] border ${containerClass}`}
+      className="flex-row items-center gap-3 p-[14px] mb-2 rounded-[14px] border"
+      style={containerStyle}
       accessible={true}
       accessibilityLabel={`Rango ${member.rank}, Miembro ${member.name}, Nivel ${member.level}`}
     >
@@ -48,13 +49,12 @@ export default function MemberCard({ member, isCurrentUser = false }: MemberCard
 
       <View className="flex-1 gap-[5px]">
         <View className="flex-row items-center gap-2">
-          <Text className="text-white font-semibold text-sm">
+          <Text className="font-semibold text-sm" style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}>
             {member.name}
           </Text>
           
-          {/* Mejora de compatibilidad iOS/Android: Badge en un View */}
           {isCurrentUser && (
-            <View className="bg-blue-primary px-1.5 py-0.5 rounded-md">
+            <View className="px-1.5 py-0.5 rounded-md" style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.accent }}>
               <Text className="text-white text-[10px] font-bold">
                 Tú
               </Text>
@@ -67,19 +67,14 @@ export default function MemberCard({ member, isCurrentUser = false }: MemberCard
       <View className="items-end gap-1.5">
         <GemBadge count={member.gems} size="sm" />
         <View className="flex-row items-center gap-[3px]">
-          <Flame size={12} color={Colors.warning} />
-          <Text className="text-warning font-normal text-[11px]">
+          <Flame size={12} color={isDark ? Colors.warning : Colors.light.warning} />
+          <Text className="font-normal text-[11px]" style={{ color: isDark ? Colors.warning : Colors.light.warning }}>
             {member.streak}d
           </Text>
         </View>
       </View>
     </View>
   );
-}
+});
 
-// no heredamos aveces los cards ya creados debido a cambios muy drastivos como el isCurrentUser, entonces usamos un <view>
-
-
-
-
-
+export default MemberCard;

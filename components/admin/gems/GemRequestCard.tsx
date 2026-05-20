@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Gem, Clock, CheckCircle, XCircle, Check, X } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
@@ -10,7 +11,7 @@ interface GemRequestCardProps {
   isDark: boolean;
 }
 
-const GemRequestCard = ({ request, onApprove, onReject, isDark }: GemRequestCardProps) => {
+const GemRequestCard = React.memo(({ request, onApprove, onReject, isDark }: GemRequestCardProps) => {
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
@@ -92,6 +93,6 @@ const GemRequestCard = ({ request, onApprove, onReject, isDark }: GemRequestCard
       </View>
     </View>
   );
-};
+});
 
 export default GemRequestCard;

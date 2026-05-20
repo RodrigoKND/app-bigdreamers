@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ProgressBarProps {
   progress: number;
@@ -11,14 +12,16 @@ interface ProgressBarProps {
   className?: string; // para inyectar margenes 
 }
 
-export default function ProgressBar({
+const ProgressBar = React.memo(function ProgressBar({
   progress,
   color = Colors.gold[500],
-  bgColor = 'rgba(255,255,255,0.1)',
+  bgColor,
   height = 8,
   borderRadius = 4,
   className = '',
 }: ProgressBarProps) {
+  const { isDark } = useTheme();
+  const defaultBg = bgColor || (isDark ? 'rgba(255,255,255,0.1)' : Colors.light.border);
   // Aseguramos que el progreso nunca rompa la UI pasándose de 100 o bajando de 0
   const clampedProgress = Math.min(Math.max(progress, 0), 100);
 
@@ -26,7 +29,7 @@ export default function ProgressBar({
     <View 
       //  Ocupa todo el ancho y esconde lo que se salga (overflow)
       className={`w-full overflow-hidden ${className}`.trim()} 
-      style={{ backgroundColor: bgColor, height, borderRadius }}
+      style={{ backgroundColor: defaultBg, height, borderRadius }}
       
       // accesibiliadd 
       accessible={true}
@@ -44,4 +47,6 @@ export default function ProgressBar({
       />
     </View>
   );
-}
+});
+
+export default ProgressBar;

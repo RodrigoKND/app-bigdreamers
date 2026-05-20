@@ -1,12 +1,16 @@
+import React from 'react';
 import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 import { getSupabaseClient } from '@/services/supabase/supabase';
 import { createUser, getUserById } from '@/services/supabase/userService';
 import { useAuth } from '@/contexts/AuthContext';
 import { User } from '@/types';
 
 export default function AuthCallback() {
+  const { isDark } = useTheme();
   const router = useRouter();
   const { session } = useLocalSearchParams<{ session: string }>();
   const { login } = useAuth();
@@ -52,8 +56,8 @@ export default function AuthCallback() {
   }, [session]);
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" />
+    <View className="flex-1 justify-center items-center" style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}>
+      <ActivityIndicator size="large" color={isDark ? Colors.gold[400] : Colors.light.accent} />
     </View>
   );
 }

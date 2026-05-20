@@ -11,6 +11,8 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 import { SLIDES } from "@/constants/slides";
 
 const { width } = Dimensions.get('window');
@@ -27,6 +29,7 @@ function OwlImage({ source }: { source: any }) {
 }
 
 export default function OnboardingScreen() {
+  const { isDark } = useTheme();
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
@@ -58,7 +61,7 @@ export default function OnboardingScreen() {
   const isLast = activeIndex === SLIDES.length - 1;
 
   return (
-    <SafeAreaView className="flex-1 bg-blue-primary">
+    <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}>
       <FlatList
         ref={flatListRef}
         data={SLIDES}

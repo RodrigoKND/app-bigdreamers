@@ -52,9 +52,9 @@ export default function ModuleLessonList({ lessons, completedLessons, isDark }: 
             activeOpacity={locked ? 1 : 0.7}
             className="rounded-xl p-4 flex-row items-center justify-between"
             style={{
-              backgroundColor: 'rgba(0,0,0,0.25)',
+              backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card,
               borderWidth: 1,
-              borderColor: active ? Colors.gold[400] : 'rgba(255,255,255,0.1)',
+              borderColor: active ? Colors.gold[400] : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
             }}
           >
             <View className="flex-row items-center gap-3 flex-1">

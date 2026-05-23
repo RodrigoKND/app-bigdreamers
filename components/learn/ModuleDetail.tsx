@@ -3,6 +3,8 @@ import { ActivityIndicator, SafeAreaView, ScrollView, Text, View } from 'react-n
 import { useLearningModuleById } from '@/hooks/learning/useLearningModuleById';
 import { useLessonsByModuleId } from '@/hooks/learning/useLessonsByModuleId';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserModuleProgress } from '@/hooks/learning/useUserModuleProgress';
 import { Colors } from '@/constants/colors';
 import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
 import ModuleDetailHeader from '@/components/learn/ModuleDetailHeader';
@@ -16,11 +18,13 @@ interface Props {
 export default function ModuleDetail({ moduleId }: Props) {
   const { module, loading, error } = useLearningModuleById(moduleId);
   const { lessons, loading: loadingLessons } = useLessonsByModuleId(moduleId);
+  const { user } = useAuth();
+  const { progress: userProgress, loading: progressLoading } = useUserModuleProgress(user?.id ?? null, moduleId);
   const { isDark } = useTheme();
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
-  if (loading || loadingLessons) {
+  if (loading || loadingLessons || progressLoading) {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
         <View className="flex-1 items-center justify-center">
@@ -55,9 +59,10 @@ export default function ModuleDetail({ moduleId }: Props) {
   }
 
   const totalLessons = lessons.length;
-  const completedLessons = module.completed
+  const progress = userProgress?.progress ?? 0;
+  const completedLessons = (module.completed || userProgress?.completed)
     ? totalLessons
-    : Math.floor((module.progress / 100) * totalLessons);
+    : Math.floor((progress / 100) * totalLessons);
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
@@ -82,7 +87,7 @@ export default function ModuleDetail({ moduleId }: Props) {
         <ModuleProgressSection
           completedLessons={completedLessons}
           totalLessons={totalLessons}
-          progress={module.progress}
+          progress={progress}
           isDark={isDark}
         />
 

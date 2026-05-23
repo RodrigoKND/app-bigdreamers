@@ -104,7 +104,7 @@ export default function ProfileScreen() {
     }, [refetch])
   );
   
-  if (initialLoad) {
+  if (initialLoad || !user) {
     return (
       <View
         className="flex-1 items-center justify-center"

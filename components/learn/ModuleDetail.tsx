@@ -25,7 +25,7 @@ export default function ModuleDetail({ moduleId }: Props) {
 
   const [initialLoad, setInitialLoad] = useState(true);
   useEffect(() => {
-    if (userProgress !== null && initialLoad) setInitialLoad(false);
+    if (userProgress !== undefined && initialLoad) setInitialLoad(false);
   }, [userProgress]);
 
   useFocusEffect(

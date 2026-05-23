@@ -18,6 +18,7 @@ import { useCurrentUser } from '@/hooks/user/useCurrentUser';
 import { useUpdateUser } from '@/hooks/user/useUpdateUser';
 import BaseInput from '@/components/shared/BaseInput';
 import ImagePickerField from '@/components/shared/ImagePickerField';
+import { invalidateCache, CacheKeys } from '@/services/cache/cacheService';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -71,6 +72,7 @@ export default function EditProfileScreen() {
         name: name.trim(),
         ...(avatar.trim() ? { avatar: avatar.trim() } : {}),
       });
+      await invalidateCache(CacheKeys.currentUser(user.id));
       router.back();
     } catch {
       Alert.alert('Error', 'No se pudo guardar los cambios. Intenta de nuevo.');

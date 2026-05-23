@@ -192,6 +192,7 @@ export default function LearnScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState<Category>('Finanzas');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const { modules, loading: modulesLoading, error: modulesError, refetch } = useLearningModules({
     category: CATEGORY_MAP[activeCategory],
@@ -204,6 +205,7 @@ export default function LearnScreen() {
       invalidateCachePattern(CacheKeys.learningModules);
       if (user?.id) invalidateCachePattern(CacheKeys.userModulesProgress(user.id));
       refetch();
+      setRefreshKey(k => k + 1);
     }, [user?.id])
   );
 
@@ -220,7 +222,7 @@ export default function LearnScreen() {
 
     return modules.map((mod) => {
       const userProgress = progressMap.get(mod.id);
-      const totalLessons = parseInt(mod.duration) || 5; // fallback
+      const totalLessons = mod.totalLessons ?? 0;
 
       if (userProgress?.completed) {
         return {
@@ -251,7 +253,7 @@ export default function LearnScreen() {
         totalLessons,
       };
     });
-  }, [modules, progress]);
+  }, [modules, progress, refreshKey]);
 
   const activeModule = enrichedModules.find((m) => m.status === 'active');
 

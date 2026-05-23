@@ -13,6 +13,7 @@ function mapLearningModule(row: any): LearningModule {
     progress: row.progress ?? 0,
     thumbnail: row.thumbnail,
     difficulty: row.difficulty,
+    totalLessons: row.lessons?.[0]?.count ?? 0,
   };
 }
 
@@ -23,7 +24,7 @@ export async function getLearningModules(filters?: {
   const supabase = await getSupabaseClient();
   let query = supabase
     .from('learning_modules')
-    .select('*')
+    .select('*, lessons(count)')
     .order('order_index', { ascending: true });
 
   if (filters?.category) {

@@ -49,6 +49,7 @@ export interface LearningModule {
   progress: number;
   thumbnail: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
+  totalLessons?: number;
 }
 
 export interface Activity {

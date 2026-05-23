@@ -17,6 +17,7 @@ import { LearningModuleFormData } from '@/components/admin/courses/CourseForm';
 import { Company } from '@/constants/mockCompanies';
 import { uploadCompanyImage } from '@/services/supabase/storageService';
 import { addModuleToCourse, addLessonToModule } from '@/services/supabase/courseService';
+import { invalidateCache, CacheKeys } from '@/services/cache/cacheService';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminTabs from '@/components/admin/AdminTabs';
 import GemRequestCard from '@/components/admin/gems/GemRequestCard';
@@ -125,6 +126,7 @@ const AdminScreen = () => {
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Eliminar', style: 'destructive', onPress: async () => {
           await deleteModule(id);
+          await invalidateCache(CacheKeys.learningModules);
           refetchModules();
         }},
       ]

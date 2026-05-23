@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,11 +18,12 @@ import {
   CheckCircle,
   CircleDot,
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import LearnHeader from '@/components/learn/LearnHeader';
 import { useLearningModules } from '@/hooks/learning/useLearningModules';
+import { invalidateCache, CacheKeys } from '@/services/cache/cacheService';
 import { useUserModulesProgress } from '@/hooks/learning/useUserModulesProgress';
 import { useAuth } from '@/contexts/AuthContext';
 import type { LearningModule } from '@/types';
@@ -185,11 +186,18 @@ export default function LearnScreen() {
   const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState<Category>('Finanzas');
 
-  const { modules, loading: modulesLoading, error: modulesError } = useLearningModules({
+  const { modules, loading: modulesLoading, error: modulesError, refetch } = useLearningModules({
     category: CATEGORY_MAP[activeCategory],
   });
 
   const { progress, loading: progressLoading } = useUserModulesProgress(user?.id ?? null);
+
+  useFocusEffect(
+    useCallback(() => {
+      invalidateCache(CacheKeys.learningModules);
+      refetch();
+    }, [])
+  );
 
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;

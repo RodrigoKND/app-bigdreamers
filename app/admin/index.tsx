@@ -108,6 +108,7 @@ const AdminScreen = () => {
         }
       }
       setShowCourseForm(false);
+      await invalidateCache(CacheKeys.learningModules);
       refetchModules();
     } catch (error) {
       console.error('Error creating learning module:', error);

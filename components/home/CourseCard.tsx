@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -8,10 +9,11 @@ const CourseCard = React.memo(function CourseCard({ title, lesson, progress = 0 
   lesson: string;
   progress: number;
 }) {
+  const router = useRouter();
   const { isDark } = useTheme();
 
   return (
-    <View className="mx-4 p-4 rounded-2xl flex-row items-center justify-between shadow-sm" style={{ backgroundColor: isDark ? Colors.blue.card : Colors.light.card }}>
+    <TouchableOpacity onPress={() => router.push('/(tabs)/learn')} className="mx-4 p-4 rounded-2xl flex-row items-center justify-between shadow-sm" style={{ backgroundColor: isDark ? Colors.blue.card : Colors.light.card }}>
       <View className="flex-row items-center flex-1">
         <View className="w-12 h-12 rounded-xl items-center justify-center mr-3" style={{ backgroundColor: isDark ? '#1E3A5F' : Colors.light.surface }}>
           <Text>💰</Text>
@@ -27,7 +29,7 @@ const CourseCard = React.memo(function CourseCard({ title, lesson, progress = 0 
       <View className="w-10 h-10 bg-yellow-400 rounded-full items-center justify-center">
         <Text>▶️</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 });
 

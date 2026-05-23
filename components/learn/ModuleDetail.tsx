@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { ActivityIndicator, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useLearningModuleById } from '@/hooks/learning/useLearningModuleById';
@@ -23,6 +23,11 @@ export default function ModuleDetail({ moduleId }: Props) {
   const { progress: userProgress, loading: progressLoading, refetch: refetchProgress } = useUserModuleProgress(user?.id ?? null, moduleId);
   const { isDark } = useTheme();
 
+  const [initialLoad, setInitialLoad] = useState(true);
+  useEffect(() => {
+    if (userProgress !== null && initialLoad) setInitialLoad(false);
+  }, [userProgress]);
+
   useFocusEffect(
     useCallback(() => {
       refetchProgress();
@@ -31,7 +36,7 @@ export default function ModuleDetail({ moduleId }: Props) {
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
-  if (loading || loadingLessons || progressLoading) {
+  if (loading || loadingLessons || initialLoad)  {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
         <View className="flex-1 items-center justify-center">

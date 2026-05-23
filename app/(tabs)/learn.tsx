@@ -6,6 +6,7 @@ import {
   Pressable,
   SafeAreaView,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import {
   Lock,
@@ -59,11 +60,13 @@ function ModuleNode({
   index,
   isFirst,
   isDark,
+  onPress,
 }: {
   module: EnrichedModule;
   index: number;
   isFirst: boolean;
   isDark: boolean;
+  onPress: () => void;
 }) {
   const isCompleted = module.status === 'completed';
   const isActive = module.status === 'active';
@@ -88,7 +91,11 @@ function ModuleNode({
     : `${module.totalLessons} lecciones · bloqueado`;
 
   return (
-    <View className="items-center">
+    <TouchableOpacity
+      onPress={isLocked ? undefined : onPress}
+      activeOpacity={isLocked ? 1 : 0.7}
+      className="items-center"
+    >
       {!isFirst && (
         <View
           className="w-[3px] h-7"
@@ -176,7 +183,7 @@ function ModuleNode({
           </View>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -195,8 +202,9 @@ export default function LearnScreen() {
   useFocusEffect(
     useCallback(() => {
       invalidateCachePattern(CacheKeys.learningModules);
+      if (user?.id) invalidateCachePattern(CacheKeys.userModulesProgress(user.id));
       refetch();
-    }, [])
+    }, [user?.id])
   );
 
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
@@ -339,6 +347,7 @@ export default function LearnScreen() {
                 index={index}
                 isFirst={index === 0}
                 isDark={isDark}
+                onPress={() => router.push(`/module/${module.id}` as any)}
               />
             ))}
           </ScrollView>

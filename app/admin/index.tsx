@@ -15,6 +15,7 @@ import { useCreateCompany } from '@/hooks/company/useCreateCompany';
 import { LearningModuleFormData } from '@/components/admin/courses/CourseForm';
 import { Company } from '@/constants/mockCompanies';
 import { uploadCompanyImage } from '@/services/supabase/storageService';
+import { addLessonToModule } from '@/services/supabase/courseService';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminTabs from '@/components/admin/AdminTabs';
 import GemRequestCard from '@/components/admin/gems/GemRequestCard';
@@ -93,7 +94,16 @@ const AdminScreen = () => {
 
   const handlePublishCourse = async (data: LearningModuleFormData) => {
     try {
-      await createLearningModule(data);
+      const createdModule = await createLearningModule(data);
+      if (createdModule && data.lessons && data.lessons.length > 0) {
+        for (const lesson of data.lessons) {
+          await addLessonToModule(createdModule.id, {
+            title: lesson.title,
+            durationMinutes: lesson.durationMinutes,
+            content: lesson.content,
+          });
+        }
+      }
       setShowCourseForm(false);
       refetchModules();
     } catch (error) {

@@ -2,6 +2,7 @@ export interface Lesson {
   id: string;
   title: string;
   durationMinutes: number;
+  content?: string;
 }
 
 export interface CourseModule {

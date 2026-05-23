@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { useLearningModuleById } from '@/hooks/learning/useLearningModuleById';
+import { useLessonsByModuleId } from '@/hooks/learning/useLessonsByModuleId';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
@@ -14,11 +15,12 @@ interface Props {
 
 export default function ModuleDetail({ moduleId }: Props) {
   const { module, loading, error } = useLearningModuleById(moduleId);
+  const { lessons, loading: loadingLessons } = useLessonsByModuleId(moduleId);
   const { isDark } = useTheme();
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
-  if (loading) {
+  if (loading || loadingLessons) {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
         <View className="flex-1 items-center justify-center">
@@ -52,7 +54,7 @@ export default function ModuleDetail({ moduleId }: Props) {
     );
   }
 
-  const totalLessons = parseInt(module.duration, 10) || 5;
+  const totalLessons = lessons.length;
   const completedLessons = module.completed
     ? totalLessons
     : Math.floor((module.progress / 100) * totalLessons);
@@ -85,7 +87,7 @@ export default function ModuleDetail({ moduleId }: Props) {
         />
 
         <ModuleLessonList
-          totalLessons={totalLessons}
+          lessons={lessons}
           completedLessons={completedLessons}
           isDark={isDark}
         />

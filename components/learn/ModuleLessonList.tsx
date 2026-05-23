@@ -1,35 +1,42 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { CheckCircle, Play, Lock, Clock } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import type { LessonData } from '@/hooks/learning/useLessonsByModuleId';
 
-interface LessonItem {
-  id: string;
-  title: string;
-  durationMinutes: number;
+interface LessonItem extends LessonData {
   status: 'completed' | 'active' | 'locked';
 }
 
 interface Props {
-  totalLessons: number;
+  lessons: LessonData[];
   completedLessons: number;
   isDark: boolean;
 }
 
-export default function ModuleLessonList({ totalLessons, completedLessons, isDark }: Props) {
+export default function ModuleLessonList({ lessons, completedLessons, isDark }: Props) {
+  const router = useRouter();
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
-  const lessons: LessonItem[] = Array.from({ length: totalLessons }, (_, i) => ({
-    id: `lesson-${i + 1}`,
-    title: `Lección ${i + 1}`,
-    durationMinutes: 5,
+  const lessonItems: LessonItem[] = lessons.map((l, i) => ({
+    ...l,
     status: i < completedLessons ? 'completed' : i === completedLessons ? 'active' : 'locked',
   }));
 
+  if (lessons.length === 0) {
+    return (
+      <View className="space-y-4">
+        <Text className="text-base font-bold" style={{ color: isDark ? Colors.text.primary : Colors.light.textPrimary }}>Lecciones</Text>
+        <Text style={{ color: textMuted }}>No hay lecciones disponibles</Text>
+      </View>
+    );
+  }
+
   return (
     <View className="space-y-4">
-      <Text className="text-base font-bold text-white">Lecciones</Text>
+      <Text className="text-base font-bold" style={{ color: isDark ? Colors.text.primary : Colors.light.textPrimary }}>Lecciones</Text>
 
-      {lessons.map((lesson) => {
+      {lessonItems.map((lesson) => {
         const active = lesson.status === 'active';
         const locked = lesson.status === 'locked';
         const iconColor = lesson.status === 'completed'
@@ -39,8 +46,10 @@ export default function ModuleLessonList({ totalLessons, completedLessons, isDar
           : textMuted;
 
         return (
-          <View
+          <TouchableOpacity
             key={lesson.id}
+            onPress={locked ? undefined : () => router.push(`/lesson/${lesson.id}`)}
+            activeOpacity={locked ? 1 : 0.7}
             className="rounded-xl p-4 flex-row items-center justify-between"
             style={{
               backgroundColor: 'rgba(0,0,0,0.25)',
@@ -69,7 +78,7 @@ export default function ModuleLessonList({ totalLessons, completedLessons, isDar
                 </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         );
       })}
     </View>

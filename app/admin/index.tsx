@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
-import { Plus, Package, BookOpen, Building } from 'lucide-react-native';
+import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
+import { Plus, Package, BookOpen, Building, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
@@ -10,6 +10,7 @@ import { useApproveGemRequest } from '@/hooks/gem/useApproveGemRequest';
 import { useRejectGemRequest } from '@/hooks/gem/useRejectGemRequest';
 import { useLearningModules } from '@/hooks/learning/useLearningModules';
 import { useCreateLearningModule } from '@/hooks/learning/useCreateLearningModule';
+import { useDeleteLearningModule } from '@/hooks/learning/useDeleteLearningModule';
 import { useCompanies } from '@/hooks/company/useCompanies';
 import { useCreateCompany } from '@/hooks/company/useCreateCompany';
 import { LearningModuleFormData } from '@/components/admin/courses/CourseForm';
@@ -37,6 +38,7 @@ const AdminScreen = () => {
   // Learning modules hooks
   const { modules, loading: modulesLoading, refetch: refetchModules } = useLearningModules();
   const { create: createLearningModule, loading: creatingModule } = useCreateLearningModule();
+  const { remove: deleteModule } = useDeleteLearningModule();
   
   // Companies hooks
   const { companies, loading: companiesLoading, refetch: refetchCompanies } = useCompanies();
@@ -113,6 +115,20 @@ const AdminScreen = () => {
     } catch (error) {
       console.error('Error creating learning module:', error);
     }
+  };
+
+  const handleDeleteModule = (id: string, title: string) => {
+    Alert.alert(
+      'Eliminar módulo',
+      `¿Seguro que quieres eliminar "${title}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', style: 'destructive', onPress: async () => {
+          await deleteModule(id);
+          refetchModules();
+        }},
+      ]
+    );
   };
 
   const handlePublishCompany = async (company: Partial<Company>) => {
@@ -237,11 +253,13 @@ const AdminScreen = () => {
                 >
                   <View className="flex-row justify-between items-center mb-2">
                     <Text className="text-base font-bold" style={{ color: textPrimary }}>{mod.title}</Text>
-                    <View
-                      className="rounded-xl px-2 py-1"
-                      style={{ backgroundColor: Colors.gold[400] }}
-                    >
-                      <Text className="text-[10px] font-extrabold" style={{ color: '#000' }}>PUBLICADO</Text>
+                    <View className="flex-row items-center gap-2">
+                      <View className="rounded-xl px-2 py-1" style={{ backgroundColor: Colors.gold[400] }}>
+                        <Text className="text-[10px] font-extrabold" style={{ color: '#000' }}>PUBLICADO</Text>
+                      </View>
+                      <Pressable onPress={() => handleDeleteModule(mod.id, mod.title)} className="active:opacity-70">
+                        <Trash2 size={18} color={isDark ? 'rgba(255,255,255,0.5)' : Colors.light.textMuted} />
+                      </Pressable>
                     </View>
                   </View>
                   <Text className="mb-2" style={{ color: textMuted }}>{mod.category}</Text>

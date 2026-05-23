@@ -198,13 +198,14 @@ export default function LearnScreen() {
     category: CATEGORY_MAP[activeCategory],
   });
 
-  const { progress, loading: progressLoading } = useUserModulesProgress(user?.id ?? null);
+  const { progress, loading: progressLoading, refetch: refetchProgress } = useUserModulesProgress(user?.id ?? null);
 
   useFocusEffect(
     useCallback(() => {
       invalidateCachePattern(CacheKeys.learningModules);
       if (user?.id) invalidateCachePattern(CacheKeys.userModulesProgress(user.id));
       refetch();
+      refetchProgress();
       setRefreshKey(k => k + 1);
     }, [user?.id])
   );

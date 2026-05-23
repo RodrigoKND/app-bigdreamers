@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ActivityIndicator, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useLearningModuleById } from '@/hooks/learning/useLearningModuleById';
 import { useLessonsByModuleId } from '@/hooks/learning/useLessonsByModuleId';
 import { useTheme } from '@/context/ThemeContext';
@@ -19,8 +20,14 @@ export default function ModuleDetail({ moduleId }: Props) {
   const { module, loading, error } = useLearningModuleById(moduleId);
   const { lessons, loading: loadingLessons } = useLessonsByModuleId(moduleId);
   const { user } = useAuth();
-  const { progress: userProgress, loading: progressLoading } = useUserModuleProgress(user?.id ?? null, moduleId);
+  const { progress: userProgress, loading: progressLoading, refetch: refetchProgress } = useUserModuleProgress(user?.id ?? null, moduleId);
   const { isDark } = useTheme();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchProgress();
+    }, [moduleId])
+  );
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 

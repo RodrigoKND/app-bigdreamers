@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   View, Text, ScrollView,
   Pressable, ActivityIndicator
@@ -84,6 +84,11 @@ export default function ProfileScreen() {
   const { user, loading, refetch } = useCurrentUser(authUser?.id ?? null);
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
+  const [initialLoad, setInitialLoad] = useState(true);
+
+  useEffect(() => {
+    if (user) setInitialLoad(false);
+  }, [user]);
 
   // Refresca al volver de otra pantalla (ej: edit-profile).
   // El ref evita el double-fetch en el mount inicial,
@@ -99,7 +104,7 @@ export default function ProfileScreen() {
     }, [refetch])
   );
   
-  if (loading || !user) {
+  if (initialLoad) {
     return (
       <View
         className="flex-1 items-center justify-center"

@@ -6,7 +6,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
 
-export default function CommunityHeader() {
+export default function CommunityHeader({ onSearchPress }: { onSearchPress: () => void }) {
   const { isDark } = useTheme();
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const textSecondary = isDark ? Colors.text.secondary : Colors.light.textSecond;
@@ -19,6 +19,7 @@ export default function CommunityHeader() {
         Comunidad
       </Text>
       <Pressable
+        onPress={onSearchPress}
         accessible
         accessibilityLabel="Buscar en comunidad"
         className="active:opacity-70 w-9 h-9 rounded-full items-center justify-center"

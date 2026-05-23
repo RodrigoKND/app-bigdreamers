@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Text, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/colors';
@@ -12,10 +12,12 @@ import { useCompanies } from '@/hooks/company/useCompanies';
 const Invest = React.memo(function Invest() {
   const { isDark } = useTheme();
   const { companies, loading } = useCompanies();
+  const [search, setSearch] = useState('');
 
-  const goldCompanies = useMemo(() => companies.filter((c) => c.level === 'gold'), [companies]);
-  const silverCompanies = useMemo(() => companies.filter((c) => c.level === 'silver'), [companies]);
-  const bronzeCompanies = useMemo(() => companies.filter((c) => c.level === 'bronze'), [companies]);
+  const filtered = companies.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+  const goldCompanies = useMemo(() => filtered.filter((c) => c.level === 'gold'), [filtered]);
+  const silverCompanies = useMemo(() => filtered.filter((c) => c.level === 'silver'), [filtered]);
+  const bronzeCompanies = useMemo(() => filtered.filter((c) => c.level === 'bronze'), [filtered]);
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }} edges={['top']}>
@@ -35,7 +37,7 @@ const Invest = React.memo(function Invest() {
       >
         <View className="px-6 mt-6">
           
-          <SearchBar />
+          <SearchBar value={search} onChangeText={setSearch} />
           {!loading && (
             <>
               <LevelGold companies={goldCompanies} />

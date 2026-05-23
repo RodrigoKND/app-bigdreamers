@@ -31,7 +31,7 @@ export default function LevelSilver({ companies }: LevelSilverProps) {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: 16, paddingRight: 20 }}>
                 {companies.length === 0 ? (
-                  <View style={{ width: 300 }} className="items-center justify-center py-10">
+                  <View style={{ width: 340 }} className="items-center justify-center py-10">
                     <Building size={32} color={isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted} className="mb-3" />
                     <Text className="text-sm text-center" style={{ color: isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted }}>
                       No hay empresas disponibles en este nivel

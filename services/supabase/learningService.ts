@@ -232,3 +232,19 @@ export async function getUserModulesProgress(userId: string): Promise<
     completedAt: row.completed_at,
   }));
 }
+
+export async function addLessonToLearningModule(
+  learningModuleId: string,
+  lesson: { title: string; durationMinutes: number; content: string }
+): Promise<void> {
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase
+    .from('lessons')
+    .insert({
+      module_id: learningModuleId,
+      title: lesson.title,
+      duration_minutes: lesson.durationMinutes,
+      content: lesson.content,
+    });
+  if (error) throw error;
+}

@@ -23,7 +23,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import LearnHeader from '@/components/learn/LearnHeader';
 import { useLearningModules } from '@/hooks/learning/useLearningModules';
-import { invalidateCache, CacheKeys } from '@/services/cache/cacheService';
+import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
 import { useUserModulesProgress } from '@/hooks/learning/useUserModulesProgress';
 import { useAuth } from '@/contexts/AuthContext';
 import type { LearningModule } from '@/types';
@@ -194,7 +194,7 @@ export default function LearnScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      invalidateCache(CacheKeys.learningModules);
+      invalidateCachePattern(CacheKeys.learningModules);
       refetch();
     }, [])
   );

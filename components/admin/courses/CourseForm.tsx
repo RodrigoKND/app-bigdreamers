@@ -16,6 +16,7 @@ export interface LearningModuleFormData {
   thumbnail:   string;
   difficulty:  Difficulty;
   orderIndex?: number;
+  lessons?:    { title: string; durationMinutes: number; content: string }[];
 }
 
 interface CourseFormProps {
@@ -43,6 +44,10 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
   const [thumbnail,   setThumbnail]   = useState('');
   const [difficulty,  setDifficulty]  = useState<Difficulty>('beginner');
   const [orderIndex,  setOrderIndex]  = useState('');
+  const [lessons, setLessons] = useState<{ title: string; durationMinutes: number; content: string }[]>([]);
+  const [lessonTitle, setLessonTitle] = useState('');
+  const [lessonDuration, setLessonDuration] = useState('');
+  const [lessonContent, setLessonContent] = useState('');
 
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
@@ -51,6 +56,18 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
     backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : '#F1F5F9',
     borderColor:     isDark ? 'rgba(255,255,255,0.12)' : '#E2E8F0',
     color:           textPrimary,
+  };
+
+  const handleAddLesson = () => {
+    if (!lessonTitle.trim()) return;
+    setLessons(prev => [...prev, {
+      title: lessonTitle.trim(),
+      durationMinutes: parseInt(lessonDuration) || 0,
+      content: lessonContent.trim(),
+    }]);
+    setLessonTitle('');
+    setLessonDuration('');
+    setLessonContent('');
   };
 
   const handlePublish = () => {
@@ -64,6 +81,7 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
       thumbnail:   thumbnail.trim(),
       difficulty,
       orderIndex:  orderIndex ? parseInt(orderIndex) : undefined,
+      lessons:     lessons.length > 0 ? lessons : undefined,
     });
   };
 
@@ -219,6 +237,87 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
         className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3"
         style={inputDynamic}
       />
+
+      {/* Lecciones */}
+      <Text
+        className="text-[13px] font-bold uppercase opacity-90 mb-[10px]"
+        style={{ color: textPrimary, letterSpacing: 0.4 }}
+      >
+        Lecciones
+      </Text>
+
+      <TextInput
+        placeholder="Título de la lección"
+        placeholderTextColor={textMuted}
+        value={lessonTitle}
+        onChangeText={setLessonTitle}
+        className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3"
+        style={inputDynamic}
+      />
+
+      <TextInput
+        placeholder="Duración (minutos)"
+        placeholderTextColor={textMuted}
+        value={lessonDuration}
+        onChangeText={setLessonDuration}
+        keyboardType="numeric"
+        className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3"
+        style={inputDynamic}
+      />
+
+      <TextInput
+        placeholder="Contenido de la lección"
+        placeholderTextColor={textMuted}
+        value={lessonContent}
+        onChangeText={setLessonContent}
+        multiline
+        numberOfLines={4}
+        className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3 h-32"
+        style={[inputDynamic, { textAlignVertical: 'top' }]}
+      />
+
+      <Pressable
+        onPress={handleAddLesson}
+        className="rounded-[14px] py-[13px] items-center mb-4"
+        style={{
+          backgroundColor: Colors.gold[400],
+          shadowColor: Colors.gold[400],
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 2 },
+        }}
+      >
+        <Text className="font-bold text-sm" style={{ color: '#000', letterSpacing: 0.3 }}>
+          Agregar lección
+        </Text>
+      </Pressable>
+
+      {lessons.map((lesson, index) => (
+        <View
+          key={index}
+          className="flex-row items-center rounded-xl border px-[14px] py-[12px] mb-2"
+          style={{
+            backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : '#F1F5F9',
+            borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#E2E8F0',
+          }}
+        >
+          <View className="flex-1">
+            <Text className="text-sm font-semibold" style={{ color: textPrimary }}>
+              {lesson.title}
+            </Text>
+            <Text className="text-xs mt-0.5" style={{ color: textMuted }}>
+              {lesson.durationMinutes} min
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => setLessons(prev => prev.filter((_, i) => i !== index))}
+            className="w-7 h-7 rounded-full items-center justify-center"
+            style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+          >
+            <Text className="text-xs font-bold" style={{ color: textMuted }}>X</Text>
+          </Pressable>
+        </View>
+      ))}
 
       {/* Botones */}
       <View className="flex-row gap-3 mt-5">

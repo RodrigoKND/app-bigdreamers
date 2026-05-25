@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Activity } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
@@ -8,6 +9,7 @@ export default function ActivitySection({ children, isEmpty }: {
   children: React.ReactNode 
   isEmpty?: boolean;
   }) {
+  const router = useRouter();
   const { isDark } = useTheme();
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
@@ -16,7 +18,9 @@ export default function ActivitySection({ children, isEmpty }: {
     <View className="mx-4 mt-6">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-lg font-bold" style={{ color: textPrimary }}>Actividad reciente</Text>
-        <Text className="text-sm font-medium" style={{ color: isDark ? '#93C5FD' : Colors.light.accent }}>Comunidad →</Text>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/community')}>
+          <Text className="text-sm font-medium" style={{ color: isDark ? '#93C5FD' : Colors.light.accent }}>Comunidad →</Text>
+        </TouchableOpacity>
       </View>
             <View className="p-2 rounded-2xl gap-4">
         {isEmpty ? (

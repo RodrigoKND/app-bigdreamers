@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
+  TextInput,
   FlatList,
   Pressable,
   SafeAreaView,
@@ -55,6 +56,8 @@ export default function CommunityScreen() {
     PERIOD_MAP[period],
     50
   );
+  const [search, setSearch] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
 
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
   const cardBg = isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card;
@@ -64,8 +67,9 @@ export default function CommunityScreen() {
   const accentColor = isDark ? Colors.gold[400] : Colors.light.accent;
 
   const rankedMembers = useMemo(() => members.map((m, index) => ({ ...m, rank: index + 1 })), [members]);
-  const top3 = useMemo(() => rankedMembers.filter((u) => u.rank <= 3), [rankedMembers]);
-  const rest = useMemo(() => rankedMembers.filter((u) => u.rank > 3), [rankedMembers]);
+  const filteredMembers = useMemo(() => rankedMembers.filter(m => m.name.toLowerCase().includes(search.toLowerCase())), [rankedMembers, search]);
+  const top3 = useMemo(() => filteredMembers.filter((u) => u.rank <= 3), [filteredMembers]);
+  const rest = useMemo(() => filteredMembers.filter((u) => u.rank > 3), [filteredMembers]);
 
   const first = top3.find((u) => u.rank === 1);
   const second = top3.find((u) => u.rank === 2);
@@ -122,7 +126,18 @@ export default function CommunityScreen() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
-      <CommunityHeader />
+      <CommunityHeader onSearchPress={() => setShowSearch(true)} />
+
+      {showSearch && (
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Buscar miembro..."
+          autoFocus
+          className="mx-5 mb-3 px-4 py-2 rounded-xl"
+          style={{ backgroundColor: cardBg, color: textPrimary }}
+        />
+      )}
 
       {/* Period pills */}
       <View className="flex-row px-5 gap-2 mb-5 justify-center">

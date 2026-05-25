@@ -17,8 +17,8 @@ export default function ModuleProgressSection({
   isDark,
 }: Props) {
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
-  const cardBg = 'rgba(0,0,0,0.25)';
-  const borderColor = 'rgba(255,255,255,0.1)';
+  const cardBg = isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card;
+  const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
 
   return (
     <View className="rounded-2xl p-5" style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}>

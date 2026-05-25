@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, ScrollView, ActivityIndicator, Text } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
@@ -15,6 +16,7 @@ import ActivityItem from '@/components/home/ActivityItem';
 import { useLearningModules } from '@/hooks/learning/useLearningModules';
 
 export default function HomeScreen() {
+    const router = useRouter();
     const { isDark } = useTheme();
     const { user: authUser } = useAuth();
     const { user, loading: loadingUser } = useCurrentUser(authUser?.id ?? null);  
@@ -49,7 +51,9 @@ export default function HomeScreen() {
         <View className="mt-8">
           <View className="flex-row justify-between px-4 mb-3">
             <Text className="text-lg font-bold" style={{ color: textPrimary }}>Continuar aprendiendo</Text>
-            <Text className="text-sm" style={{ color: textMuted }}>Ver todo →</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/learn')}>
+              <Text className="text-sm" style={{ color: textMuted }}>Ver todo →</Text>
+            </TouchableOpacity>
           </View>
           {nextModule && (
             <CourseCard

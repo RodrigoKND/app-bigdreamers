@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Pressable,
   SafeAreaView,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import {
   Lock,
@@ -18,11 +19,12 @@ import {
   CheckCircle,
   CircleDot,
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import LearnHeader from '@/components/learn/LearnHeader';
 import { useLearningModules } from '@/hooks/learning/useLearningModules';
+import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
 import { useUserModulesProgress } from '@/hooks/learning/useUserModulesProgress';
 import { useAuth } from '@/contexts/AuthContext';
 import type { LearningModule } from '@/types';
@@ -58,11 +60,13 @@ function ModuleNode({
   index,
   isFirst,
   isDark,
+  onPress,
 }: {
   module: EnrichedModule;
   index: number;
   isFirst: boolean;
   isDark: boolean;
+  onPress: () => void;
 }) {
   const isCompleted = module.status === 'completed';
   const isActive = module.status === 'active';
@@ -87,7 +91,11 @@ function ModuleNode({
     : `${module.totalLessons} lecciones · bloqueado`;
 
   return (
-    <View className="items-center">
+    <TouchableOpacity
+      onPress={isLocked ? undefined : onPress}
+      activeOpacity={isLocked ? 1 : 0.7}
+      className="items-center"
+    >
       {!isFirst && (
         <View
           className="w-[3px] h-7"
@@ -175,7 +183,7 @@ function ModuleNode({
           </View>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -184,12 +192,23 @@ export default function LearnScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState<Category>('Finanzas');
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const { modules, loading: modulesLoading, error: modulesError } = useLearningModules({
+  const { modules, loading: modulesLoading, error: modulesError, refetch } = useLearningModules({
     category: CATEGORY_MAP[activeCategory],
   });
 
-  const { progress, loading: progressLoading } = useUserModulesProgress(user?.id ?? null);
+  const { progress, loading: progressLoading, refetch: refetchProgress } = useUserModulesProgress(user?.id ?? null);
+
+  useFocusEffect(
+    useCallback(() => {
+      invalidateCachePattern(CacheKeys.learningModules);
+      if (user?.id) invalidateCachePattern(CacheKeys.userModulesProgress(user.id));
+      refetch();
+      refetchProgress();
+      setRefreshKey(k => k + 1);
+    }, [user?.id])
+  );
 
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
@@ -204,7 +223,7 @@ export default function LearnScreen() {
 
     return modules.map((mod) => {
       const userProgress = progressMap.get(mod.id);
-      const totalLessons = parseInt(mod.duration) || 5; // fallback
+      const totalLessons = mod.totalLessons ?? 0;
 
       if (userProgress?.completed) {
         return {
@@ -235,7 +254,7 @@ export default function LearnScreen() {
         totalLessons,
       };
     });
-  }, [modules, progress]);
+  }, [modules, progress, refreshKey]);
 
   const activeModule = enrichedModules.find((m) => m.status === 'active');
 
@@ -331,6 +350,7 @@ export default function LearnScreen() {
                 index={index}
                 isFirst={index === 0}
                 isDark={isDark}
+                onPress={() => router.push(`/module/${module.id}` as any)}
               />
             ))}
           </ScrollView>

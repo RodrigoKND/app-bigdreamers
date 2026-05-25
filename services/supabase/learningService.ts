@@ -13,6 +13,7 @@ function mapLearningModule(row: any): LearningModule {
     progress: row.progress ?? 0,
     thumbnail: row.thumbnail,
     difficulty: row.difficulty,
+    totalLessons: row.lessons?.[0]?.count ?? 0,
   };
 }
 
@@ -23,7 +24,7 @@ export async function getLearningModules(filters?: {
   const supabase = await getSupabaseClient();
   let query = supabase
     .from('learning_modules')
-    .select('*')
+    .select('*, lessons(count)')
     .order('order_index', { ascending: true });
 
   if (filters?.category) {
@@ -231,4 +232,20 @@ export async function getUserModulesProgress(userId: string): Promise<
     completed: row.completed,
     completedAt: row.completed_at,
   }));
+}
+
+export async function addLessonToLearningModule(
+  learningModuleId: string,
+  lesson: { title: string; durationMinutes: number; content: string }
+): Promise<void> {
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase
+    .from('lessons')
+    .insert({
+      module_id: learningModuleId,
+      title: lesson.title,
+      duration_minutes: lesson.durationMinutes,
+      content: lesson.content,
+    });
+  if (error) throw error;
 }

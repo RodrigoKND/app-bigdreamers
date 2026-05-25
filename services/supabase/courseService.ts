@@ -10,6 +10,7 @@ function mapCourseRow(row: any): Course {
       id: l.id,
       title: l.title,
       durationMinutes: l.duration_minutes,
+      content: l.content ?? '',
     })),
     badgeId: m.badge_id,
   }));
@@ -219,7 +220,7 @@ export async function deleteModule(moduleId: string): Promise<void> {
 
 export async function addLessonToModule(
   moduleId: string,
-  lesson: { title: string; durationMinutes: number }
+  lesson: { title: string; durationMinutes: number; content: string }
 ): Promise<Lesson> {
   const supabase = await getSupabaseClient();
 
@@ -229,6 +230,7 @@ export async function addLessonToModule(
       module_id: moduleId,
       title: lesson.title,
       duration_minutes: lesson.durationMinutes,
+      content: lesson.content,
     })
     .select()
     .single();
@@ -239,18 +241,20 @@ export async function addLessonToModule(
     id: data.id,
     title: data.title,
     durationMinutes: data.duration_minutes,
+    content: data.content ?? '',
   };
 }
 
 export async function updateLesson(
   lessonId: string,
-  updates: Partial<{ title: string; durationMinutes: number }>
+  updates: Partial<{ title: string; durationMinutes: number; content: string }>
 ): Promise<void> {
   const supabase = await getSupabaseClient();
 
   const dbUpdates: Record<string, any> = {};
   if (updates.title !== undefined) dbUpdates.title = updates.title;
   if (updates.durationMinutes !== undefined) dbUpdates.duration_minutes = updates.durationMinutes;
+  if (updates.content !== undefined) dbUpdates.content = updates.content;
 
   const { error } = await supabase
     .from('lessons')

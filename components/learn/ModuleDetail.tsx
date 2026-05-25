@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { ActivityIndicator, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useLearningModuleById } from '@/hooks/learning/useLearningModuleById';
+import { useLessonsByModuleId } from '@/hooks/learning/useLessonsByModuleId';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserModuleProgress } from '@/hooks/learning/useUserModuleProgress';
 import { Colors } from '@/constants/colors';
 import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
 import ModuleDetailHeader from '@/components/learn/ModuleDetailHeader';
@@ -14,11 +18,25 @@ interface Props {
 
 export default function ModuleDetail({ moduleId }: Props) {
   const { module, loading, error } = useLearningModuleById(moduleId);
+  const { lessons, loading: loadingLessons } = useLessonsByModuleId(moduleId);
+  const { user } = useAuth();
+  const { progress: userProgress, loading: progressLoading, refetch: refetchProgress } = useUserModuleProgress(user?.id ?? null, moduleId);
   const { isDark } = useTheme();
+
+  const [initialLoad, setInitialLoad] = useState(true);
+  useEffect(() => {
+    if (userProgress !== undefined && initialLoad) setInitialLoad(false);
+  }, [userProgress]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchProgress();
+    }, [moduleId])
+  );
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
-  if (loading) {
+  if (loading || loadingLessons || initialLoad)  {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
         <View className="flex-1 items-center justify-center">
@@ -52,10 +70,11 @@ export default function ModuleDetail({ moduleId }: Props) {
     );
   }
 
-  const totalLessons = parseInt(module.duration, 10) || 5;
-  const completedLessons = module.completed
+  const totalLessons = lessons.length;
+  const progress = userProgress?.progress ?? 0;
+  const completedLessons = (module.completed || userProgress?.completed)
     ? totalLessons
-    : Math.floor((module.progress / 100) * totalLessons);
+    : Math.floor((progress / 100) * totalLessons);
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
@@ -80,12 +99,12 @@ export default function ModuleDetail({ moduleId }: Props) {
         <ModuleProgressSection
           completedLessons={completedLessons}
           totalLessons={totalLessons}
-          progress={module.progress}
+          progress={progress}
           isDark={isDark}
         />
 
         <ModuleLessonList
-          totalLessons={totalLessons}
+          lessons={lessons}
           completedLessons={completedLessons}
           isDark={isDark}
         />

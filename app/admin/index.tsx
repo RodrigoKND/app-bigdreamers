@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, Pressable, Alert, RefreshControl } from 'react-native';
 import { Plus, Package, BookOpen, Building, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
@@ -30,21 +30,18 @@ const AdminScreen = () => {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'gems' | 'courses' | 'companies'>('gems');
-  
-  // Gem requests hooks
+
   const { requests: gemRequests, loading: gemRequestsLoading, refetch: refetchGemRequests } = useGemRequests();
   const { approve: approveGemRequest, loading: approving } = useApproveGemRequest();
   const { reject: rejectGemRequest, loading: rejecting } = useRejectGemRequest();
-  
-  // Learning modules hooks
+
   const { modules, loading: modulesLoading, refetch: refetchModules } = useLearningModules();
   const { create: createLearningModule, loading: creatingModule } = useCreateLearningModule();
   const { remove: deleteModule } = useDeleteLearningModule();
-  
-  // Companies hooks
+
   const { companies, loading: companiesLoading, refetch: refetchCompanies } = useCompanies();
   const { create: createCompany, loading: creatingCompany } = useCreateCompany();
-  
+
   const [pendingApproval, setPendingApproval] = useState<any | null>(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showCourseForm, setShowCourseForm] = useState(false);
@@ -52,8 +49,19 @@ const AdminScreen = () => {
   const [pendingRejection, setPendingRejection] = useState<any | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
 
-  const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try { await Promise.all([refetchGemRequests(), refetchModules(), refetchCompanies()]); }
+    finally { setRefreshing(false); }
+  }, [refetchGemRequests, refetchModules, refetchCompanies]);
+
+  const bg          = isDark ? Colors.blue.primary : Colors.light.bg;
+  const cardBg      = isDark ? 'rgba(255,255,255,0.05)' : Colors.light.card;
+  const borderColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
+  const textPrimary = isDark ? Colors.text.primary      : Colors.light.textPrimary;
+  const textMuted   = isDark ? 'rgba(255,255,255,0.6)'  : Colors.light.textMuted;
 
   const pendingCount = gemRequests.filter(r => r.status === 'pending').length;
 
@@ -65,7 +73,6 @@ const AdminScreen = () => {
 
   const confirmApprove = async () => {
     if (!pendingApproval || !user?.id) return;
-    
     try {
       await approveGemRequest(pendingApproval.id, user.id);
       setShowApproveModal(false);
@@ -73,6 +80,7 @@ const AdminScreen = () => {
       refetchGemRequests();
     } catch (error) {
       console.error('Error approving gem request:', error);
+      Alert.alert('Error', 'No se pudo aprobar la solicitud. Intenta nuevamente.');
     }
   };
 
@@ -84,7 +92,6 @@ const AdminScreen = () => {
 
   const confirmReject = async () => {
     if (!pendingRejection) return;
-    
     try {
       await rejectGemRequest(pendingRejection.id);
       setShowRejectModal(false);
@@ -92,6 +99,7 @@ const AdminScreen = () => {
       refetchGemRequests();
     } catch (error) {
       console.error('Error rejecting gem request:', error);
+      Alert.alert('Error', 'No se pudo rechazar la solicitud. Intenta nuevamente.');
     }
   };
 
@@ -110,22 +118,30 @@ const AdminScreen = () => {
       setShowCourseForm(false);
       await invalidateCache(CacheKeys.learningModules);
       refetchModules();
+      Alert.alert('¡Publicado!', 'El módulo se creó correctamente.');
     } catch (error) {
       console.error('Error creating learning module:', error);
+      Alert.alert('Error', 'No se pudo crear el módulo. Verifica los datos e intenta nuevamente.');
     }
   };
 
   const handleDeleteModule = (id: string, title: string) => {
     Alert.alert(
       'Eliminar módulo',
-      `¿Seguro que quieres eliminar "${title}"?`,
+      `¿Seguro que quieres eliminar "${title}"? Esta acción no se puede deshacer.`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: async () => {
-          await deleteModule(id);
-          await invalidateCache(CacheKeys.learningModules);
-          refetchModules();
-        }},
+        {
+          text: 'Eliminar', style: 'destructive', onPress: async () => {
+            try {
+              await deleteModule(id);
+              await invalidateCache(CacheKeys.learningModules);
+              refetchModules();
+            } catch (error) {
+              Alert.alert('Error', 'No se pudo eliminar el módulo.');
+            }
+          },
+        },
       ]
     );
   };
@@ -133,7 +149,6 @@ const AdminScreen = () => {
   const handlePublishCompany = async (company: Partial<Company>) => {
     try {
       let imageUrl = company.imageUrl || '';
-
       if (imageUrl && !imageUrl.startsWith('http')) {
         try {
           imageUrl = await uploadCompanyImage(imageUrl);
@@ -142,7 +157,6 @@ const AdminScreen = () => {
           imageUrl = '';
         }
       }
-
       await createCompany({
         name: company.name || '',
         description: company.description || '',
@@ -154,8 +168,10 @@ const AdminScreen = () => {
       });
       setShowCompanyForm(false);
       refetchCompanies();
+      Alert.alert('¡Publicado!', 'La empresa se creó correctamente.');
     } catch (error) {
       console.error('Error creating company:', error);
+      Alert.alert('Error', 'No se pudo crear la empresa. Intenta nuevamente.');
     }
   };
 
@@ -168,20 +184,32 @@ const AdminScreen = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }} edges={['bottom']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: bg }} edges={['bottom']}>
       <AdminHeader />
       <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} isDark={isDark} />
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 4 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={isDark ? Colors.gold[400] : Colors.light.accent}
+            colors={[isDark ? Colors.gold[400] : Colors.light.accent]}
+          />
+        }
+      >
+        {/* ─── Gemas ─── */}
         {activeTab === 'gems' && (
           <View>
-            <View className="flex-row items-center mb-4">
-              <Text className="text-lg font-extrabold" style={{ color: textPrimary }}>
+            <View className="flex-row items-center mb-4 mt-2">
+              <Text className="text-[17px] font-bold" style={{ color: textPrimary }}>
                 Solicitudes de Gemas
               </Text>
               {pendingCount > 0 && (
                 <View
-                  className="rounded-xl px-2 py-1 ml-2"
+                  className="rounded-full px-2.5 py-0.5 ml-2"
                   style={{ backgroundColor: Colors.gold[400] }}
                 >
                   <Text className="text-xs font-extrabold" style={{ color: '#000' }}>
@@ -192,135 +220,184 @@ const AdminScreen = () => {
             </View>
 
             {gemRequestsLoading ? (
-              <View className="items-center justify-center py-10">
+              <View className="items-center justify-center py-12">
                 <Text style={{ color: textMuted }}>Cargando solicitudes...</Text>
               </View>
             ) : gemRequests.length === 0 ? (
-              <View className="items-center justify-center py-10">
-                <Package size={48} color={textMuted} className="mb-4" />
-                <Text className="text-base text-center" style={{ color: textMuted }}>
-                  No hay solicitudes de gemas pendientes
+              <View
+                className="items-center justify-center py-12 rounded-2xl"
+                style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
+              >
+                <Package size={40} color={textMuted} />
+                <Text className="text-[15px] font-semibold text-center mt-3" style={{ color: textMuted }}>
+                  No hay solicitudes pendientes
                 </Text>
               </View>
             ) : (
-              gemRequests.map((request) => (
-                <GemRequestCard
-                  key={request.id}
-                  request={request}
-                  onApprove={handleApprove}
-                  onReject={handleReject}
-                  isDark={isDark}
-                />
-              ))
+              <View className="gap-3">
+                {gemRequests.map((request) => (
+                  <GemRequestCard
+                    key={request.id}
+                    request={request}
+                    onApprove={handleApprove}
+                    onReject={handleReject}
+                    isDark={isDark}
+                  />
+                ))}
+              </View>
             )}
           </View>
         )}
 
+        {/* ─── Cursos ─── */}
         {activeTab === 'courses' && (
           <View>
             <Pressable
               onPress={() => setShowCourseForm(true)}
-              className="flex-row items-center justify-center rounded-2xl py-4 mb-5"
+              className="flex-row items-center justify-center rounded-2xl py-4 mb-5 mt-2 gap-2"
               style={{ backgroundColor: Colors.gold[400] }}
             >
-              <Plus size={20} color="#000" />
-              <Text className="ml-2 text-base font-extrabold" style={{ color: '#000' }}>
-                Nuevo curso
+              <Plus size={18} color="#000" />
+              <Text className="text-[15px] font-extrabold" style={{ color: '#000' }}>
+                Nuevo módulo
               </Text>
             </Pressable>
 
             {modulesLoading ? (
-              <View className="items-center justify-center py-10">
+              <View className="items-center justify-center py-12">
                 <Text style={{ color: textMuted }}>Cargando módulos...</Text>
               </View>
             ) : modules.length === 0 ? (
-              <View className="items-center justify-center py-10">
-                <BookOpen size={48} color={textMuted} className="mb-4" />
-                <Text className="text-base text-center" style={{ color: textMuted }}>
+              <View
+                className="items-center justify-center py-12 rounded-2xl"
+                style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
+              >
+                <BookOpen size={40} color={textMuted} />
+                <Text className="text-[15px] font-semibold text-center mt-3" style={{ color: textMuted }}>
                   No hay módulos publicados
                 </Text>
               </View>
             ) : (
-              modules.map((mod) => (
-                <View
-                  key={mod.id}
-                  className="border rounded-2xl p-4 mb-3"
-                  style={{
-                    backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.surface,
-                    borderColor:     isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
-                  }}
-                >
-                  <View className="flex-row justify-between items-center mb-2">
-                    <Text className="text-base font-bold" style={{ color: textPrimary }}>{mod.title}</Text>
-                    <View className="flex-row items-center gap-2">
-                      <View className="rounded-xl px-2 py-1" style={{ backgroundColor: Colors.gold[400] }}>
-                        <Text className="text-[10px] font-extrabold" style={{ color: '#000' }}>PUBLICADO</Text>
+              <View className="gap-3">
+                {modules.map((mod) => (
+                  <View
+                    key={mod.id}
+                    className="rounded-2xl p-4"
+                    style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
+                  >
+                    <View className="flex-row justify-between items-start mb-2">
+                      <Text
+                        className="text-[15px] font-bold flex-1 mr-3"
+                        style={{ color: textPrimary }}
+                        numberOfLines={1}
+                      >
+                        {mod.title}
+                      </Text>
+                      <View className="flex-row items-center gap-2">
+                        <View
+                          className="rounded-full px-2.5 py-1"
+                          style={{ backgroundColor: Colors.gold[400] }}
+                        >
+                          <Text className="text-[10px] font-extrabold" style={{ color: '#000' }}>
+                            PUBLICADO
+                          </Text>
+                        </View>
+                        <Pressable
+                          onPress={() => handleDeleteModule(mod.id, mod.title)}
+                          className="w-8 h-8 rounded-xl items-center justify-center active:opacity-60"
+                          style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.12)' : Colors.light.errorBg }}
+                        >
+                          <Trash2 size={15} color={Colors.error} />
+                        </Pressable>
                       </View>
-                      <Pressable onPress={() => handleDeleteModule(mod.id, mod.title)} className="active:opacity-70">
-                        <Trash2 size={18} color={isDark ? 'rgba(255,255,255,0.5)' : Colors.light.textMuted} />
-                      </Pressable>
+                    </View>
+                    <View className="flex-row items-center gap-3">
+                      <Text className="text-xs" style={{ color: textMuted }}>
+                        {mod.category}
+                      </Text>
+                      <View
+                        className="w-1 h-1 rounded-full"
+                        style={{ backgroundColor: textMuted }}
+                      />
+                      <Text className="text-xs capitalize" style={{ color: textMuted }}>
+                        {mod.difficulty}
+                      </Text>
                     </View>
                   </View>
-                  <Text className="mb-2" style={{ color: textMuted }}>{mod.category}</Text>
-                  <Text style={{ color: textMuted }}>{mod.difficulty}</Text>
-                </View>
-              ))
+                ))}
+              </View>
             )}
           </View>
         )}
 
+        {/* ─── Empresas ─── */}
         {activeTab === 'companies' && (
           <View>
             <Pressable
               onPress={() => setShowCompanyForm(true)}
-              className="flex-row items-center justify-center rounded-2xl py-4 mb-5"
+              className="flex-row items-center justify-center rounded-2xl py-4 mb-5 mt-2 gap-2"
               style={{ backgroundColor: Colors.gold[400] }}
             >
-              <Plus size={20} color="#000" />
-              <Text className="ml-2 text-base font-extrabold" style={{ color: '#000' }}>
+              <Plus size={18} color="#000" />
+              <Text className="text-[15px] font-extrabold" style={{ color: '#000' }}>
                 Nueva empresa
               </Text>
             </Pressable>
 
             {companiesLoading ? (
-              <View className="items-center justify-center py-10">
+              <View className="items-center justify-center py-12">
                 <Text style={{ color: textMuted }}>Cargando empresas...</Text>
               </View>
             ) : companies.length === 0 ? (
-              <View className="items-center justify-center py-10">
-                <Building size={48} color={textMuted} className="mb-4" />
-                <Text className="text-base text-center" style={{ color: textMuted }}>
+              <View
+                className="items-center justify-center py-12 rounded-2xl"
+                style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
+              >
+                <Building size={40} color={textMuted} />
+                <Text className="text-[15px] font-semibold text-center mt-3" style={{ color: textMuted }}>
                   No hay empresas publicadas
                 </Text>
               </View>
             ) : (
-              companies.map((company) => (
-                <View
-                  key={company.id}
-                  className="border rounded-2xl p-4 mb-3"
-                  style={{
-                    backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : Colors.light.surface,
-                    borderColor:     isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
-                  }}
-                >
-                  <View className="flex-row justify-between items-center mb-2">
-                    <Text className="text-base font-bold" style={{ color: textPrimary }}>{company.name}</Text>
+              <View className="gap-3">
+                {companies.map((company) => {
+                  const levelColor =
+                    company.level === 'gold'   ? Colors.levels.gold   :
+                    company.level === 'silver' ? Colors.levels.silver : Colors.levels.bronze;
+
+                  return (
                     <View
-                      className="rounded-xl px-2 py-1"
-                      style={{
-                        backgroundColor:
-                          company.level === 'gold'   ? '#FFD700' :
-                          company.level === 'silver' ? '#C0C0C0' : '#CD7F32',
-                      }}
+                      key={company.id}
+                      className="rounded-2xl p-4"
+                      style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
                     >
-                      <Text className="text-[10px] font-extrabold" style={{ color: '#000' }}>
-                        {company.level?.toUpperCase()}
+                      <View className="flex-row justify-between items-center mb-1">
+                        <Text
+                          className="text-[15px] font-bold flex-1 mr-3"
+                          style={{ color: textPrimary }}
+                          numberOfLines={1}
+                        >
+                          {company.name}
+                        </Text>
+                        <View
+                          className="rounded-full px-2.5 py-1"
+                          style={{ backgroundColor: `${levelColor}22` }}
+                        >
+                          <Text
+                            className="text-[10px] font-extrabold uppercase"
+                            style={{ color: levelColor }}
+                          >
+                            {company.level}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text className="text-xs" style={{ color: textMuted }}>
+                        {company.gems.toLocaleString()} gemas
                       </Text>
                     </View>
-                  </View>
-                  <Text style={{ color: textMuted }}>{company.gems} gemas</Text>
-                </View>
-              ))
+                  );
+                })}
+              </View>
             )}
           </View>
         )}

@@ -3,31 +3,62 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
+import { BookOpen, ChevronRight } from 'lucide-react-native';
 
-const CourseCard = React.memo(function CourseCard({ title, lesson, progress = 0 }: { 
-  title: string; 
+const CourseCard = React.memo(function CourseCard({ title, lesson, progress = 0 }: {
+  title: string;
   lesson: string;
   progress: number;
 }) {
   const router = useRouter();
   const { isDark } = useTheme();
 
+  const cardBg      = isDark ? '#131F35'                : Colors.light.card;
+  const textPrimary = isDark ? Colors.text.primary      : Colors.light.textPrimary;
+  const textMuted   = isDark ? 'rgba(255,255,255,0.5)'  : Colors.light.textSecond;
+  const progressBg  = isDark ? 'rgba(255,255,255,0.08)' : Colors.light.border;
+  const progressFg  = isDark ? Colors.gold[400]         : Colors.light.accent;
+  const iconBg      = isDark ? 'rgba(255,215,64,0.12)'  : Colors.light.accentLight;
+  const iconColor   = isDark ? Colors.gold[400]         : Colors.light.accent;
+
   return (
-    <TouchableOpacity onPress={() => router.push('/(tabs)/learn')} className="mx-4 p-4 rounded-2xl flex-row items-center justify-between shadow-sm" style={{ backgroundColor: isDark ? Colors.blue.card : Colors.light.card }}>
-      <View className="flex-row items-center flex-1">
-        <View className="w-12 h-12 rounded-xl items-center justify-center mr-3" style={{ backgroundColor: isDark ? '#1E3A5F' : Colors.light.surface }}>
-          <Text>💰</Text>
+    <TouchableOpacity
+      onPress={() => router.push('/(tabs)/learn')}
+      activeOpacity={0.75}
+      className="mx-4 rounded-2xl p-4"
+      style={{
+        backgroundColor: cardBg,
+        borderWidth: 1,
+        borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)',
+      }}
+    >
+      <View className="flex-row items-center gap-3">
+        <View className="w-12 h-12 rounded-xl items-center justify-center" style={{ backgroundColor: iconBg }}>
+          <BookOpen size={20} color={iconColor} />
         </View>
         <View className="flex-1">
-          <Text className="font-bold text-base" style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}>{title}</Text>
-          <Text className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,0.7)' : Colors.light.textSecond }}>{lesson}</Text>
-          <View className="h-1 w-24 rounded-full mt-2" style={{ backgroundColor: isDark ? '#1E3A5F' : Colors.light.border }}>
-            <View style={{ width: `${progress}%` }} className="h-full bg-gold-500 rounded-full" />
-          </View>
+          <Text className="font-bold text-[15px] leading-5" style={{ color: textPrimary }} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text className="text-xs mt-0.5" style={{ color: textMuted }} numberOfLines={1}>
+            {lesson}
+          </Text>
         </View>
+        <ChevronRight size={16} color={isDark ? 'rgba(255,255,255,0.3)' : Colors.light.textMuted} />
       </View>
-      <View className="w-10 h-10 bg-yellow-400 rounded-full items-center justify-center">
-        <Text>▶️</Text>
+
+      <View className="mt-3.5">
+        <View className="flex-row justify-between mb-1.5">
+          <Text className="text-[11px] font-medium" style={{ color: textMuted }}>
+            Progreso del módulo
+          </Text>
+          <Text className="text-[11px] font-bold" style={{ color: progressFg }}>
+            {progress}%
+          </Text>
+        </View>
+        <View className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: progressBg }}>
+          <View className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: progressFg }} />
+        </View>
       </View>
     </TouchableOpacity>
   );

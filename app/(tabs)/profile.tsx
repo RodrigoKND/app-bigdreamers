@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   View, Text, ScrollView,
-  Pressable, ActivityIndicator
+  Pressable, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2, Users  } from 'lucide-react-native';
@@ -85,6 +85,7 @@ export default function ProfileScreen() {
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
   const [initialLoad, setInitialLoad] = useState(true);
+  const [refreshing,  setRefreshing]  = useState(false);
 
   useEffect(() => {
     if (user) setInitialLoad(false);
@@ -115,6 +116,11 @@ export default function ProfileScreen() {
     );
   }
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try { await refetch(); } finally { setRefreshing(false); }
+  }, [refetch]);
+
   const screenBg   = isDark ? Colors.blue.primary : Colors.light.bg;
   const cardBg     = isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card;
   const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
@@ -134,6 +140,14 @@ export default function ProfileScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={isDark ? Colors.gold[400] : Colors.light.accent}
+            colors={[isDark ? Colors.gold[400] : Colors.light.accent]}
+          />
+        }
       >
         {/* Avatar + nombre + badge */}
         <ProfileHeader user={user} isDark={isDark} />

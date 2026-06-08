@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, SafeAreaView, Pressable } from 'react-native';
+import {
+  View, Text, ScrollView, ActivityIndicator, Pressable,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
@@ -9,32 +12,40 @@ import { useUpdateUserModuleProgress } from '@/hooks/learning/useUpdateUserModul
 import { useCompleteModule } from '@/hooks/learning/useCompleteModule';
 import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
 import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
+import { Clock, BookOpen } from 'lucide-react-native';
+import QuizGame, { parseQuizContent } from '@/components/lesson/QuizGame';
 
 export default function LessonDetailScreen() {
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
   const { isDark } = useTheme();
-  const { user } = useAuth();
+  const { user }   = useAuth();
   const { updateProgress } = useUpdateUserModuleProgress();
-  const { complete } = useCompleteModule();
+  const { complete }       = useCompleteModule();
   const router = useRouter();
-  const [lesson, setLesson] = useState<{ title: string; content: string; durationMinutes: number } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [moduleId, setModuleId] = useState<string | null>(null);
-  const [totalLessons, setTotalLessons] = useState(0);
-  const [lessonIndex, setLessonIndex] = useState(0);
-  const [completing, setCompleting] = useState(false);
 
-  const bg = isDark ? Colors.blue.primary : Colors.light.bg;
-  const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+  const [lesson,       setLesson]       = useState<{ title: string; content: string; durationMinutes: number } | null>(null);
+  const [loading,      setLoading]      = useState(true);
+  const [moduleId,     setModuleId]     = useState<string | null>(null);
+  const [totalLessons, setTotalLessons] = useState(0);
+  const [lessonIndex,  setLessonIndex]  = useState(0);
+  const [gemsReward,   setGemsReward]   = useState(0);
+  const [completing,   setCompleting]   = useState(false);
+
+  const bg          = isDark ? Colors.blue.primary       : Colors.light.bg;
+  const cardBg      = isDark ? 'rgba(255,255,255,0.05)'  : Colors.light.card;
+  const borderColor = isDark ? 'rgba(255,255,255,0.08)'  : 'rgba(0,0,0,0.05)';
+  const textPrimary = isDark ? Colors.text.primary       : Colors.light.textPrimary;
+  const textMuted   = isDark ? 'rgba(255,255,255,0.6)'   : Colors.light.textMuted;
+  const textSecond  = isDark ? Colors.text.secondary     : Colors.light.textSecond;
 
   useEffect(() => {
     if (!lessonId) return;
     let cancelled = false;
 
-    async function fetch() {
+    async function fetchLesson() {
       try {
         const supabase = await getSupabaseClient();
+
         const { data, error } = await supabase
           .from('lessons')
           .select('id, title, content, duration_minutes, module_id')
@@ -42,10 +53,11 @@ export default function LessonDetailScreen() {
           .single();
 
         if (error) throw error;
+
         if (!cancelled && data) {
           setLesson({
-            title: data.title,
-            content: data.content ?? '',
+            title:           data.title,
+            content:         data.content ?? '',
             durationMinutes: data.duration_minutes,
           });
           setModuleId(data.module_id);
@@ -62,6 +74,14 @@ export default function LessonDetailScreen() {
             .eq('module_id', data.module_id)
             .order('created_at', { ascending: true });
           setLessonIndex(allLessons?.findIndex(l => l.id === lessonId) ?? 0);
+
+          // Fetch gems reward from the module
+          const { data: moduleData } = await supabase
+            .from('learning_modules')
+            .select('gems_reward')
+            .eq('id', data.module_id)
+            .single();
+          setGemsReward(moduleData?.gems_reward ?? 0);
         }
       } catch (err) {
         console.error(err);
@@ -70,7 +90,7 @@ export default function LessonDetailScreen() {
       }
     }
 
-    fetch();
+    fetchLesson();
     return () => { cancelled = true; };
   }, [lessonId]);
 
@@ -79,7 +99,7 @@ export default function LessonDetailScreen() {
     setCompleting(true);
     try {
       const newProgress = Math.round(((lessonIndex + 1) / totalLessons) * 100);
-      const isLast = lessonIndex + 1 === totalLessons;
+      const isLast      = lessonIndex + 1 === totalLessons;
       if (isLast) {
         await complete(user.id, moduleId);
       } else {
@@ -117,54 +137,114 @@ export default function LessonDetailScreen() {
     );
   }
 
+  const quizData = parseQuizContent(lesson.content);
+  const isLast   = lessonIndex + 1 === totalLessons;
+
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
-      <View className="px-4 pt-4">
+      {/* Header */}
+      <View className="px-5 pt-3 pb-2 flex-row items-center gap-3">
         <ButtonBackScreen />
+        <View className="flex-1 flex-row items-center justify-between">
+          <Text className="text-[15px] font-bold" style={{ color: textPrimary }} numberOfLines={1}>
+            {lesson.title}
+          </Text>
+          <View
+            className="px-2.5 py-1 rounded-full ml-2"
+            style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : Colors.light.surface }}
+          >
+            <Text className="text-[10px] font-semibold" style={{ color: textMuted }}>
+              {lessonIndex + 1}/{totalLessons}
+            </Text>
+          </View>
+        </View>
       </View>
 
-      <ScrollView
-        className="px-4"
-        contentContainerStyle={{ paddingBottom: 36, gap: 16 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text
-          className="text-2xl font-bold mt-4"
-          style={{ color: textPrimary }}
-        >
-          {lesson.title}
-        </Text>
+      {/* Mode badge */}
+      <View className="px-5 pb-3">
+        <View className="flex-row items-center gap-2">
+          <View
+            className="px-3 py-1 rounded-full"
+            style={{
+              backgroundColor: quizData
+                ? isDark ? 'rgba(96,165,250,0.15)' : '#DBEAFE'
+                : isDark ? 'rgba(255,215,64,0.12)' : Colors.light.goldLight,
+            }}
+          >
+            <Text
+              className="text-[10px] font-extrabold uppercase tracking-widest"
+              style={{ color: quizData ? (isDark ? '#60A5FA' : '#1D4ED8') : (isDark ? Colors.gold[400] : Colors.light.goldDark) }}
+            >
+              {quizData ? '🎮 Quiz interactivo' : '📖 Lectura'}
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-1">
+            <Clock size={12} color={textMuted} />
+            <Text className="text-[11px]" style={{ color: textMuted }}>
+              {lesson.durationMinutes} min
+            </Text>
+          </View>
+        </View>
+      </View>
 
-        <Text
-          className="text-xs font-medium"
-          style={{ color: textMuted }}
-        >
-          {lesson.durationMinutes} min
-        </Text>
-
-        <View
-          className="w-8 h-[3px] rounded-sm mt-2"
-          style={{ backgroundColor: Colors.gold[400] }}
+      {/* Content: quiz or text */}
+      {quizData ? (
+        <QuizGame
+          questions={quizData.questions}
+          isDark={isDark}
+          lessonTitle={lesson.title}
+          gemsReward={gemsReward}
+          onComplete={handleComplete}
         />
-
-        <Text
-          className="text-base leading-6 mt-2"
-          style={{ color: textPrimary }}
+      ) : (
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, paddingTop: 4 }}
+          showsVerticalScrollIndicator={false}
         >
-          {lesson.content}
-        </Text>
+          {lesson.content ? (
+            <View
+              className="rounded-2xl p-5 mb-6"
+              style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
+            >
+              <Text className="text-[15px] leading-7" style={{ color: textSecond }}>
+                {lesson.content}
+              </Text>
+            </View>
+          ) : (
+            <View
+              className="rounded-2xl p-5 mb-6 items-center"
+              style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
+            >
+              <BookOpen size={32} color={textMuted} style={{ marginBottom: 12 }} />
+              <Text className="text-sm text-center" style={{ color: textMuted }}>
+                El contenido de esta lección estará disponible próximamente.
+              </Text>
+            </View>
+          )}
 
-        <Pressable
-          onPress={handleComplete}
-          disabled={completing}
-          className="mx-4 mb-6 rounded-2xl py-4 items-center"
-          style={{ backgroundColor: completing ? 'rgba(255,255,255,0.1)' : Colors.gold[400] }}
-        >
-          <Text className="font-extrabold text-base" style={{ color: completing ? 'rgba(255,255,255,0.4)' : '#000' }}>
-            {completing ? 'Guardando...' : lessonIndex + 1 === totalLessons ? 'Completar módulo' : 'Completar lección'}
-          </Text>
-        </Pressable>
-      </ScrollView>
+          <Pressable
+            onPress={handleComplete}
+            disabled={completing}
+            className="rounded-2xl py-4 items-center"
+            style={{
+              backgroundColor: completing
+                ? isDark ? 'rgba(255,255,255,0.08)' : Colors.light.border
+                : Colors.gold[400],
+            }}
+          >
+            <Text
+              className="font-extrabold text-[15px]"
+              style={{ color: completing ? textMuted : '#000' }}
+            >
+              {completing
+                ? 'Guardando...'
+                : isLast
+                ? 'Completar módulo ✓'
+                : 'Marcar como completada →'}
+            </Text>
+          </Pressable>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

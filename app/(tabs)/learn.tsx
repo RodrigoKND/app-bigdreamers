@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import {
   Lock,
@@ -33,10 +34,10 @@ type ModuleStatus = 'completed' | 'active' | 'locked';
 type Category = 'Finanzas' | 'Inversión' | 'Ahorro' | 'Empresa';
 
 const CATEGORY_MAP: Record<Category, string> = {
-  'Finanzas': 'finanzas',
+  'Finanzas':  'finanzas',
   'Inversión': 'inversion',
-  'Ahorro': 'ahorro',
-  'Empresa': 'empresa',
+  'Ahorro':    'ahorro',
+  'Empresa':   'empresa',
 };
 
 const CATEGORIES: Category[] = ['Finanzas', 'Inversión', 'Ahorro', 'Empresa'];
@@ -69,10 +70,10 @@ function ModuleNode({
   onPress: () => void;
 }) {
   const isCompleted = module.status === 'completed';
-  const isActive = module.status === 'active';
-  const isLocked = module.status === 'locked';
+  const isActive    = module.status === 'active';
+  const isLocked    = module.status === 'locked';
 
-  const nodeSize = isActive ? 80 : 68;
+  const nodeSize  = isActive ? 80 : 68;
   const IconComponent = MODULE_ICONS[index % 5] ?? DollarSign;
 
   const nodeBg = isLocked
@@ -82,7 +83,7 @@ function ModuleNode({
     : Colors.gold[400];
 
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+  const textMuted   = isDark ? 'rgba(255,255,255,0.55)' : Colors.light.textMuted;
 
   const statusLabel = isCompleted
     ? 'completado'
@@ -93,35 +94,37 @@ function ModuleNode({
   return (
     <TouchableOpacity
       onPress={isLocked ? undefined : onPress}
-      activeOpacity={isLocked ? 1 : 0.7}
+      activeOpacity={isLocked ? 1 : 0.75}
       className="items-center"
     >
+      {/* Connector */}
       {!isFirst && (
         <View
-          className="w-[3px] h-7"
+          className="w-[2px] h-7"
           style={{
             backgroundColor: isLocked
-              ? isDark ? 'rgba(255,255,255,0.1)' : '#CBD5E1'
-              : Colors.gold[400],
+              ? isDark ? 'rgba(255,255,255,0.08)' : '#CBD5E1'
+              : isDark ? Colors.gold[500] : Colors.light.accent,
           }}
         />
       )}
 
+      {/* Node */}
       <View
         className="items-center justify-center rounded-full"
         style={{
-          width: nodeSize,
-          height: nodeSize,
+          width:       nodeSize,
+          height:      nodeSize,
           backgroundColor: nodeBg,
-          opacity: isLocked ? 0.45 : 1,
-          borderWidth: isActive ? 4 : 0,
+          opacity:     isLocked ? 0.4 : 1,
+          borderWidth: isActive ? 3 : 0,
           borderColor: isDark ? Colors.navy[600] : '#BFDBFE',
         }}
       >
         {isLocked ? (
-          <Lock size={24} color={isDark ? 'rgba(255,255,255,0.5)' : '#94A3B8'} />
+          <Lock size={22} color={isDark ? 'rgba(255,255,255,0.45)' : '#94A3B8'} />
         ) : (
-          <IconComponent size={isActive ? 32 : 26} color={isDark ? '#000' : '#1e3a5f'} />
+          <IconComponent size={isActive ? 30 : 26} color={isDark ? '#000' : '#1e3a5f'} />
         )}
 
         {isCompleted && (
@@ -129,55 +132,58 @@ function ModuleNode({
             className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full items-center justify-center"
             style={{ backgroundColor: isDark ? '#166534' : '#16A34A' }}
           >
-            <Check size={12} color="#fff" strokeWidth={3} />
+            <Check size={11} color="#fff" strokeWidth={3} />
           </View>
         )}
       </View>
 
+      {/* Label */}
       <Text
-        className="text-sm font-bold mt-3 text-center"
-        style={{ color: isLocked ? textMuted : textPrimary, opacity: isLocked ? 0.6 : 1 }}
+        className="text-[13px] font-bold mt-3 text-center max-w-[180px]"
+        style={{ color: isLocked ? textMuted : textPrimary, opacity: isLocked ? 0.55 : 1 }}
+        numberOfLines={2}
       >
         {module.title}
       </Text>
 
       <Text
-        className="text-xs mt-0.5 text-center"
-        style={{ color: textMuted, opacity: isLocked ? 0.6 : 1 }}
+        className="text-[11px] mt-0.5 text-center"
+        style={{ color: textMuted, opacity: isLocked ? 0.55 : 1 }}
       >
         {statusLabel}
       </Text>
 
+      {/* Status badge */}
       <View
-        className="mt-2 mb-1 rounded-full px-4 py-1.5"
+        className="mt-2 mb-1 rounded-full px-3.5 py-1"
         style={{
           backgroundColor: isCompleted
-            ? isDark ? 'rgba(22,163,74,0.18)' : '#DCFCE7'
+            ? isDark ? 'rgba(22,163,74,0.16)' : '#DCFCE7'
             : isActive
-            ? isDark ? 'rgba(59,130,246,0.18)' : '#DBEAFE'
-            : isDark ? 'rgba(255,255,255,0.07)' : '#F1F5F9',
+            ? isDark ? 'rgba(59,130,246,0.16)' : '#DBEAFE'
+            : isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
         }}
       >
         {isCompleted && (
           <View className="flex-row items-center gap-1">
-            <CheckCircle size={11} color={isDark ? '#4ADE80' : '#16A34A'} />
-            <Text className="text-xs font-bold" style={{ color: isDark ? '#4ADE80' : '#16A34A' }}>
+            <CheckCircle size={10} color={isDark ? '#4ADE80' : '#16A34A'} />
+            <Text className="text-[10px] font-extrabold tracking-wide" style={{ color: isDark ? '#4ADE80' : '#16A34A' }}>
               COMPLETADO
             </Text>
           </View>
         )}
         {isActive && (
           <View className="flex-row items-center gap-1">
-            <CircleDot size={11} color={isDark ? '#60A5FA' : Colors.light.accent} />
-            <Text className="text-xs font-bold" style={{ color: isDark ? '#60A5FA' : Colors.light.accent }}>
+            <CircleDot size={10} color={isDark ? '#60A5FA' : Colors.light.accent} />
+            <Text className="text-[10px] font-extrabold tracking-wide" style={{ color: isDark ? '#60A5FA' : Colors.light.accent }}>
               EN CURSO
             </Text>
           </View>
         )}
         {isLocked && (
           <View className="flex-row items-center gap-1">
-            <Lock size={11} color={textMuted} />
-            <Text className="text-xs font-bold" style={{ color: textMuted }}>
+            <Lock size={10} color={textMuted} />
+            <Text className="text-[10px] font-extrabold tracking-wide" style={{ color: textMuted }}>
               BLOQUEADO
             </Text>
           </View>
@@ -192,7 +198,8 @@ export default function LearnScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState<Category>('Finanzas');
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshKey,     setRefreshKey]     = useState(0);
+  const [refreshing,     setRefreshing]     = useState(false);
 
   const { modules, loading: modulesLoading, error: modulesError, refetch } = useLearningModules({
     category: CATEGORY_MAP[activeCategory],
@@ -210,28 +217,34 @@ export default function LearnScreen() {
     }, [user?.id])
   );
 
-  const bg = isDark ? Colors.blue.primary : Colors.light.bg;
-  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      invalidateCachePattern(CacheKeys.learningModules);
+      if (user?.id) invalidateCachePattern(CacheKeys.userModulesProgress(user.id));
+      await Promise.all([refetch(), refetchProgress()]);
+      setRefreshKey(k => k + 1);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [user?.id]);
+
+  const bg        = isDark ? Colors.blue.primary : Colors.light.bg;
+  const textMuted = isDark ? 'rgba(255,255,255,0.55)' : Colors.light.textMuted;
   const accentColor = isDark ? Colors.gold[400] : Colors.light.accent;
 
   const loading = modulesLoading || progressLoading;
 
-  // Cruzar módulos con progreso del usuario
   const enrichedModules = useMemo((): EnrichedModule[] => {
     const progressMap = new Map(progress.map((p) => [p.moduleId, p]));
     let foundActive = false;
 
     return modules.map((mod) => {
-      const userProgress = progressMap.get(mod.id);
-      const totalLessons = mod.totalLessons ?? 0;
+      const userProgress  = progressMap.get(mod.id);
+      const totalLessons  = mod.totalLessons ?? 0;
 
       if (userProgress?.completed) {
-        return {
-          ...mod,
-          status: 'completed',
-          completedLessons: totalLessons,
-          totalLessons,
-        };
+        return { ...mod, status: 'completed', completedLessons: totalLessons, totalLessons };
       }
 
       if (!foundActive) {
@@ -239,20 +252,10 @@ export default function LearnScreen() {
         const completedLessons = userProgress
           ? Math.floor((userProgress.progress / 100) * totalLessons)
           : 0;
-        return {
-          ...mod,
-          status: 'active',
-          completedLessons,
-          totalLessons,
-        };
+        return { ...mod, status: 'active', completedLessons, totalLessons };
       }
 
-      return {
-        ...mod,
-        status: 'locked',
-        completedLessons: 0,
-        totalLessons,
-      };
+      return { ...mod, status: 'locked', completedLessons: 0, totalLessons };
     });
   }, [modules, progress, refreshKey]);
 
@@ -261,15 +264,14 @@ export default function LearnScreen() {
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
       <View className="flex-1">
-
         <LearnHeader gems={user?.gems ?? 0} />
 
         {/* Category tabs */}
-        <View className="h-11 mb-4">
+        <View className="h-11 mb-3">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 8, alignItems: 'center' }}
+            contentContainerStyle={{ paddingHorizontal: 16, gap: 8, alignItems: 'center' }}
             style={{ flex: 1 }}
           >
             {CATEGORIES.map((label) => {
@@ -280,7 +282,7 @@ export default function LearnScreen() {
                   onPress={() => setActiveCategory(label)}
                   accessible
                   accessibilityLabel={`Categoría ${label}`}
-                  className="active:opacity-70 rounded-full px-[18px] py-2"
+                  className="active:opacity-70 rounded-xl px-4 py-2"
                   style={{
                     backgroundColor: active
                       ? isDark ? Colors.gold[400] : Colors.light.accent
@@ -288,8 +290,8 @@ export default function LearnScreen() {
                   }}
                 >
                   <Text
-                    className="text-sm font-semibold"
-                    style={{ color: active ? isDark ? '#000' : '#fff' : textMuted }}
+                    className="text-[13px] font-semibold"
+                    style={{ color: active ? (isDark ? '#000' : '#fff') : textMuted }}
                   >
                     {label}
                   </Text>
@@ -301,20 +303,18 @@ export default function LearnScreen() {
 
         {/* Route label */}
         <Text
-          className="text-xs font-bold text-center mb-6 tracking-widest"
+          className="text-[10px] font-bold text-center mb-5 tracking-[0.2rem]"
           style={{ color: textMuted }}
         >
           RUTA · {activeCategory.toUpperCase()}
         </Text>
 
-        {/* Loading */}
         {loading && (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator color={accentColor} />
           </View>
         )}
 
-        {/* Error */}
         {!loading && modulesError && (
           <View className="flex-1 items-center justify-center px-8">
             <Text className="text-sm text-center" style={{ color: textMuted }}>
@@ -323,16 +323,14 @@ export default function LearnScreen() {
           </View>
         )}
 
-        {/* Empty state */}
         {!loading && !modulesError && modules.length === 0 && (
           <View className="flex-1 items-center justify-center px-8 gap-3">
-            <Text className="text-base font-bold text-center" style={{ color: textMuted }}>
+            <Text className="text-[15px] font-bold text-center" style={{ color: textMuted }}>
               No hay módulos en esta categoría aún
             </Text>
           </View>
         )}
 
-        {/* Modules path */}
         {!loading && !modulesError && modules.length > 0 && (
           <ScrollView
             showsVerticalScrollIndicator={false}
@@ -342,6 +340,9 @@ export default function LearnScreen() {
               alignItems: 'center',
               paddingHorizontal: 20,
             }}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accentColor} colors={[accentColor]} />
+            }
           >
             {enrichedModules.map((module, index) => (
               <ModuleNode
@@ -366,17 +367,16 @@ export default function LearnScreen() {
               accessible
               accessibilityLabel={`Continuar lección ${activeModule.completedLessons + 1}`}
               onPress={() => router.push(`/module/${activeModule.id}` as any)}
-              className="active:opacity-80 flex-row items-center justify-center rounded-2xl py-4 gap-3"
+              className="active:opacity-80 flex-row items-center justify-center rounded-2xl py-4 gap-2.5"
               style={{ backgroundColor: accentColor }}
             >
-              <Play size={18} color={isDark ? '#000' : '#fff'} fill={isDark ? '#000' : '#fff'} />
-              <Text className="text-base font-bold" style={{ color: isDark ? '#000' : '#fff' }}>
+              <Play size={16} color={isDark ? '#000' : '#fff'} fill={isDark ? '#000' : '#fff'} />
+              <Text className="text-[15px] font-bold" style={{ color: isDark ? '#000' : '#fff' }}>
                 Continuar lección {activeModule.completedLessons + 1}
               </Text>
             </Pressable>
           </View>
         )}
-
       </View>
     </SafeAreaView>
   );

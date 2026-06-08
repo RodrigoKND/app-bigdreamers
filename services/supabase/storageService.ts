@@ -1,38 +1,27 @@
-﻿import { getSupabaseClient } from './supabase';
+import { getSupabaseClient } from './supabase';
 
 function getMimeType(uri: string): string {
   const ext = uri.split('.').pop()?.toLowerCase();
   switch (ext) {
     case 'jpg': case 'jpeg': return 'image/jpeg';
-    case 'png': return 'image/png';
-    case 'gif': return 'image/gif';
+    case 'png':  return 'image/png';
+    case 'gif':  return 'image/gif';
     case 'webp': return 'image/webp';
-    default: return 'image/jpeg';
+    default:     return 'image/jpeg';
   }
 }
 
-function uriToBlob(uri: string): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', uri, true);
-    xhr.responseType = 'blob';
-    xhr.onload = () => {
-      if (xhr.status === 0 || xhr.status === 200) {
-        resolve(xhr.response);
-      } else {
-        reject(new Error(`Error al cargar el archivo: ${xhr.status}`));
-      }
-    };
-    xhr.onerror = () => reject(new Error('Error de red al cargar el archivo'));
-    xhr.send();
-  });
+async function uriToBlob(uri: string): Promise<Blob> {
+  const response = await fetch(uri);
+  if (!response.ok) throw new Error(`No se pudo cargar el archivo: ${response.status}`);
+  return response.blob();
 }
 
 export async function uploadCompanyImage(localUri: string): Promise<string> {
   const supabase = await getSupabaseClient();
   const blob = await uriToBlob(localUri);
 
-  const ext = localUri.split('.').pop()?.toLowerCase() || 'jpg';
+  const ext      = localUri.split('.').pop()?.toLowerCase() || 'jpg';
   const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
   const filePath = `companies/${fileName}`;
 

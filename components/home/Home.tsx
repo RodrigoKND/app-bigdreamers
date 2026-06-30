@@ -18,22 +18,24 @@ import CourseCard from '@/components/home/CourseCard';
 import ActivitySection from '@/components/home/ActivitySection';
 import ActivityItem from '@/components/home/ActivityItem';
 import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
+import AppTutorial from '@/components/shared/AppTutorial';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { isDark } = useTheme();
   const { user: authUser } = useAuth();
 
-  const { user,       loading: loadingUser,       refetch: refetchUser       } = useCurrentUser(authUser?.id ?? null);
+  const { user: dbUser, loading: loadingUser, refetch: refetchUser       } = useCurrentUser(authUser?.id ?? null);
   const { activities, loading: loadingActivities, refetch: refetchActivities } = useRecentActivities(4);
   const { modules,    loading: loadingModules,    refetch: refetchModules    } = useLearningModules();
 
+  const user = dbUser ?? authUser ?? null;
   const [refreshing, setRefreshing] = useState(false);
 
   const nextModule = modules.find(m => !m.completed) ?? modules[0];
   const loading    = loadingUser || loadingActivities;
 
-  const bg          = isDark ? '#0B1527'                  : Colors.light.bg;
+  const bg          = isDark ? Colors.blue.primary        : Colors.light.bg;
   const textPrimary = isDark ? Colors.text.primary        : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.55)'   : Colors.light.textMuted;
   const accentColor = isDark ? Colors.gold[400]           : Colors.light.accent;
@@ -60,6 +62,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: bg }} edges={['top']}>
+      <AppTutorial />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 28 }}

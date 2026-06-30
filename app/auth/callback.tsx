@@ -12,7 +12,7 @@ import { User } from '@/types';
 export default function AuthCallback() {
   const { isDark } = useTheme();
   const router = useRouter();
-  const { session } = useLocalSearchParams<{ session: string }>();
+  const { code } = useLocalSearchParams<{ code?: string }>();
   const { login } = useAuth();
 
   useEffect(() => {
@@ -20,12 +20,12 @@ export default function AuthCallback() {
       try {
         const supabase = await getSupabaseClient();
 
-        if (session) {
-          const { access_token, refresh_token } = JSON.parse(session);
-          await supabase.auth.setSession({
-            access_token,
-            refresh_token,
-          });
+        // Si signInWithGoogle ya intercambió el código, ya hay sesión:
+        // no volvemos a intercambiar (el code es de un solo uso).
+        const { data: { session: existing } } = await supabase.auth.getSession();
+        if (!existing && code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(String(code));
+          if (error) throw error;
         }
 
         const { data: { user }, error } = await supabase.auth.getUser();
@@ -53,7 +53,7 @@ export default function AuthCallback() {
     };
 
     handleCallback();
-  }, [session]);
+  }, [code]);
 
   return (
     <View className="flex-1 justify-center items-center" style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}>

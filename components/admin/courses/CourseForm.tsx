@@ -147,11 +147,7 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
   };
 
   // ── Publish module ────────────────────────────────────────
-  const handlePublish = () => {
-    if (!title.trim()) {
-      Alert.alert('Campo requerido', 'El título del módulo no puede estar vacío.');
-      return;
-    }
+  const doPublish = (finalLessons: typeof lessons) => {
     onPublish({
       title:       title.trim(),
       description: description.trim(),
@@ -161,8 +157,50 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
       thumbnail:   thumbnail.trim(),
       difficulty,
       orderIndex:  orderIndex ? parseInt(orderIndex) : undefined,
-      lessons:     lessons.length > 0 ? lessons : undefined,
+      lessons:     finalLessons.length > 0 ? finalLessons : undefined,
     });
+  };
+
+  const handlePublish = () => {
+    if (!title.trim()) {
+      Alert.alert('Campo requerido', 'El título del módulo no puede estar vacío.');
+      return;
+    }
+
+    if (lessonTitle.trim()) {
+      Alert.alert(
+        'Lección sin agregar',
+        `"${lessonTitle.trim()}" no fue agregada a la lista. ¿Qué quieres hacer?`,
+        [
+          { text: 'Publicar sin ella', style: 'destructive', onPress: () => doPublish(lessons) },
+          {
+            text: 'Agregar y publicar',
+            onPress: () => {
+              let content = '';
+              if (lessonType === 'quiz') {
+                const invalidQ = quizQuestions.find(q => !q.q.trim() || q.options.some(o => !o.trim()));
+                if (invalidQ) {
+                  Alert.alert('Quiz incompleto', 'Completa la pregunta y todas las opciones antes de publicar.');
+                  return;
+                }
+                content = JSON.stringify({ type: 'quiz', questions: quizQuestions });
+              } else {
+                content = lessonContent.trim();
+              }
+              const pendingLesson = {
+                title:           lessonTitle.trim(),
+                durationMinutes: parseInt(lessonDuration) || 0,
+                content,
+              };
+              doPublish([...lessons, pendingLesson]);
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    doPublish(lessons);
   };
 
   const canPublish = !!title.trim();

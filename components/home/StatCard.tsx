@@ -10,8 +10,7 @@ const StatCard = React.memo(function StatCard({ label, value, icon }: {
 }) {
   const { isDark } = useTheme();
 
-  // Dark surface instead of the heavy blue card
-  const cardBg = isDark ? '#131F35' : Colors.light.card;
+  const cardBg = isDark ? Colors.blue.light : Colors.light.card;
 
   return (
     <View

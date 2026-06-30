@@ -13,7 +13,7 @@ const CourseCard = React.memo(function CourseCard({ title, lesson, progress = 0 
   const router = useRouter();
   const { isDark } = useTheme();
 
-  const cardBg      = isDark ? '#131F35'                : Colors.light.card;
+  const cardBg      = isDark ? Colors.blue.light         : Colors.light.card;
   const textPrimary = isDark ? Colors.text.primary      : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.5)'  : Colors.light.textSecond;
   const progressBg  = isDark ? 'rgba(255,255,255,0.08)' : Colors.light.border;

@@ -1,10 +1,10 @@
 {
   "expo": {
     "name": "Bigdreamerss",
-    "slug": "Bigdreamerss",
+    "slug": "bolt-expo-nativewind",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "bigdreamerss",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,10 +14,13 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favlogo.png"
     },
     "android": {
-      "package": "com.bigdreamerss.bigdreamerss"
+      "package": "com.bigdreamerss.bigdreamerss",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -38,9 +41,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "6bddf1fb-e09d-4cb6-b7d7-20805fcf59f4"
+        "projectId": "59c1d9fc-9f8e-44bb-bca6-a60028136f94"
       }
     },
-    "owner": "rod20"
+    "owner": "bigdramers"
   }
 }

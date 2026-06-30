@@ -81,7 +81,8 @@ function SectionLabel({ label, isDark }: { label: string; isDark: boolean }) {
 
 export default function ProfileScreen() {
   const { user: authUser, logout } = useAuth();
-  const { user, loading, refetch } = useCurrentUser(authUser?.id ?? null);
+  const { user: dbUser, loading, refetch } = useCurrentUser(authUser?.id ?? null);
+  const user = dbUser ?? authUser ?? null;
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
   const [initialLoad, setInitialLoad] = useState(true);
@@ -105,6 +106,15 @@ export default function ProfileScreen() {
     }, [refetch])
   );
   
+  // IMPORTANTE: todos los hooks deben ir ANTES de cualquier return temprano.
+  // Si onRefresh (useCallback) queda debajo del return de loading, en el primer
+  // render no se ejecuta y luego sí → "Rendered more hooks than during the
+  // previous render" → crash nativo al abrir Perfil.
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try { await refetch(); } finally { setRefreshing(false); }
+  }, [refetch]);
+
   if (initialLoad || !user) {
     return (
       <View
@@ -115,11 +125,6 @@ export default function ProfileScreen() {
       </View>
     );
   }
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try { await refetch(); } finally { setRefreshing(false); }
-  }, [refetch]);
 
   const screenBg   = isDark ? Colors.blue.primary : Colors.light.bg;
   const cardBg     = isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card;

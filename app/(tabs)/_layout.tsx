@@ -9,7 +9,7 @@ export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const { isDark } = useTheme();
 
-  const tabBg       = isDark ? Colors.navy[800]          : '#FFFFFF';
+  const tabBg       = isDark ? Colors.blue.primary       : '#FFFFFF';
   const tabBorder   = isDark ? 'rgba(255,255,255,0.06)'  : 'rgba(0,0,0,0.06)';
   const tabActive   = isDark ? Colors.gold[400]          : Colors.light.accent;
   const tabInactive = isDark ? Colors.text.muted         : Colors.light.tabInactive;

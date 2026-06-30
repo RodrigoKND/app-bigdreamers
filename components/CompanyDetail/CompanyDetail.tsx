@@ -5,6 +5,7 @@ import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 import DetailHeader from '@/components/CompanyDetail/DetailHeader';
 import InvestmentControls from '@/components/CompanyDetail/InvestmentControls';
+import InvestmentInsights from '@/components/CompanyDetail/InvestmentInsights';
 import TeamMember from '@/components/CompanyDetail/TeamMember';
 import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
 import { useCompanyById } from '@/hooks/company/useCompanyById';
@@ -15,7 +16,7 @@ export default function CompanyDetail({ companyId }: { companyId: string }) {
   const { isDark } = useTheme();
   const { company, loading: loadingCompany } = useCompanyById(companyId);
   const { user: authUser } = useAuth();
-  const { user, loading: loadingUser } = useCurrentUser(authUser?.id ?? null);
+  const { user, loading: loadingUser, refetch: refetchUser } = useCurrentUser(authUser?.id ?? null);
 
   const loading = loadingCompany || loadingUser;
 
@@ -42,7 +43,14 @@ export default function CompanyDetail({ companyId }: { companyId: string }) {
           />
 
           <View className="mb-10">
-            <InvestmentControls currentGems={user?.gems ?? 0} />
+            <InvestmentControls
+              currentGems={user?.gems ?? 0}
+              cost={company?.gems ?? 0}
+              companyName={company?.name ?? 'esta empresa'}
+              userId={authUser?.id ?? null}
+              onInvested={refetchUser}
+            />
+            <InvestmentInsights />
           </View>
 
           {company?.teamMembers && company.teamMembers.length > 0 && (
@@ -53,7 +61,7 @@ export default function CompanyDetail({ companyId }: { companyId: string }) {
               </View>
 
               {company.teamMembers.map((member, index) => (
-                <TeamMember key={index} name={member.name} role={member.role} />
+                <TeamMember key={index} name={member.name} role={member.role} contact={member.contact} />
               ))}
             </View>
           )}

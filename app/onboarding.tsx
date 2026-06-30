@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from "react-native-safe-area-context";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { SLIDES } from "@/constants/slides";
 
 const { width } = Dimensions.get('window');
@@ -30,6 +30,7 @@ function OwlImage({ source }: { source: any }) {
 
 export default function OnboardingScreen() {
   const { isDark } = useTheme();
+  const { completeOnboarding } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
@@ -41,8 +42,10 @@ export default function OnboardingScreen() {
     }
   ).current;
 
-  const finish = async () => {
-    await AsyncStorage.setItem('onboarding_done', 'true');
+  const finish = () => {
+    // Actualiza el estado compartido (AuthContext) y persiste el flag.
+    // El guard de _layout ya verá onboardingDone=true y dejará pasar a /(tabs).
+    completeOnboarding();
     router.replace('/(tabs)');
   };
 

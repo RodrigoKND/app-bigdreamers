@@ -1,8 +1,9 @@
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { key, url } from '@/config/supabase';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-let client: any = null;
+let client: SupabaseClient | null = null;
 
 const secureStorage = {
   getItem: async (name: string) => {
@@ -30,13 +31,16 @@ const secureStorage = {
 
 export async function getSupabaseClient() {
   if (client) return client;
-  const { createClient } = await import('@supabase/supabase-js');
   client = createClient(url!, key!, {
     auth: {
       storage: secureStorage,
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
+      // PKCE: el retorno trae ?code= (302 limpio que el Custom Tab intercepta),
+      // en vez del flujo implícito con #access_token que rompe en Chrome
+      // (ERR_UNKNOWN_URL_SCHEME).
+      flowType: 'pkce',
     },
   });
   return client;

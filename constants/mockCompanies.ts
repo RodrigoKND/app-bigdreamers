@@ -3,6 +3,7 @@ export type CompanyLevel = 'gold' | 'silver' | 'bronze' | 'diamond';
 export interface CompanyTeamMember {
   name: string;
   role: string;
+  contact?: string;
 }
 
 export interface Company {

@@ -1,7 +1,7 @@
 import { LearningModule } from '@/types';
 import { getSupabaseClient } from '@/services/supabase/supabase';
 
-function mapLearningModule(row: any): LearningModule {
+function mapLearningModule(row: any, totalLessons = 0): LearningModule {
   return {
     id: row.id,
     title: row.title,
@@ -13,7 +13,7 @@ function mapLearningModule(row: any): LearningModule {
     progress: row.progress ?? 0,
     thumbnail: row.thumbnail,
     difficulty: row.difficulty,
-    totalLessons: row.lessons?.[0]?.count ?? 0,
+    totalLessons,
   };
 }
 
@@ -24,7 +24,7 @@ export async function getLearningModules(filters?: {
   const supabase = await getSupabaseClient();
   let query = supabase
     .from('learning_modules')
-    .select('*, lessons(count)')
+    .select('*')
     .order('order_index', { ascending: true });
 
   if (filters?.category) {
@@ -36,9 +36,23 @@ export async function getLearningModules(filters?: {
   }
 
   const { data, error } = await query;
-
   if (error) throw error;
-  return (data || []).map(mapLearningModule);
+
+  const rows = data || [];
+  if (rows.length === 0) return [];
+
+  const moduleIds = rows.map((r: any) => r.id);
+  const { data: lessonRows } = await supabase
+    .from('lessons')
+    .select('module_id')
+    .in('module_id', moduleIds);
+
+  const countMap = new Map<string, number>();
+  (lessonRows || []).forEach((l: any) => {
+    countMap.set(l.module_id, (countMap.get(l.module_id) ?? 0) + 1);
+  });
+
+  return rows.map((row: any) => mapLearningModule(row, countMap.get(row.id) ?? 0));
 }
 
 export async function getLearningModuleById(moduleId: string): Promise<LearningModule | null> {
@@ -184,7 +198,7 @@ export async function updateUserModuleProgress(
   if (error) throw error;
 }
 
-export async function completeModule(userId: string, moduleId: string): Promise<void> {
+export async function completeModule(userId: string, moduleId: string, gemsReward?: number): Promise<void> {
   const supabase = await getSupabaseClient();
 
   const { error } = await supabase
@@ -201,6 +215,14 @@ export async function completeModule(userId: string, moduleId: string): Promise<
     );
 
   if (error) throw error;
+
+  if (gemsReward && gemsReward > 0) {
+    const { error: gemsError } = await supabase.rpc('add_gems_to_user', {
+      p_user_id: userId,
+      p_gems_to_add: gemsReward,
+    });
+    if (gemsError) throw gemsError;
+  }
 }
 
 export async function getUserCompletedModules(userId: string): Promise<string[]> {

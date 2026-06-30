@@ -7,7 +7,7 @@ export async function getCompanies(): Promise<Company[]> {
     .from('companies')
     .select(`
       *,
-      team_members:company_team_members(name, role)
+      team_members:company_team_members(name, role, contact)
     `)
     .eq('published', true)
     .order('created_at', { ascending: false });
@@ -32,7 +32,7 @@ export async function getCompanyById(id: string): Promise<Company | null> {
     .from('companies')
     .select(`
       *,
-      team_members:company_team_members(name, role)
+      team_members:company_team_members(name, role, contact)
     `)
     .eq('id', id)
     .single();
@@ -60,7 +60,7 @@ export async function createCompany(company: {
   gems: number;
   imageUrl: string;
   level: 'gold' | 'silver' | 'bronze' | 'diamond';
-  teamMembers: { name: string; role: string }[];
+  teamMembers: { name: string; role: string; contact?: string }[];
   published?: boolean;
 }): Promise<Company> {
   const supabase = await getSupabaseClient();
@@ -85,6 +85,7 @@ export async function createCompany(company: {
       company_id: companyData.id,
       name: member.name,
       role: member.role,
+      contact: member.contact ?? '',
     }));
 
     const { error: teamError } = await supabase
@@ -153,7 +154,7 @@ export async function deleteCompany(id: string): Promise<void> {
 
 export async function updateCompanyTeamMembers(
   companyId: string,
-  teamMembers: { name: string; role: string }[]
+  teamMembers: { name: string; role: string; contact?: string }[]
 ): Promise<void> {
   const supabase = await getSupabaseClient();
 
@@ -167,6 +168,7 @@ export async function updateCompanyTeamMembers(
       company_id: companyId,
       name: member.name,
       role: member.role,
+      contact: member.contact ?? '',
     }));
 
     const { error } = await supabase

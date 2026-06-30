@@ -1,7 +1,9 @@
+import * as FileSystem from 'expo-file-system';
+import { toByteArray } from 'base64-js';
 import { getSupabaseClient } from './supabase';
 
 function getMimeType(uri: string): string {
-  const ext = uri.split('.').pop()?.toLowerCase();
+  const ext = uri.split('.').pop()?.toLowerCase().split('?')[0];
   switch (ext) {
     case 'jpg': case 'jpeg': return 'image/jpeg';
     case 'png':  return 'image/png';
@@ -11,23 +13,21 @@ function getMimeType(uri: string): string {
   }
 }
 
-async function uriToBlob(uri: string): Promise<Blob> {
-  const response = await fetch(uri);
-  if (!response.ok) throw new Error(`No se pudo cargar el archivo: ${response.status}`);
-  return response.blob();
-}
-
 export async function uploadCompanyImage(localUri: string): Promise<string> {
   const supabase = await getSupabaseClient();
-  const blob = await uriToBlob(localUri);
 
-  const ext      = localUri.split('.').pop()?.toLowerCase() || 'jpg';
+  const base64 = await FileSystem.readAsStringAsync(localUri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  const bytes = toByteArray(base64);
+
+  const ext      = localUri.split('.').pop()?.toLowerCase().split('?')[0] || 'jpg';
   const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
   const filePath = `companies/${fileName}`;
 
   const { error: uploadError } = await supabase.storage
     .from('companies')
-    .upload(filePath, blob, {
+    .upload(filePath, bytes, {
       contentType: getMimeType(localUri),
       upsert: false,
     });

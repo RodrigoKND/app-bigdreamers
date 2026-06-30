@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, ActivityIndicator, Pressable,
+  View, Text, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -12,13 +12,14 @@ import { useUpdateUserModuleProgress } from '@/hooks/learning/useUpdateUserModul
 import { useCompleteModule } from '@/hooks/learning/useCompleteModule';
 import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
 import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
-import { Clock, BookOpen } from 'lucide-react-native';
+import { Clock } from 'lucide-react-native';
 import QuizGame, { parseQuizContent } from '@/components/lesson/QuizGame';
+import ReadingLesson from '@/components/lesson/ReadingLesson';
 
 export default function LessonDetailScreen() {
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
   const { isDark } = useTheme();
-  const { user }   = useAuth();
+  const { user, refreshUser } = useAuth();
   const { updateProgress } = useUpdateUserModuleProgress();
   const { complete }       = useCompleteModule();
   const router = useRouter();
@@ -32,11 +33,8 @@ export default function LessonDetailScreen() {
   const [completing,   setCompleting]   = useState(false);
 
   const bg          = isDark ? Colors.blue.primary       : Colors.light.bg;
-  const cardBg      = isDark ? 'rgba(255,255,255,0.05)'  : Colors.light.card;
-  const borderColor = isDark ? 'rgba(255,255,255,0.08)'  : 'rgba(0,0,0,0.05)';
   const textPrimary = isDark ? Colors.text.primary       : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.6)'   : Colors.light.textMuted;
-  const textSecond  = isDark ? Colors.text.secondary     : Colors.light.textSecond;
 
   useEffect(() => {
     if (!lessonId) return;
@@ -101,7 +99,8 @@ export default function LessonDetailScreen() {
       const newProgress = Math.round(((lessonIndex + 1) / totalLessons) * 100);
       const isLast      = lessonIndex + 1 === totalLessons;
       if (isLast) {
-        await complete(user.id, moduleId);
+        await complete(user.id, moduleId, gemsReward);
+        await refreshUser();
       } else {
         await updateProgress(user.id, moduleId, newProgress);
       }
@@ -197,53 +196,14 @@ export default function LessonDetailScreen() {
           onComplete={handleComplete}
         />
       ) : (
-        <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, paddingTop: 4 }}
-          showsVerticalScrollIndicator={false}
-        >
-          {lesson.content ? (
-            <View
-              className="rounded-2xl p-5 mb-6"
-              style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
-            >
-              <Text className="text-[15px] leading-7" style={{ color: textSecond }}>
-                {lesson.content}
-              </Text>
-            </View>
-          ) : (
-            <View
-              className="rounded-2xl p-5 mb-6 items-center"
-              style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
-            >
-              <BookOpen size={32} color={textMuted} style={{ marginBottom: 12 }} />
-              <Text className="text-sm text-center" style={{ color: textMuted }}>
-                El contenido de esta lección estará disponible próximamente.
-              </Text>
-            </View>
-          )}
-
-          <Pressable
-            onPress={handleComplete}
-            disabled={completing}
-            className="rounded-2xl py-4 items-center"
-            style={{
-              backgroundColor: completing
-                ? isDark ? 'rgba(255,255,255,0.08)' : Colors.light.border
-                : Colors.gold[400],
-            }}
-          >
-            <Text
-              className="font-extrabold text-[15px]"
-              style={{ color: completing ? textMuted : '#000' }}
-            >
-              {completing
-                ? 'Guardando...'
-                : isLast
-                ? 'Completar módulo ✓'
-                : 'Marcar como completada →'}
-            </Text>
-          </Pressable>
-        </ScrollView>
+        <ReadingLesson
+          content={lesson.content}
+          isDark={isDark}
+          gemsReward={gemsReward}
+          isLast={isLast}
+          completing={completing}
+          onComplete={handleComplete}
+        />
       )}
     </SafeAreaView>
   );

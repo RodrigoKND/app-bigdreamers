@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { Zap } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
@@ -14,7 +14,12 @@ export default function ProfileHeader({ user, isDark, className = '' }: ProfileH
   const config = getLevelConfig(user.level);
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
-  const userInitials = user.name
+  // Si el avatar remoto falla al cargar, caemos a las iniciales.
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const avatarUri = typeof user.avatar === 'string' ? user.avatar.trim() : '';
+  const showAvatar = avatarUri.length > 0 && !avatarFailed;
+
+  const userInitials = (user.name ?? '')
     .split(' ')
     .map((n: string) => n[0])
     .join('')
@@ -35,8 +40,12 @@ export default function ProfileHeader({ user, isDark, className = '' }: ProfileH
           backgroundColor: isDark ? Colors.navy[600] : Colors.light.surface,
         }}
       >
-        {user.avatar ? (
-          <Image source={{ uri: user.avatar }} className="w-full h-full rounded-full" />
+        {showAvatar ? (
+          <Image
+            source={{ uri: avatarUri }}
+            className="w-full h-full rounded-full"
+            onError={() => setAvatarFailed(true)}
+          />
         ) : (
           <Text
             className="font-bold text-[30px]"

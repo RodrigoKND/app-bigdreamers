@@ -54,7 +54,7 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
   const removeImage = () => setImageUrl('');
 
   const addTeamMember = () => {
-    setTeamMembers([...teamMembers, { name: '', role: '' }]);
+    setTeamMembers([...teamMembers, { name: '', role: '', contact: '' }]);
   };
 
   const updateTeamMember = (index: number, field: keyof CompanyTeamMember, value: string) => {
@@ -76,7 +76,7 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
       gems: parseInt(gems) || 0,
       imageUrl: imageUrl.trim() || '',
       level,
-      teamMembers: teamMembers.filter(m => m.name.trim() && m.role.trim()),
+      teamMembers: teamMembers.filter(m => m.name.trim() && m.role.trim()).map(m => ({ ...m, contact: m.contact?.trim() ?? '' })),
     });
   };
 
@@ -180,8 +180,19 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
               placeholderTextColor={textMuted}
               value={member.role}
               onChangeText={(value) => updateTeamMember(index, 'role', value)}
+              className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-2"
+              style={inputDynamic}
+            />
+
+            <TextInput
+              placeholder="WhatsApp (+58...) o correo electrónico"
+              placeholderTextColor={textMuted}
+              value={member.contact ?? ''}
+              onChangeText={(value) => updateTeamMember(index, 'contact', value)}
               className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3"
               style={inputDynamic}
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
           </View>
         ))}

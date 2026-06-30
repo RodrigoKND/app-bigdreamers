@@ -23,45 +23,37 @@ export async function signInWithGoogle(): Promise<User> {
 
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
 
-  if (result.type === 'success' && result.url) {
-    // En Android, a veces los params vienen con '?' en lugar de '#'
-    const urlObj = new URL(result.url.replace('#', '?'));
-    const accessToken = urlObj.searchParams.get('access_token');
-    const refreshToken = urlObj.searchParams.get('refresh_token');
-
-    if (!accessToken) throw new Error('No access token in redirect URL');
-
-    const { error: sessionError } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken || '',
-    });
-
-    if (sessionError) throw sessionError;
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    
-    if (userError) throw userError;
-    if (!user) throw new Error('No user found after setting session');
-    if (!user.email) throw new Error('No email found for user');
-
-    const existingUser = await getUserById(user.id);
-
-    if (existingUser) return existingUser;
-
-    const newUser = await createUser({
-      id: user.id,
-      name: user.user_metadata?.full_name || user.email.split('@')[0] || 'User',
-      email: user.email,
-      avatar: user.user_metadata?.avatar_url || undefined,
-    });
-
-    return newUser;
+  if (result.type !== 'success' || !result.url) {
+    throw new Error('Google authentication was cancelled');
   }
 
-  throw new Error('Google authentication was cancelled');
+  const { queryParams } = Linking.parse(result.url);
+  const errorCode = queryParams?.error_code ?? queryParams?.error;
+  if (errorCode) {
+    throw new Error(String(queryParams?.error_description ?? errorCode));
+  }
+
+  const code = queryParams?.code;
+  if (!code || typeof code !== 'string') {
+    throw new Error('No se recibió el código de autorización tras el login.');
+  }
+
+  const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+  if (sessionError) throw sessionError;
+
+  const { user } = sessionData;
+  if (!user) throw new Error('No user found after setting session');
+  if (!user.email) throw new Error('No email found for user');
+
+  const existingUser = await getUserById(user.id);
+  if (existingUser) return existingUser;
+
+  return await createUser({
+    id: user.id,
+    name: user.user_metadata?.full_name || user.email.split('@')[0] || 'User',
+    email: user.email,
+    avatar: user.user_metadata?.avatar_url || undefined,
+  });
 }
 
 export async function signOut(): Promise<void> {

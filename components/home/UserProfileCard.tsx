@@ -19,8 +19,7 @@ export default function UserProfileCard({ user }: { user: User }) {
     ? 100
     : Math.min(100, Math.round(((user.gems - config.min) / (config.max - config.min)) * 100));
 
-  // Professional dark surface — NOT the heavy blue.card color
-  const cardBg      = isDark ? '#131F35' : Colors.light.card;
+  const cardBg      = isDark ? Colors.blue.light : Colors.light.card;
   const textPrimary = isDark ? Colors.text.primary  : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.5)' : Colors.light.textSecond;
 

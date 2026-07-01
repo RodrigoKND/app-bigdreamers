@@ -1,36 +1,94 @@
+import React from 'react';
 import { View, Text, Image } from 'react-native';
 import { IMAGES } from '@/constants/images';
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 import { User } from '@/types';
 
+const LEVEL_CONFIG: Record<string, { label: string; color: string; next: string; min: number; max: number }> = {
+  bronze:  { min: 0,    max: 500,  label: 'Bronce',   color: Colors.levels.bronze,  next: 'Plata'    },
+  silver:  { min: 500,  max: 2000, label: 'Plata',    color: Colors.levels.silver,  next: 'Oro'      },
+  gold:    { min: 2000, max: 5000, label: 'Oro',      color: Colors.levels.gold,    next: 'Diamante' },
+  diamond: { min: 5000, max: 5000, label: 'Diamante', color: Colors.levels.diamond, next: 'Máx'      },
+};
+
 export default function UserProfileCard({ user }: { user: User }) {
-    return (
-        <View className={`mx-4 p-5 rounded-3xl relative overflow-hidden dark:bg-blue-user bg-gray-100 shadow-md`}>
-            <View className="flex-row justify-between items-center">
-                <View>
-                    <Text className="opacity-80 dark:text-white text-black">Buenos días,</Text>
-                    <Text className="text-2xl font-bold mb-2 dark:text-white text-black">{user.name} 👋</Text>
+  const { isDark } = useTheme();
+  const config = LEVEL_CONFIG[user.level] ?? LEVEL_CONFIG.bronze;
+  const progress = user.level === 'diamond'
+    ? 100
+    : Math.min(100, Math.round(((user.gems - config.min) / (config.max - config.min)) * 100));
 
-                    <View className="bg-gold-500 self-start px-3 py-1 rounded-full mb-3">
-                        <Text className="text-xs font-bold dark:text-white text-black">⭐ Nivel {user.level}</Text>
-                    </View>
+  const cardBg      = isDark ? Colors.blue.light : Colors.light.card;
+  const textPrimary = isDark ? Colors.text.primary  : Colors.light.textPrimary;
+  const textMuted   = isDark ? 'rgba(255,255,255,0.5)' : Colors.light.textSecond;
 
-                    <View className="flex-row items-center">
-                        <Text className="text-sm font-medium dark:text-white text-black">⚡ {user.streak} días de racha</Text>
-                    </View>
-                </View>
+  return (
+    <View
+      className="mx-4 rounded-3xl p-5 overflow-hidden"
+      style={{
+        backgroundColor: cardBg,
+        borderWidth: 1,
+        borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)',
+      }}
+    >
+      <View className="flex-row items-start justify-between">
+        <View className="flex-1 pr-3">
+          <Text className="text-sm" style={{ color: textMuted }}>
+            Bienvenido de vuelta
+          </Text>
+          <Text className="text-[24px] font-extrabold mt-0.5 leading-tight" style={{ color: textPrimary }}>
+            {user.name}
+          </Text>
 
-                {/* Avatar Circular */}
-                <View className="w-20 h-20 rounded-full border-2 border-white/20 items-center justify-center bg-gray-100">
-                    <Image source={IMAGES.BUHO} className="w-20 h-20" resizeMode="contain" />
-                </View>
+          <View className="flex-row items-center gap-2 mt-3 flex-wrap">
+            <View
+              className="px-3 py-1 rounded-full"
+              style={{ backgroundColor: `${config.color}22` }}
+            >
+              <Text className="text-[11px] font-bold" style={{ color: config.color }}>
+                {config.label}
+              </Text>
             </View>
-
-            <View className="mt-4">
-                <Text className="text-xs mb-1 text-levels-gold">Progreso al nivel Oro {15}%</Text>
-                <View className="h-2 w-full bg-black/30 rounded-full overflow-hidden">
-                    <View style={{ width: `${15}%` }} className="h-full bg-levels-gold" />
-                </View>
+            <View
+              className="px-3 py-1 rounded-full"
+              style={{ backgroundColor: isDark ? 'rgba(249,115,22,0.15)' : '#FEF3C7' }}
+            >
+              <Text className="text-[11px] font-bold" style={{ color: '#F97316' }}>
+                ⚡ {user.streak} días
+              </Text>
             </View>
+          </View>
         </View>
-    );
+
+        <View
+          className="w-[72px] h-[72px] rounded-2xl items-center justify-center"
+          style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : Colors.light.surface }}
+        >
+          <Image source={IMAGES.BUHO} style={{ width: 58, height: 58 }} resizeMode="contain" />
+        </View>
+      </View>
+
+      {/* Progress bar */}
+      <View className="mt-5">
+        <View className="flex-row justify-between items-center mb-2">
+          <Text className="text-xs" style={{ color: textMuted }}>
+            Progreso → {config.next}
+          </Text>
+          <Text className="text-xs font-extrabold" style={{ color: config.color }}>
+            {progress}%
+          </Text>
+        </View>
+        <View
+          className="h-[5px] rounded-full overflow-hidden"
+          style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.light.border }}
+        >
+          <View
+            className="h-full rounded-full"
+            style={{ width: `${progress}%`, backgroundColor: config.color }}
+          />
+        </View>
+      </View>
+    </View>
+  );
 }

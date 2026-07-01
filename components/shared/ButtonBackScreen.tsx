@@ -9,7 +9,7 @@ interface ButtonBackProps {
   className?: string;
 }
 
-export default function ButtonBackScreen({ redirectTo, className = 'p-2 px-6' }: ButtonBackProps) {
+const ButtonBackScreen = React.memo(function ButtonBackScreen({ redirectTo, className = 'p-2 px-6' }: ButtonBackProps) {
   const router = useRouter();
   const { isDark: dark } = useTheme();
 
@@ -36,4 +36,6 @@ export default function ButtonBackScreen({ redirectTo, className = 'p-2 px-6' }:
       />
     </Pressable>
   );
-}
+});
+
+export default ButtonBackScreen;

@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Button from '@/components/shared/Button';
@@ -5,19 +6,28 @@ import { Link } from 'expo-router';
 import { useRouter } from 'expo-router';
 
 interface CompanyCardProps {
+  id: string;
   name: string;
   gems: number;
   imageUrl: string;
 }
 
-export default function CompanyCard({ name, gems, imageUrl }: CompanyCardProps) {
+const FALLBACK_IMAGE = 'https://cdn-icons-png.flaticon.com/512/2611/2611152.png';
+
+function isValidImageUrl(url: string): string {
+  if (!url) return FALLBACK_IMAGE;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return FALLBACK_IMAGE;
+}
+
+const CompanyCard = React.memo(function CompanyCard({ id, name, gems, imageUrl }: CompanyCardProps) {
   const router = useRouter();
 
   return (
-    <Link href={`/company/${name}` as any}>
+    <Link href={`/company/${id}` as any}>
       <View className="w-64 h-80 rounded-3xl mr-4 overflow-hidden bg-gray-200">
         <Image
-          source={{ uri: imageUrl }}
+          source={{ uri: isValidImageUrl(imageUrl) }}
           className="absolute w-full h-full"
           resizeMode="cover"
         />
@@ -48,4 +58,6 @@ export default function CompanyCard({ name, gems, imageUrl }: CompanyCardProps) 
       </View>
     </Link>
   );
-};
+});
+
+export default CompanyCard;

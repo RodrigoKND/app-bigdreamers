@@ -1,9 +1,16 @@
-import { View, Text, Image, Pressable } from 'react-native';
+import React from 'react';
+import { View, Text, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import ButtonSocialMedia from '@/components/shared/ButtonSocialMedia';
 
-export default function DetailHeader({ name, description, gems, imageUrl }: { name: string; description: string; gems: number; imageUrl: string }) {
+const FALLBACK_IMAGE = 'https://cdn-icons-png.flaticon.com/512/2611/2611152.png';
+
+function isValidImageUrl(url: string): string {
+  if (!url) return FALLBACK_IMAGE;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return FALLBACK_IMAGE;
+}
+
+const DetailHeader = React.memo(function DetailHeader({ name, description, gems, imageUrl }: { name: string; description: string; gems: number; imageUrl: string }) {
     return (
         <View className="mb-8 overflow-hidden rounded-[40px] border border-white/20  shadow-2xl">
             <LinearGradient
@@ -24,14 +31,9 @@ export default function DetailHeader({ name, description, gems, imageUrl }: { na
                     <View className="relative">
                         <View className="absolute w-32 h-32 bg-blue-400/30 blur-3xl rounded-full -top-4 -left-4" />
                         <View className="bg-white/90 rounded-[30px] p-4 shadow-lg rotate-3">
-                            <Image source={{ uri: imageUrl }} className="w-24 h-24" resizeMode="contain" />
+                            <Image source={{ uri: isValidImageUrl(imageUrl) }} style={{ width: 96, height: 96 }} resizeMode="contain" />
                         </View>
                     </View>
-                </View>
-
-                <View className="flex-row items-center mt-4 gap-3">
-                    <ButtonSocialMedia icon={<FontAwesome name="instagram" size={24} color="yellow" />} url="https://instagram.com/bytetwoo" />
-                    <ButtonSocialMedia icon={<FontAwesome name="facebook-f" size={24} color="yellow" />} url="https://facebook.com/bytetwo" />
                 </View>
 
                 <View className="mt-8 flex-row items-baseline">
@@ -40,4 +42,6 @@ export default function DetailHeader({ name, description, gems, imageUrl }: { na
             </LinearGradient>
         </View>
     );
-}
+});
+
+export default DetailHeader;

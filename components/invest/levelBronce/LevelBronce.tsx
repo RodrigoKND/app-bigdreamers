@@ -1,33 +1,52 @@
+import React from 'react';
 import { View, Text, ScrollView } from "react-native";
+import { Colors } from '@/constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 import CompanyCard from "@/components/invest/CompanyCard";
+import { Company } from "@/constants/mockCompanies";
+import { Building } from 'lucide-react-native';
 
-export default function LevelBronce() {
+interface LevelBronceProps {
+  companies: Company[];
+}
+
+export default function LevelBronce({ companies }: LevelBronceProps) {
+    const { isDark } = useTheme();
+
     return (
         <View className="flex-1 mt-6 mb-4">
             <View className="flex-row justify-between items-center mb-5">
-                <View className="flex-column">
-                    <Text className="text-lg font-bold dark:text-white text-black">
+                <View className="flex-col">
+                    <Text className="text-lg font-bold" style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}>
                         Empresas Destacadas
                     </Text>
                     <Text className="text-lg font-bold text-levels-bronze">
                         Nivel Bronce
                     </Text>
                 </View>
-                <Text className="dark:text-gray-300 text-black">Ver todas</Text>
+                <Text style={{ color: isDark ? '#D1D5DB' : Colors.light.textSecond }}>Ver todas</Text>
             </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: 16, paddingRight: 20 }}>
-                <CompanyCard
-                    name="Tech Innovate"
-                    gems={4500}
-                    imageUrl="https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradio/6XQ2V2HNRRMDHDJ55MPMNBJ4E4.jpg"
-                />
-                <CompanyCard
-                    name="Green Earth"
-                    gems={2800}
-                    imageUrl="https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradio/6XQ2V2HNRRMDHDJ55MPMNBJ4E4.jpg"
-                />
+                {companies.length === 0 ? (
+                  <View style={{ width: 340 }} className="items-center justify-center py-10">
+                    <Building size={32} color={isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted} className="mb-3" />
+                    <Text className="text-sm text-center" style={{ color: isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted }}>
+                      No hay empresas disponibles en este nivel
+                    </Text>
+                  </View>
+                ) : (
+                  companies.map((company) => (
+                    <CompanyCard
+                      key={company.id}
+                      id={company.id}
+                      name={company.name}
+                      gems={company.gems}
+                      imageUrl={company.imageUrl}
+                    />
+                  ))
+                )}
             </ScrollView>
         </View>
     );

@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView } from 'react-native';
-import { Plus, Trash2, UserPlus } from 'lucide-react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
+import { Trash2, UserPlus } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import ImagePickerField from '@/components/shared/ImagePickerField';
 import { Colors } from '@/constants/colors';
 import { CompanyLevel, CompanyTeamMember, Company } from '@/constants/mockCompanies';
-import LevelSelector from './LevelSelector';
+import LevelSelector from '@/components/admin/companies/LevelSelector';
+import { useTheme } from '@/context/ThemeContext';
+import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
 
 interface CompanyFormProps {
-  isDark: boolean;
   onPublish: (company: Partial<Company>) => void;
   onCancel: () => void;
 }
 
-const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
+const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
+  const { isDark } = useTheme();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [gems, setGems] = useState('');
@@ -20,21 +24,37 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
   const [teamMembers, setTeamMembers] = useState<CompanyTeamMember[]>([]);
 
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
+  const textMuted   = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
-  const inputStyle = {
+  const inputDynamic = {
     backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : '#F1F5F9',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
-    color: textPrimary,
-    padding: 12,
-    fontSize: 14,
-    marginBottom: 10,
+    borderColor:     isDark ? 'rgba(255,255,255,0)' : '#E2E8F0',
+    color:           textPrimary,
   };
 
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para seleccionar una imagen de portada. Puedes habilitarlo en Ajustes > Privacidad.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setImageUrl(result.assets[0].uri);
+    }
+  };
+
+  const removeImage = () => setImageUrl('');
+
   const addTeamMember = () => {
-    setTeamMembers([...teamMembers, { name: '', role: '' }]);
+    setTeamMembers([...teamMembers, { name: '', role: '', contact: '' }]);
   };
 
   const updateTeamMember = (index: number, field: keyof CompanyTeamMember, value: string) => {
@@ -56,24 +76,49 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
       gems: parseInt(gems) || 0,
       imageUrl: imageUrl.trim() || '',
       level,
-      teamMembers: teamMembers.filter(m => m.name.trim() && m.role.trim()),
+      teamMembers: teamMembers.filter(m => m.name.trim() && m.role.trim()).map(m => ({ ...m, contact: m.contact?.trim() ?? '' })),
     });
   };
 
   const canPublish = name.trim() && description.trim() && level;
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: textPrimary, marginBottom: 20 }}>
-        Nueva Empresa
-      </Text>
+    <ScrollView
+      className="flex-1"
+      style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}
+      contentContainerStyle={{ padding: 20, paddingTop: 28, paddingBottom: 32 }}
+    >
+      <View className="flex-row items-center mb-6 pt-2">
+        <ButtonBackScreen />
+        <Text
+          className="flex-1 text-center text-2xl font-bold mr-8"
+          style={{ color: isDark ? '#FFFFFF' : Colors.text.primary }}
+        >
+          Nueva Empresa
+        </Text>
+      </View>
+      <View
+        className="w-8 h-[3px] rounded-sm mb-5 -mt-3"
+        style={{ backgroundColor: Colors.gold[400] }}
+      />
+
+      {/* Imagen */}
+      <ImagePickerField
+        isDark={isDark}
+        imageUri={imageUrl}
+        onPick={pickImage}
+        onRemove={removeImage}
+        variant="cover"
+        label="Imagen de la empresa"
+      />
 
       <TextInput
         placeholder="Nombre de la empresa"
         placeholderTextColor={textMuted}
         value={name}
         onChangeText={setName}
-        style={inputStyle}
+        className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3"
+        style={inputDynamic}
       />
 
       <TextInput
@@ -83,7 +128,8 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
         onChangeText={setDescription}
         multiline
         numberOfLines={3}
-        style={[inputStyle, { height: 80, textAlignVertical: 'top' }]}
+        className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3 h-20"
+        style={[inputDynamic, { textAlignVertical: 'top' }]}
       />
 
       <TextInput
@@ -92,36 +138,29 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
         value={gems}
         onChangeText={setGems}
         keyboardType="numeric"
-        style={inputStyle}
-      />
-
-      <TextInput
-        placeholder="URL de imagen"
-        placeholderTextColor={textMuted}
-        value={imageUrl}
-        onChangeText={setImageUrl}
-        style={inputStyle}
+        className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3"
+        style={inputDynamic}
       />
 
       <LevelSelector selected={level} onSelect={setLevel} isDark={isDark} />
 
-      <View style={{ marginTop: 20 }}>
-        <Text style={{ fontWeight: '700', color: textPrimary, marginBottom: 12 }}>
+      {/* Representantes */}
+      <View className="mt-5">
+        <Text
+          className="text-[13px] font-bold uppercase opacity-90 mb-[10px]"
+          style={{ color: textPrimary, letterSpacing: 0.4 }}
+        >
           Representantes del equipo
         </Text>
 
         {teamMembers.map((member, index) => (
           <View
             key={index}
-            style={{
-              backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : Colors.light.surface,
-              borderRadius: 10,
-              padding: 12,
-              marginBottom: 8,
-            }}
+            className="rounded-[10px] p-3 mb-2"
+            style={{ backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : Colors.light.surface }}
           >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={{ fontWeight: '600', color: textPrimary }}>Miembro {index + 1}</Text>
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="font-semibold" style={{ color: textPrimary }}>Miembro {index + 1}</Text>
               <Pressable onPress={() => removeTeamMember(index)}>
                 <Trash2 size={16} color="#FF6B6B" />
               </Pressable>
@@ -132,7 +171,8 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
               placeholderTextColor={textMuted}
               value={member.name}
               onChangeText={(value) => updateTeamMember(index, 'name', value)}
-              style={[inputStyle, { marginBottom: 8 }]}
+              className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-2"
+              style={inputDynamic}
             />
 
             <TextInput
@@ -140,57 +180,74 @@ const CompanyForm = ({ isDark, onPublish, onCancel }: CompanyFormProps) => {
               placeholderTextColor={textMuted}
               value={member.role}
               onChangeText={(value) => updateTeamMember(index, 'role', value)}
-              style={inputStyle}
+              className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-2"
+              style={inputDynamic}
+            />
+
+            <TextInput
+              placeholder="WhatsApp (+58...) o correo electrónico"
+              placeholderTextColor={textMuted}
+              value={member.contact ?? ''}
+              onChangeText={(value) => updateTeamMember(index, 'contact', value)}
+              className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3"
+              style={inputDynamic}
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
           </View>
         ))}
 
         <Pressable
           onPress={addTeamMember}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(255,255,255,0.08)',
-            borderRadius: 10,
-            paddingVertical: 12,
-            marginBottom: 20,
-          }}
+          className="flex-row items-center justify-center rounded-[10px] py-3 mb-5 mt-3"
+          style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
         >
           <UserPlus size={16} color={Colors.gold[400]} />
-          <Text style={{ marginLeft: 8, color: Colors.gold[400], fontWeight: '600' }}>
+          <Text
+            className="ml-2 font-semibold text-sm"
+            style={{ color: Colors.gold[400], letterSpacing: 0.3 }}
+          >
             Agregar representante
           </Text>
         </Pressable>
       </View>
 
-      <View style={{ flexDirection: 'row', gap: 12 }}>
+      {/* Botones */}
+      <View className="flex-row gap-3">
         <Pressable
           onPress={onCancel}
+          className="flex-1 rounded-[14px] py-[15px] items-center border"
           style={{
-            flex: 1,
-            backgroundColor: 'rgba(255,255,255,0.08)',
-            borderRadius: 16,
-            paddingVertical: 16,
-            alignItems: 'center',
+            backgroundColor: 'rgba(255,255,255,0.06)',
+            borderColor:     'rgba(255,255,255,0.12)',
           }}
         >
-          <Text style={{ color: textMuted, fontWeight: '600' }}>Cancelar</Text>
+          <Text
+            className="font-semibold text-sm"
+            style={{ color: textMuted, letterSpacing: 0.3 }}
+          >
+            Cancelar
+          </Text>
         </Pressable>
 
         <Pressable
           onPress={handlePublish}
+          className="flex-1 rounded-[14px] py-[15px] items-center"
           style={{
-            flex: 1,
             backgroundColor: canPublish ? Colors.gold[400] : 'rgba(255,255,255,0.08)',
-            borderRadius: 16,
-            paddingVertical: 16,
-            alignItems: 'center',
-            opacity: canPublish ? 1 : 0.4,
+            opacity:         canPublish ? 1 : 0.4,
+            shadowColor:    Colors.gold[400],
+            shadowOpacity:  canPublish ? 0.4 : 0,
+            shadowRadius:   12,
+            shadowOffset:   { width: 0, height: 4 },
+            elevation:      canPublish ? 4 : 0,
           }}
         >
-          <Text style={{ color: canPublish ? '#000' : textMuted, fontWeight: '800' }}>
-            Publicar empresa
+          <Text
+            className="font-extrabold text-sm"
+            style={{ color: canPublish ? '#000' : textMuted, letterSpacing: 0.4 }}
+          >
+            Crear empresa
           </Text>
         </Pressable>
       </View>

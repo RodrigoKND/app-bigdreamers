@@ -22,9 +22,10 @@ const AdminTabs = ({ activeTab, onTabChange, isDark }: AdminTabsProps) => {
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 20 }}
-      style={{ marginBottom: 16 }}
+      className="mb-4"
+      style={{ flexGrow: 0 }}
     >
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View className="flex-row gap-2">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
           const Icon = tab.icon;
@@ -33,29 +34,17 @@ const AdminTabs = ({ activeTab, onTabChange, isDark }: AdminTabsProps) => {
             <Pressable
               key={tab.key}
               onPress={() => onTabChange(tab.key)}
+              className="flex-row items-center px-4 py-2 rounded-full"
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                borderRadius: 20,
                 backgroundColor: isActive
                   ? Colors.gold[400]
-                  : isDark
-                  ? 'rgba(0,0,0,0.25)'
-                  : Colors.light.surface,
+                  : isDark ? 'rgba(0,0,0,0.25)' : Colors.light.surface,
                 borderWidth: isActive ? 0 : 1,
                 borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
               }}
             >
               <Icon size={16} color={isActive ? '#000' : textMuted} />
-              <Text
-                style={{
-                  marginLeft: 8,
-                  fontWeight: '600',
-                  color: isActive ? '#000' : textMuted,
-                }}
-              >
+              <Text className="ml-2 font-semibold" style={{ color: isActive ? '#000' : textMuted }}>
                 {tab.label}
               </Text>
             </Pressable>

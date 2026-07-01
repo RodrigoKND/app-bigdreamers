@@ -22,7 +22,7 @@ const COLOR_CLASSES: Record<string, { container: string, text: string }> = {
   diamond: { container: 'bg-levels-diamondBg border-levels-diamond', text: 'text-levels-diamond' },
 };
 
-export default function LevelBadge({ level, size = 'md', className = '' }: LevelBadgeProps) {
+const LevelBadge = React.memo(function LevelBadge({ level, size = 'md', className = '' }: LevelBadgeProps) {
   const config = getLevelConfig(level);
   const s = SIZE_CLASSES[size];
   const colors = COLOR_CLASSES[level as string] || COLOR_CLASSES.bronze;
@@ -41,5 +41,6 @@ export default function LevelBadge({ level, size = 'md', className = '' }: Level
       </Text>
     </View>
   );
-}
-//reduci un poco el tamaño, refactorizado a puro mainwind
+});
+
+export default LevelBadge;

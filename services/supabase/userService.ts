@@ -1,6 +1,5 @@
 import { User } from '@/types';
 import { getSupabaseClient} from '@/services/supabase/supabase';
-import { getSession } from './googleService';
 
 function mapUserRow(row: any): User {
   return {
@@ -19,6 +18,7 @@ function mapUserRow(row: any): User {
     communityRank: row.community_rank,
     totalGemsEarned: row.total_gems_earned,
     role: row.role,
+    pushToken: row.push_token,
   };
 }
 

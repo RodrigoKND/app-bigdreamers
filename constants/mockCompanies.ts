@@ -4,6 +4,7 @@ export interface CompanyTeamMember {
   name: string;
   role: string;
   contact?: string;
+  contactType?: 'email' | 'whatsapp';
 }
 
 export interface Company {

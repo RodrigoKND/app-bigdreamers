@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { GemPackage } from '@/constants/gemPackages';
+import { GemPackage, GEM_PACKAGES } from '@/constants/gemPackages';
 import { getGemPackages } from '@/services/supabase/gemService';
 
 export function useGemPackages() {
@@ -13,9 +13,14 @@ export function useGemPackages() {
 
     try {
       const data = await getGemPackages();
-      setPackages(data);
+      if (data.length > 0) {
+        setPackages(data);
+      } else {
+        setPackages(GEM_PACKAGES);
+      }
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
+      setPackages(GEM_PACKAGES);
     } finally {
       setLoading(false);
     }

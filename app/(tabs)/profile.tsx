@@ -85,7 +85,7 @@ export default function ProfileScreen() {
   const user = dbUser ?? authUser ?? null;
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
-  const [initialLoad, setInitialLoad] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(!user);
   const [refreshing,  setRefreshing]  = useState(false);
 
   useEffect(() => {

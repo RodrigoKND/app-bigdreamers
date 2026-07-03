@@ -1,6 +1,6 @@
 import '../global.css';
-import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, ActivityIndicator, Image, Animated, Easing, StyleSheet } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -14,28 +14,70 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { UserAvatarProvider, useUserAvatar } from '@/contexts/UserAvatarContext';
 import { Colors } from '@/constants/colors';
+import { IMAGES } from '@/constants/images';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import { registerForPushNotifications, savePushToken, setupNotificationHandler } from '@/services/notifications/notificationService';
 
 SplashScreen.preventAutoHideAsync();
 
 function LoadingScreen() {
   const { isDark } = useTheme();
+  const bounce = useRef(new Animated.Value(0)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounce, { toValue: -12, duration: 800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(bounce, { toValue: 0, duration: 800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    ).start();
+
+    Animated.timing(fade, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+  }, []);
+
   return (
     <View
       className="flex-1 items-center justify-center"
       style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}
     >
-      <ActivityIndicator size="large" color={Colors.gold[400]} />
+      <Animated.View style={{ opacity: fade, transform: [{ translateY: bounce }] }} className="items-center">
+        <Image
+          source={IMAGES.BUHO}
+          style={{ width: 140, height: 140 }}
+          resizeMode="contain"
+        />
+        <ActivityIndicator
+          size="large"
+          color={Colors.gold[400]}
+          style={{ marginTop: 24 }}
+        />
+      </Animated.View>
     </View>
   );
 }
 
 function AppContent() {
   const { isDark } = useTheme();
-  const { isLoggedIn, isLoading, onboardingDone } = useAuth();
+  const { isLoggedIn, isLoading, onboardingDone, user } = useAuth();
+  const { setAvatarUrl } = useUserAvatar();
   const router = useRouter();
   const segments = useSegments();
+
+  useEffect(() => {
+    setAvatarUrl(user?.avatar ?? null);
+  }, [user?.avatar, setAvatarUrl]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !user?.id) return;
+    registerForPushNotifications().then((token) => {
+      if (token) {
+        savePushToken(user.id, token);
+      }
+    });
+  }, [isLoggedIn, user?.id]);
 
   // Auth gate: redirige imperativamente según el estado de sesión.
   // Las <Stack.Screen> NO redirigen por sí solas: en el APK la ruta inicial
@@ -63,11 +105,7 @@ function AppContent() {
     }
   }, [isLoading, isLoggedIn, onboardingDone, segments, router]);
 
-  // Mientras se restaura la sesión (o se resuelve el onboarding) mostramos
-  // el loader para evitar que parpadee la pantalla equivocada.
-  if (isLoading || (isLoggedIn && onboardingDone === null)) {
-    return <LoadingScreen />;
-  }
+  const showLoading = isLoading || (isLoggedIn && onboardingDone === null);
 
   return (
     <ErrorBoundary>
@@ -79,6 +117,11 @@ function AppContent() {
         <Stack.Screen name="company/[id]" />
         <Stack.Screen name="+not-found" />
       </Stack>
+      {showLoading && (
+        <View style={StyleSheet.absoluteFill}>
+          <LoadingScreen />
+        </View>
+      )}
       <StatusBar style={isDark ? 'light' : 'dark'} />
     </ErrorBoundary>
   );
@@ -95,20 +138,22 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    setupNotificationHandler();
+  }, []);
+
+  useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
-
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <UserAvatarProvider>
           <AppContent />
-        </ThemeProvider>
-      </AuthProvider>
-    </ErrorBoundary>
+        </UserAvatarProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

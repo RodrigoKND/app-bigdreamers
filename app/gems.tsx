@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, SafeAreaView, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import GemsHeader from '@/components/gems/GemsHeader';
@@ -8,13 +10,12 @@ import GemPackageCard from '@/components/gems/GemPackageCard';
 import PaymentInstructions from '@/components/gems/PaymentInstructions';
 import ConfirmRequestModal from '@/components/gems/ConfirmRequestModal';
 import RequestSentBanner from '@/components/gems/RequestSentBanner';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGemPackages } from '@/hooks/gem/useGemPackages';
 import { useCreateGemRequest } from '@/hooks/gem/useCreateGemRequest';
-import { Package } from 'lucide-react-native';
-
-//.
+import { uploadReceiptImage } from '@/services/supabase/storageService';
+import { Package, ArrowRight, CreditCard } from 'lucide-react-native';
 
 const GemsScreen = () => {
   const { isDark } = useTheme();
@@ -29,8 +30,9 @@ const GemsScreen = () => {
   const insets = useSafeAreaInsets();
 
   const selectedPackage = packages.find((item) => item.id === selectedPackageId) ?? null;
+  const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
-  const secondaryText = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textPrimary;
+  const accentColor = isDark ? Colors.gold[400] : Colors.light.accent;
 
   const handlePickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -58,15 +60,27 @@ const GemsScreen = () => {
     if (!user?.id || !selectedPackageId || !selectedPackage) return;
 
     try {
+      let receiptImageUrl = '';
+      if (imageUri) {
+        try {
+          receiptImageUrl = await uploadReceiptImage(imageUri);
+        } catch {
+          Alert.alert('Error', 'No se pudo subir el comprobante. Intenta de nuevo.');
+          return;
+        }
+      }
+
       await createGemRequest({
         userId: user.id,
         packageId: selectedPackageId,
         gems: selectedPackage.gems,
         bsPrice: selectedPackage.bsPrice,
+        receiptImageUrl,
       });
       setRequestSent(true);
-    } catch (error) {
-      console.error('Error creating gem request:', error);
+    } catch (error: any) {
+      const msg = error?.message || 'Ocurrió un error inesperado';
+      Alert.alert('Error al enviar', `No se pudo crear la solicitud:\n\n${msg}`);
     }
   };
 
@@ -85,56 +99,70 @@ const GemsScreen = () => {
       ) : (
         <View className="flex-1">
           <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 160 }}>
-            <Text
-              className="text-base font-bold mb-4"
-              style={{ color: textMuted, letterSpacing: 0.5 }}
-            >
-              Elige tu paquete
-            </Text>
-            <View className="flex-row flex-wrap justify-between">
-              {packagesLoading ? (
+            {/* Section title */}
+            <Animated.View entering={FadeInDown.delay(200).duration(500)} className="flex-row items-center gap-2 mb-4">
+              <CreditCard size={16} color={accentColor} />
+              <Text className="text-[15px] font-bold" style={{ color: textPrimary }}>
+                Elige tu paquete
+              </Text>
+            </Animated.View>
+
+            {/* Packages grid */}
+            {packagesLoading ? (
+              <View className="py-10 items-center">
                 <Text style={{ color: textMuted }}>Cargando paquetes...</Text>
-              ) : packages.length === 0 ? (
-                <View className="flex-1 items-center justify-center py-10">
-                  <Package size={48} color={textMuted} />
-                  <Text className="text-base text-center mt-4" style={{ color: textMuted }}>
-                    No hay paquetes disponibles en este momento
-                  </Text>
-                </View>
-              ) : (
-                packages.map((gemPackage) => (
-                  <GemPackageCard
+              </View>
+            ) : packages.length === 0 ? (
+              <View className="py-10 items-center">
+                <Package size={48} color={textMuted} />
+                <Text className="text-base text-center mt-4" style={{ color: textMuted }}>
+                  No hay paquetes disponibles
+                </Text>
+              </View>
+            ) : (
+              <View className="flex-row flex-wrap justify-between">
+                {packages.map((gemPackage, i) => (
+                  <Animated.View
                     key={gemPackage.id}
-                    package={gemPackage}
-                    selected={selectedPackageId === gemPackage.id}
-                    onSelect={() => setSelectedPackageId(gemPackage.id)}
-                    isDark={isDark}
-                  />
-                ))
-              )}
-            </View>
+                    entering={FadeInDown.delay(250 + i * 100).duration(500)}
+                    style={{ width: '48%' }}
+                  >
+                    <GemPackageCard
+                      package={gemPackage}
+                      selected={selectedPackageId === gemPackage.id}
+                      onSelect={() => setSelectedPackageId(gemPackage.id)}
+                      isDark={isDark}
+                    />
+                  </Animated.View>
+                ))}
+              </View>
+            )}
+
             <View className="h-6" />
             <PaymentInstructions isDark={isDark} imageUri={imageUri} onPickImage={handlePickImage} />
           </ScrollView>
 
-          <View
-            className="absolute left-5 right-5"
-            style={{ bottom: insets.bottom + 20 }}
-          >
+          {/* Bottom CTA */}
+          <View className="absolute left-5 right-5" style={{ bottom: insets.bottom + 20 }}>
             <Pressable
               onPress={handleRequestPress}
               disabled={!selectedPackageId || !imageUri || creatingRequest}
-              className="rounded-2xl py-4 items-center"
+              className="rounded-2xl py-4 items-center active:opacity-70"
               style={{
-                backgroundColor: selectedPackageId && imageUri && !creatingRequest
-                  ? Colors.gold[400]
-                  : Colors.navy?.[700] ?? '#1E3A5F',
                 opacity: selectedPackageId && imageUri && !creatingRequest ? 1 : 0.4,
               }}
             >
-              <Text className="font-extrabold text-[15px]" style={{ color: '#000' }}>
-                {creatingRequest ? 'Enviando...' : 'Solicitar gemas'}
-              </Text>
+              <LinearGradient
+                colors={['#F9A825', '#FFD740', '#F9A825']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                className="w-full rounded-2xl py-4 items-center flex-row justify-center gap-2"
+              >
+                <Text className="font-extrabold text-[15px]" style={{ color: '#1a1a2e' }}>
+                  {creatingRequest ? 'Enviando...' : 'Solicitar gemas'}
+                </Text>
+                {!creatingRequest && <ArrowRight size={16} color="#1a1a2e" />}
+              </LinearGradient>
             </Pressable>
           </View>
         </View>

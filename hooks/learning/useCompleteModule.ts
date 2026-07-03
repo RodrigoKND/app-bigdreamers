@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { completeModule } from '@/services/supabase/learningService';
+import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
 
 export function useCompleteModule() {
   const [loading, setLoading] = useState(false);
@@ -11,6 +12,8 @@ export function useCompleteModule() {
 
     try {
       await completeModule(userId, moduleId, gemsReward);
+      await invalidateCachePattern(CacheKeys.currentUser(userId));
+      await invalidateCachePattern(CacheKeys.userCompletedModules(userId));
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);

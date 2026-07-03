@@ -7,6 +7,7 @@ export interface GemRequest {
   bsPrice: number;
   status: 'pending' | 'approved' | 'rejected';
   date: string;
+  receiptImageUrl?: string;
 }
 
 

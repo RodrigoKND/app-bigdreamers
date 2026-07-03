@@ -17,12 +17,22 @@ interface AuthContextType {
   completeOnboarding: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const DEFAULT_AUTH: AuthContextType = {
+  user: null,
+  isLoading: true,
+  login: () => {},
+  logout: () => {},
+  refreshUser: async () => {},
+  isLoggedIn: false,
+  onboardingDone: null,
+  completeOnboarding: () => {},
+};
+
+const AuthContext = createContext<AuthContextType>(DEFAULT_AUTH);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  // null = aún no sabemos; el guard espera a que se resuelva antes de navegar.
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -32,7 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const session = await getSession();
         if (session?.user?.id) {
           const dbUser = await getUserById(session.user.id);
-          if (dbUser) setUser(dbUser);
+          if (dbUser) {
+            const avatar = dbUser.avatar || session.user.user_metadata?.avatar_url;
+            setUser(avatar ? { ...dbUser, avatar } : dbUser);
+          }
         }
       } catch (error) {
         console.error('Error restoring session:', error);
@@ -107,9 +120,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 }

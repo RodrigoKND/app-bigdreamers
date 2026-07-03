@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import {
-  View, Text, Pressable, Animated, ScrollView,
+  View, Text, Pressable, Animated, ScrollView, Modal,
 } from 'react-native';
-import { CheckCircle, XCircle, Heart, Trophy, RotateCcw } from 'lucide-react-native';
+import { CheckCircle, XCircle, Heart, Trophy, RotateCcw, Frown } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
 export interface QuizQuestion {
@@ -42,8 +42,9 @@ export default function QuizGame({ questions, isDark, lessonTitle, gemsReward, o
   const [selected,      setSelected]      = useState<number | null>(null);
   const [lives,         setLives]         = useState(INITIAL_LIVES);
   const [correctCount,  setCorrectCount]  = useState(0);
-  const [showResult,    setShowResult]    = useState(false);
-  const [gameOver,      setGameOver]      = useState(false);
+  const [showResult,       setShowResult]       = useState(false);
+  const [gameOver,         setGameOver]         = useState(false);
+  const [showWrongModal,   setShowWrongModal]   = useState(false);
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
@@ -78,7 +79,11 @@ export default function QuizGame({ questions, isDark, lessonTitle, gemsReward, o
       const next = lives - 1;
       setLives(next);
       shake();
-      if (next <= 0) setGameOver(true);
+      if (next <= 0) {
+        setGameOver(true);
+      } else {
+        setShowWrongModal(true);
+      }
     }
   }
 

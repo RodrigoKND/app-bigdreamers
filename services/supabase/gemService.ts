@@ -108,6 +108,7 @@ export async function createGemRequest(request: {
   packageId: string;
   gems: number;
   bsPrice: number;
+  receiptImageUrl?: string;
 }): Promise<GemRequest> {
   const supabase = await getSupabaseClient();
 
@@ -118,6 +119,7 @@ export async function createGemRequest(request: {
       package_id: request.packageId,
       gems: request.gems,
       bs_price: request.bsPrice,
+      receipt_image_url: request.receiptImageUrl || null,
       status: 'pending',
     })
     .select(`
@@ -137,6 +139,7 @@ export async function createGemRequest(request: {
     bsPrice: data.bs_price,
     status: data.status,
     date: data.created_at?.split('T')[0] || '',
+    receiptImageUrl: data.receipt_image_url || undefined,
   };
 }
 
@@ -174,6 +177,7 @@ export async function getGemRequests(filters?: {
     bsPrice: row.bs_price,
     status: row.status,
     date: row.created_at?.split('T')[0] || '',
+    receiptImageUrl: row.receipt_image_url || undefined,
   }));
 }
 
@@ -202,6 +206,7 @@ export async function getGemRequestById(id: string): Promise<GemRequest | null> 
     bsPrice: data.bs_price,
     status: data.status,
     date: data.created_at?.split('T')[0] || '',
+    receiptImageUrl: data.receipt_image_url || undefined,
   };
 }
 
@@ -262,5 +267,6 @@ export async function getUserGemHistory(userId: string): Promise<GemRequest[]> {
     bsPrice: row.bs_price,
     status: row.status,
     date: row.created_at?.split('T')[0] || '',
+    receiptImageUrl: row.receipt_image_url || undefined,
   }));
 }

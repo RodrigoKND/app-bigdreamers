@@ -18,7 +18,7 @@ export default function CompanyDetail({ companyId }: { companyId: string }) {
   const { user: authUser } = useAuth();
   const { user, loading: loadingUser, refetch: refetchUser } = useCurrentUser(authUser?.id ?? null);
 
-  const loading = loadingCompany || loadingUser;
+  const initialLoading = loadingCompany || (loadingUser && !user);
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }} edges={['top']}>
@@ -26,7 +26,7 @@ export default function CompanyDetail({ companyId }: { companyId: string }) {
       <View className="absolute top-1/2 -left-20 w-72 h-72 bg-purple-600/10 rounded-full blur-[100px]" />
       <ButtonBackScreen redirectTo="/invest" />
 
-      {loading ? (
+      {initialLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={Colors.gold[400]} />
         </View>

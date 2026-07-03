@@ -3,34 +3,28 @@ import { View, Text } from 'react-native';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 
-const StatCard = React.memo(function StatCard({ label, value, icon }: {
+const StatCard = React.memo(function StatCard({ label, value, valueComponent, icon }: {
   label: string;
-  value: string;
+  value?: string;
+  valueComponent?: React.ReactNode;
   icon?: React.ReactNode;
 }) {
   const { isDark } = useTheme();
 
-  const cardBg = isDark ? Colors.blue.light : Colors.light.card;
-
   return (
-    <View
-      className="flex-1 items-center py-4 px-2 rounded-2xl mx-1"
-      style={{
-        backgroundColor: cardBg,
-        borderWidth: 1,
-        borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)',
-      }}
-    >
-      {icon && <View className="mb-1.5">{icon}</View>}
+    <View className="flex-1 items-center py-3 px-1">
+      {icon && <View className="mb-1">{icon}</View>}
+      {valueComponent ? valueComponent : (
+        <Text
+          className="text-lg font-bold"
+          style={{ color: isDark ? Colors.text.primary : Colors.light.textPrimary }}
+        >
+          {value}
+        </Text>
+      )}
       <Text
-        className="text-xl font-extrabold"
-        style={{ color: isDark ? Colors.text.primary : Colors.light.textPrimary }}
-      >
-        {value}
-      </Text>
-      <Text
-        className="text-[10px] font-semibold uppercase tracking-widest mt-1"
-        style={{ color: isDark ? 'rgba(255,255,255,0.4)' : Colors.light.textMuted }}
+        className="text-[9px] font-semibold uppercase tracking-widest mt-0.5"
+        style={{ color: isDark ? 'rgba(255,255,255,0.35)' : Colors.light.textMuted }}
       >
         {label}
       </Text>

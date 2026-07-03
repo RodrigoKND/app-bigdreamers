@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AlertCircle, TrendingUp } from 'lucide-react-native';
 import Animated, {
@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
-import { useUpdateUserGems } from '@/hooks/user/useUpdateUserGems';
+import { updateUserGems } from '@/services/supabase/userService';
 import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
 import Button from '@/components/shared/Button';
 
@@ -187,7 +187,7 @@ const INVEST_QUOTES = [
 export default function InvestmentControls({ currentGems, cost, companyName, userId, onInvested }: Props) {
   const { isDark } = useTheme();
   const router = useRouter();
-  const { updateGems, loading } = useUpdateUserGems();
+  const [loading, setLoading] = useState(false);
 
   const [modal, setModal] = useState<ModalState>('none');
   const [quote, setQuote] = useState(INVEST_QUOTES[0]);
@@ -210,10 +210,18 @@ export default function InvestmentControls({ currentGems, cost, companyName, use
   const confirmInvest = async () => {
     if (!userId || !canAfford) return;
     setQuote(INVEST_QUOTES[Math.floor(Math.random() * INVEST_QUOTES.length)]);
-    await updateGems(userId, currentGems - cost);
-    await invalidateCachePattern(CacheKeys.currentUser(userId));
-    onInvested?.();
-    setModal('success');
+    setLoading(true);
+    try {
+      await updateUserGems(userId, currentGems - cost);
+      await invalidateCachePattern(CacheKeys.currentUser(userId));
+      setModal('success');
+      onInvested?.();
+    } catch {
+      setModal('none');
+      Alert.alert('Error', 'No se pudo completar la inversión. Intenta nuevamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const goToRecharge = () => {

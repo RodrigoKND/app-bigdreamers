@@ -1,6 +1,8 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { ActivityIndicator, SafeAreaView, ScrollView, Text, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { CheckCircle } from 'lucide-react-native';
 import { useLearningModuleById } from '@/hooks/learning/useLearningModuleById';
 import { useLessonsByModuleId } from '@/hooks/learning/useLessonsByModuleId';
 import { useTheme } from '@/context/ThemeContext';
@@ -17,6 +19,8 @@ interface Props {
 }
 
 export default function ModuleDetail({ moduleId }: Props) {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { module, loading, error } = useLearningModuleById(moduleId);
   const { lessons, loading: loadingLessons } = useLessonsByModuleId(moduleId);
   const { user } = useAuth();
@@ -70,45 +74,82 @@ export default function ModuleDetail({ moduleId }: Props) {
     );
   }
 
+  const isCompletelyCompleted = module.completed || userProgress?.completed;
   const totalLessons = lessons.length;
   const progress = userProgress?.progress ?? 0;
-  const completedLessons = (module.completed || userProgress?.completed)
+  const completedLessons = isCompletelyCompleted
     ? totalLessons
     : Math.floor((progress / 100) * totalLessons);
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
-      <View className="px-4 pt-4">
+    <SafeAreaView className="flex-1" style={{ backgroundColor: bg }} edges={['top']}>
+      <View style={{ paddingTop: Math.max(8, insets.top > 0 ? 0 : 12), paddingHorizontal: 16, paddingBottom: 4 }}>
         <ButtonBackScreen redirectTo="/learn" />
       </View>
 
-      <ScrollView
-        className="px-4"
-        contentContainerStyle={{ paddingBottom: 36, gap: 24 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <ModuleDetailHeader
-          title={module.title}
-          description={module.description}
-          category={module.category}
-          difficulty={module.difficulty}
-          gemsReward={module.gemsReward}
-          isDark={isDark}
-        />
+      {isCompletelyCompleted ? (
+        <ScrollView
+          className="px-4"
+          contentContainerStyle={{ paddingBottom: 36 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="items-center py-16 px-6">
+            <View
+              style={{
+                width: 100,
+                height: 100,
+                borderRadius: 50,
+                backgroundColor: isDark ? 'rgba(22,163,74,0.15)' : '#DCFCE7',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 24,
+              }}
+            >
+              <CheckCircle size={52} color={isDark ? '#4ADE80' : '#16A34A'} />
+            </View>
+            <Text
+              className="text-2xl font-black text-center"
+              style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}
+            >
+              ¡Módulo completado!
+            </Text>
+            <Text
+              className="text-base text-center mt-3 leading-6"
+              style={{ color: textMuted }}
+            >
+              Ya completaste todas las lecciones de este módulo. Sigue avanzando con los siguientes módulos.
+            </Text>
+          </View>
+        </ScrollView>
+      ) : (
+        <ScrollView
+          className="px-4"
+          contentContainerStyle={{ paddingBottom: 36, gap: 24 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <ModuleDetailHeader
+            title={module.title}
+            description={module.description}
+            category={module.category}
+            difficulty={module.difficulty}
+            gemsReward={module.gemsReward}
+            isDark={isDark}
+          />
 
-        <ModuleProgressSection
-          completedLessons={completedLessons}
-          totalLessons={totalLessons}
-          progress={progress}
-          isDark={isDark}
-        />
+          <ModuleProgressSection
+            completedLessons={completedLessons}
+            totalLessons={totalLessons}
+            progress={progress}
+            isDark={isDark}
+          />
 
-        <ModuleLessonList
-          lessons={lessons}
-          completedLessons={completedLessons}
-          isDark={isDark}
-        />
-      </ScrollView>
+          <ModuleLessonList
+            lessons={lessons}
+            completedLessons={completedLessons}
+            isDark={isDark}
+          />
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

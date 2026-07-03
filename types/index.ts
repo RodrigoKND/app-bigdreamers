@@ -16,6 +16,7 @@ export interface User {
   communityRank: number;
   totalGemsEarned: number;
   role: 'admin' | 'user';
+  pushToken?: string;
 }
 
 export interface CommunityMember {

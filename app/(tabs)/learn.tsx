@@ -1,14 +1,19 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
   Pressable,
-  SafeAreaView,
   ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, {
+  useSharedValue, useAnimatedStyle,
+  withRepeat, withTiming, withSequence,
+  Easing, FadeInDown,
+} from 'react-native-reanimated';
 import {
   Lock,
   Play,
@@ -17,8 +22,6 @@ import {
   TrendingUp,
   PiggyBank,
   Building2,
-  CheckCircle,
-  CircleDot,
 } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
@@ -28,7 +31,7 @@ import { useLearningModules } from '@/hooks/learning/useLearningModules';
 import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
 import { useUserModulesProgress } from '@/hooks/learning/useUserModulesProgress';
 import { useAuth } from '@/contexts/AuthContext';
-import type { LearningModule } from '@/types';
+
 
 type ModuleStatus = 'completed' | 'active' | 'locked';
 type Category = 'Finanzas' | 'Inversión' | 'Ahorro' | 'Empresa';
@@ -42,154 +45,97 @@ const CATEGORY_MAP: Record<Category, string> = {
 
 const CATEGORIES: Category[] = ['Finanzas', 'Inversión', 'Ahorro', 'Empresa'];
 
-const MODULE_ICONS: Record<number, React.FC<{ size: number; color: string }>> = {
-  0: DollarSign,
-  1: PiggyBank,
-  2: TrendingUp,
-  3: TrendingUp,
-  4: Building2,
-};
+function PulsingNode({ isActive, isCompleted, nodeSize, children }: { isActive: boolean; isCompleted: boolean; nodeSize: number; children: React.ReactNode }) {
+  const scale = useSharedValue(1);
+  const glowOpacity = useSharedValue(0.3);
 
-type EnrichedModule = LearningModule & {
-  status: ModuleStatus;
-  completedLessons: number;
-  totalLessons: number;
-};
+  useEffect(() => {
+    if (isActive) {
+      scale.value = withRepeat(
+        withSequence(
+          withTiming(1.06, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
+          withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
+        ),
+        -1, true,
+      );
+      glowOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.8, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0.2, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
+        ),
+        -1, true,
+      );
+    } else if (isCompleted) {
+      glowOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.5, { duration: 2500, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0.1, { duration: 2500, easing: Easing.inOut(Easing.sin) }),
+        ),
+        -1, true,
+      );
+    }
+  }, [isActive, isCompleted]);
 
-function ModuleNode({
-  module,
-  index,
-  isFirst,
-  isDark,
-  onPress,
-}: {
-  module: EnrichedModule;
-  index: number;
-  isFirst: boolean;
-  isDark: boolean;
-  onPress: () => void;
-}) {
-  const isCompleted = module.status === 'completed';
-  const isActive    = module.status === 'active';
-  const isLocked    = module.status === 'locked';
+  const nodeStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
-  const nodeSize  = isActive ? 80 : 68;
-  const IconComponent = MODULE_ICONS[index % 5] ?? DollarSign;
-
-  const nodeBg = isLocked
-    ? isDark ? Colors.navy[700] : '#CBD5E1'
-    : isCompleted
-    ? Colors.gold[500]
-    : Colors.gold[400];
-
-  const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
-  const textMuted   = isDark ? 'rgba(255,255,255,0.55)' : Colors.light.textMuted;
-
-  const statusLabel = isCompleted
-    ? 'completado'
-    : isActive
-    ? `Lección ${module.completedLessons + 1} de ${module.totalLessons} · en curso`
-    : `${module.totalLessons} lecciones · bloqueado`;
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+  }));
 
   return (
-    <TouchableOpacity
-      onPress={isLocked ? undefined : onPress}
-      activeOpacity={isLocked ? 1 : 0.75}
-      className="items-center"
+    <View style={{ position: 'relative' }}>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          {
+            position: 'absolute',
+            top: -6, left: -6, right: -6, bottom: -6,
+            borderRadius: (nodeSize + 12) / 2,
+            backgroundColor: isActive ? Colors.gold[400] : Colors.success,
+          },
+          glowStyle,
+        ]}
+      />
+      <Animated.View style={isActive ? nodeStyle : undefined}>
+        {children}
+      </Animated.View>
+    </View>
+  );
+}
+
+function AnimatedCard({ children, index }: { children: React.ReactNode; index: number }) {
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(200 + index * 120).duration(500).springify().damping(18)}
     >
-      {/* Connector */}
-      {!isFirst && (
-        <View
-          className="w-[2px] h-7"
-          style={{
-            backgroundColor: isLocked
-              ? isDark ? 'rgba(255,255,255,0.08)' : '#CBD5E1'
-              : isDark ? Colors.gold[500] : Colors.light.accent,
-          }}
-        />
-      )}
+      {children}
+    </Animated.View>
+  );
+}
 
-      {/* Node */}
-      <View
-        className="items-center justify-center rounded-full"
-        style={{
-          width:       nodeSize,
-          height:      nodeSize,
-          backgroundColor: nodeBg,
-          opacity:     isLocked ? 0.4 : 1,
-          borderWidth: isActive ? 3 : 0,
-          borderColor: isDark ? Colors.navy[600] : '#BFDBFE',
-        }}
-      >
-        {isLocked ? (
-          <Lock size={22} color={isDark ? 'rgba(255,255,255,0.45)' : '#94A3B8'} />
-        ) : (
-          <IconComponent size={isActive ? 30 : 26} color={isDark ? '#000' : '#1e3a5f'} />
-        )}
+function PulsingCtaButton({ children, style }: { children: React.ReactNode; style?: any }) {
+  const pulse = useSharedValue(1);
 
-        {isCompleted && (
-          <View
-            className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full items-center justify-center"
-            style={{ backgroundColor: isDark ? '#166534' : '#16A34A' }}
-          >
-            <Check size={11} color="#fff" strokeWidth={3} />
-          </View>
-        )}
-      </View>
+  useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.03, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1, true,
+    );
+  }, []);
 
-      {/* Label */}
-      <Text
-        className="text-[13px] font-bold mt-3 text-center max-w-[180px]"
-        style={{ color: isLocked ? textMuted : textPrimary, opacity: isLocked ? 0.55 : 1 }}
-        numberOfLines={2}
-      >
-        {module.title}
-      </Text>
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+  }));
 
-      <Text
-        className="text-[11px] mt-0.5 text-center"
-        style={{ color: textMuted, opacity: isLocked ? 0.55 : 1 }}
-      >
-        {statusLabel}
-      </Text>
-
-      {/* Status badge */}
-      <View
-        className="mt-2 mb-1 rounded-full px-3.5 py-1"
-        style={{
-          backgroundColor: isCompleted
-            ? isDark ? 'rgba(22,163,74,0.16)' : '#DCFCE7'
-            : isActive
-            ? isDark ? 'rgba(59,130,246,0.16)' : '#DBEAFE'
-            : isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
-        }}
-      >
-        {isCompleted && (
-          <View className="flex-row items-center gap-1">
-            <CheckCircle size={10} color={isDark ? '#4ADE80' : '#16A34A'} />
-            <Text className="text-[10px] font-extrabold tracking-wide" style={{ color: isDark ? '#4ADE80' : '#16A34A' }}>
-              COMPLETADO
-            </Text>
-          </View>
-        )}
-        {isActive && (
-          <View className="flex-row items-center gap-1">
-            <CircleDot size={10} color={isDark ? '#60A5FA' : Colors.light.accent} />
-            <Text className="text-[10px] font-extrabold tracking-wide" style={{ color: isDark ? '#60A5FA' : Colors.light.accent }}>
-              EN CURSO
-            </Text>
-          </View>
-        )}
-        {isLocked && (
-          <View className="flex-row items-center gap-1">
-            <Lock size={10} color={textMuted} />
-            <Text className="text-[10px] font-extrabold tracking-wide" style={{ color: textMuted }}>
-              BLOQUEADO
-            </Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
+  return (
+    <Animated.View style={[style, animStyle]}>
+      {children}
+    </Animated.View>
   );
 }
 
@@ -235,7 +181,7 @@ export default function LearnScreen() {
 
   const loading = modulesLoading || progressLoading;
 
-  const enrichedModules = useMemo((): EnrichedModule[] => {
+  const enrichedModules = useMemo(() => {
     const progressMap = new Map(progress.map((p) => [p.moduleId, p]));
     let foundActive = false;
 
@@ -244,7 +190,7 @@ export default function LearnScreen() {
       const totalLessons  = mod.totalLessons ?? 0;
 
       if (userProgress?.completed) {
-        return { ...mod, status: 'completed', completedLessons: totalLessons, totalLessons };
+        return { ...mod, status: 'completed' as const, completedLessons: totalLessons, totalLessons };
       }
 
       if (!foundActive) {
@@ -252,14 +198,19 @@ export default function LearnScreen() {
         const completedLessons = userProgress
           ? Math.floor((userProgress.progress / 100) * totalLessons)
           : 0;
-        return { ...mod, status: 'active', completedLessons, totalLessons };
+        return { ...mod, status: 'active' as const, completedLessons, totalLessons };
       }
 
-      return { ...mod, status: 'locked', completedLessons: 0, totalLessons };
+      return { ...mod, status: 'locked' as const, completedLessons: 0, totalLessons };
     });
   }, [modules, progress, refreshKey]);
 
   const activeModule = enrichedModules.find((m) => m.status === 'active');
+
+  const handleModulePress = (moduleId: string, status: ModuleStatus) => {
+    if (status === 'locked' || status === 'completed') return;
+    router.push(`/module/${moduleId}` as any);
+  };
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
@@ -303,7 +254,7 @@ export default function LearnScreen() {
 
         {/* Route label */}
         <Text
-          className="text-[10px] font-bold text-center mb-5 tracking-[0.2rem]"
+          className="text-[10px] font-bold text-center mb-2 tracking-[0.2rem]"
           style={{ color: textMuted }}
         >
           RUTA · {activeCategory.toUpperCase()}
@@ -335,25 +286,202 @@ export default function LearnScreen() {
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
-              paddingTop: 16,
-              paddingBottom: 120,
-              alignItems: 'center',
-              paddingHorizontal: 20,
+              paddingBottom: 140,
+              paddingHorizontal: 16,
             }}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accentColor} colors={[accentColor]} />
             }
           >
-            {enrichedModules.map((module, index) => (
-              <ModuleNode
-                key={module.id}
-                module={module}
-                index={index}
-                isFirst={index === 0}
-                isDark={isDark}
-                onPress={() => router.push(`/module/${module.id}` as any)}
-              />
-            ))}
+            {/* ── Zigzag Path ── */}
+            <View style={{ paddingVertical: 16 }}>
+              {enrichedModules.map((module, index) => {
+                const isCompleted = module.status === 'completed';
+                const isActive    = module.status === 'active';
+                const isLocked    = module.status === 'locked';
+                const isRight     = index % 2 === 0;
+                const isLast      = index === enrichedModules.length - 1;
+
+                const nodeSize = isActive ? 72 : 60;
+                const nodeBg = isLocked
+                  ? (isDark ? Colors.navy[700] : '#CBD5E1')
+                  : isCompleted
+                  ? Colors.gold[500]
+                  : Colors.gold[400];
+
+                const pathColor = isLocked
+                  ? (isDark ? 'rgba(255,255,255,0.08)' : '#CBD5E1')
+                  : isCompleted
+                  ? Colors.success
+                  : (isDark ? Colors.gold[400] : Colors.light.accent);
+
+                const cardBg    = isDark ? 'rgba(255,255,255,0.06)' : Colors.light.card;
+                const cardBd    = isDark ? 'rgba(255,255,255,0.08)' : Colors.light.border;
+                const textPri   = isDark ? '#FFFFFF' : Colors.light.textPrimary;
+                const textMtd   = isDark ? 'rgba(255,255,255,0.5)' : Colors.light.textMuted;
+
+                const statusLabel = isCompleted ? 'Completado'
+                  : isActive ? `Lección ${module.completedLessons + 1}/${module.totalLessons}`
+                  : `${module.totalLessons} lecciones`;
+
+                const displayStatus = isCompleted ? 'COMPLETADO'
+                  : isActive ? 'EN CURSO'
+                  : 'BLOQUEADO';
+
+                const statusBg = isCompleted
+                  ? (isDark ? 'rgba(22,163,74,0.16)' : '#DCFCE7')
+                  : isActive
+                  ? (isDark ? 'rgba(59,130,246,0.16)' : '#DBEAFE')
+                  : (isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9');
+
+                const statusColor = isCompleted
+                  ? (isDark ? '#4ADE80' : '#16A34A')
+                  : isActive
+                  ? (isDark ? '#60A5FA' : Colors.light.accent)
+                  : textMtd;
+
+                const MODULE_ICONS: Record<number, React.FC<{ size: number; color: string }>> = {
+                  0: DollarSign, 1: PiggyBank, 2: TrendingUp, 3: TrendingUp, 4: Building2,
+                };
+                const IconComponent = MODULE_ICONS[index % 5] ?? DollarSign;
+
+                const nodeContent = (
+                  <View
+                    style={{
+                      width: nodeSize,
+                      height: nodeSize,
+                      borderRadius: nodeSize / 2,
+                      backgroundColor: nodeBg,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: isActive ? 3 : 0,
+                      borderColor: isDark ? '#1E3A5F' : '#BFDBFE',
+                      zIndex: 2,
+                    }}
+                  >
+                    {isLocked ? (
+                      <Lock size={20} color={isDark ? 'rgba(255,255,255,0.45)' : '#94A3B8'} />
+                    ) : (
+                      <IconComponent size={isActive ? 28 : 24} color={isDark ? '#000' : '#1e3a5f'} />
+                    )}
+                    {isCompleted && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          bottom: -2,
+                          right: -2,
+                          width: 22,
+                          height: 22,
+                          borderRadius: 11,
+                          backgroundColor: '#16A34A',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Check size={10} color="#fff" strokeWidth={3} />
+                      </View>
+                    )}
+                  </View>
+                );
+
+                const cardContent = (
+                  <View
+                    style={{
+                      backgroundColor: cardBg,
+                      borderWidth: 1,
+                      borderColor: cardBd,
+                      borderRadius: 20,
+                      padding: 16,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '700',
+                        color: textPri,
+                        marginBottom: 4,
+                      }}
+                      numberOfLines={2}
+                    >
+                      {module.title}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: textMtd, marginBottom: 8 }}>
+                      {statusLabel}
+                    </Text>
+                    <View
+                      style={{
+                        alignSelf: 'flex-start',
+                        borderRadius: 999,
+                        paddingHorizontal: 10,
+                        paddingVertical: 3,
+                        backgroundColor: statusBg,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 9,
+                          fontWeight: '800',
+                          letterSpacing: 0.5,
+                          color: statusColor,
+                        }}
+                      >
+                        {displayStatus}
+                      </Text>
+                    </View>
+                  </View>
+                );
+
+                const branchLine = (
+                  <View
+                    style={{
+                      width: 16,
+                      height: 2.5,
+                      borderRadius: 1.25,
+                      backgroundColor: pathColor,
+                    }}
+                  />
+                );
+
+                return (
+                  <AnimatedCard key={module.id} index={index}>
+                    <View style={{ marginBottom: isLast ? 0 : 0 }}>
+                      <TouchableOpacity
+                        onPress={isLocked || isCompleted ? undefined : () => handleModulePress(module.id, module.status)}
+                        activeOpacity={isLocked || isCompleted ? 1 : 0.7}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          opacity: isLocked ? 0.4 : 1,
+                        }}
+                      >
+                        {isRight ? (
+                          <>
+                            <View style={{ flex: 1, paddingRight: 20 }}>
+                              {cardContent}
+                            </View>
+                            {branchLine}
+                            <PulsingNode isActive={isActive} isCompleted={isCompleted} nodeSize={nodeSize}>
+                              {nodeContent}
+                            </PulsingNode>
+                          </>
+                        ) : (
+                          <>
+                            <PulsingNode isActive={isActive} isCompleted={isCompleted} nodeSize={nodeSize}>
+                              {nodeContent}
+                            </PulsingNode>
+                            {branchLine}
+                            <View style={{ flex: 1, paddingLeft: 20 }}>
+                              {cardContent}
+                            </View>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                      {!isLast && <View style={{ height: 36 }} />}
+                    </View>
+                  </AnimatedCard>
+                );
+              })}
+            </View>
           </ScrollView>
         )}
 
@@ -363,18 +491,20 @@ export default function LearnScreen() {
             className="absolute bottom-0 left-0 right-0 px-5 pb-6 pt-3"
             style={{ backgroundColor: bg }}
           >
-            <Pressable
-              accessible
-              accessibilityLabel={`Continuar lección ${activeModule.completedLessons + 1}`}
-              onPress={() => router.push(`/module/${activeModule.id}` as any)}
-              className="active:opacity-80 flex-row items-center justify-center rounded-2xl py-4 gap-2.5"
-              style={{ backgroundColor: accentColor }}
-            >
-              <Play size={16} color={isDark ? '#000' : '#fff'} fill={isDark ? '#000' : '#fff'} />
-              <Text className="text-[15px] font-bold" style={{ color: isDark ? '#000' : '#fff' }}>
-                Continuar lección {activeModule.completedLessons + 1}
-              </Text>
-            </Pressable>
+            <PulsingCtaButton>
+              <Pressable
+                accessible
+                accessibilityLabel={`Continuar lección ${activeModule.completedLessons + 1}`}
+                onPress={() => router.push(`/module/${activeModule.id}` as any)}
+                className="active:opacity-80 flex-row items-center justify-center rounded-2xl py-4 gap-2.5"
+                style={{ backgroundColor: accentColor }}
+              >
+                <Play size={16} color={isDark ? '#000' : '#fff'} fill={isDark ? '#000' : '#fff'} />
+                <Text className="text-[15px] font-bold" style={{ color: isDark ? '#000' : '#fff' }}>
+                  Continuar lección {activeModule.completedLessons + 1}
+                </Text>
+              </Pressable>
+            </PulsingCtaButton>
           </View>
         )}
       </View>

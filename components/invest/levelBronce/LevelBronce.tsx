@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 import CompanyCard from "@/components/invest/CompanyCard";
@@ -8,9 +8,10 @@ import { Building } from 'lucide-react-native';
 
 interface LevelBronceProps {
   companies: Company[];
+  onSeeAll?: () => void;
 }
 
-export default function LevelBronce({ companies }: LevelBronceProps) {
+export default function LevelBronce({ companies, onSeeAll }: LevelBronceProps) {
     const { isDark } = useTheme();
 
     return (
@@ -24,7 +25,13 @@ export default function LevelBronce({ companies }: LevelBronceProps) {
                         Nivel Bronce
                     </Text>
                 </View>
-                <Text style={{ color: isDark ? '#D1D5DB' : Colors.light.textSecond }}>Ver todas</Text>
+                {companies.length > 0 && (
+                  <Pressable onPress={onSeeAll} className="active:opacity-60 px-2 py-1">
+                    <Text style={{ color: isDark ? Colors.levels.bronze : Colors.light.lvlBronze, fontWeight: '600', fontSize: 13 }}>
+                      Ver todas →
+                    </Text>
+                  </Pressable>
+                )}
             </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}

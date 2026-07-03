@@ -9,17 +9,26 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
     },
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favlogo.png"
+      "favicon": "./assets/images/logo.png"
     },
     "android": {
       "package": "com.bigdreamerss.bigdreamerss",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/logo.png",
+        "backgroundColor": "#1A3A5C"
+      },
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.POST_NOTIFICATIONS"
       ]
     },
     "plugins": [
@@ -28,10 +37,26 @@
       "expo-web-browser",
       "expo-secure-store",
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraProguardRules": "-keep class com.bigdreamerss.** { *; }",
+            "enableProguardInReleaseBuilds": true
+          }
+        }
+      ],
+      [
         "expo-image-picker",
         {
-          "photosPermission": "La aplicación necesita acceder a tu galería para subir imágenes de perfil y comprobantes de pago.",
-          "cameraPermission": "La aplicación necesita acceder a tu cámara para tomar fotos."
+          "photosPermission": "La aplicaci\u00f3n necesita acceder a tu galer\u00eda para subir im\u00e1genes de perfil y comprobantes de pago.",
+          "cameraPermission": "La aplicaci\u00f3n necesita acceder a tu c\u00e1mara para tomar fotos."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/logo.png",
+          "color": "#1A3A5C"
         }
       ]
     ],

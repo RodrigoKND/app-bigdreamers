@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Button from '@/components/shared/Button';
@@ -22,14 +22,16 @@ function isValidImageUrl(url: string): string {
 
 const CompanyCard = React.memo(function CompanyCard({ id, name, gems, imageUrl }: CompanyCardProps) {
   const router = useRouter();
+  const [imgError, setImgError] = useState(false);
 
   return (
     <Link href={`/company/${id}` as any}>
       <View className="w-64 h-80 rounded-3xl mr-4 overflow-hidden bg-gray-200">
         <Image
-          source={{ uri: isValidImageUrl(imageUrl) }}
+          source={{ uri: imgError ? FALLBACK_IMAGE : isValidImageUrl(imageUrl) }}
           className="absolute w-full h-full"
           resizeMode="cover"
+          onError={() => setImgError(true)}
         />
 
         <LinearGradient

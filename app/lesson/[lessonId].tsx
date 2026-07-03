@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
@@ -32,6 +32,7 @@ export default function LessonDetailScreen() {
   const [gemsReward,   setGemsReward]   = useState(0);
   const [completing,   setCompleting]   = useState(false);
 
+  const insets      = useSafeAreaInsets();
   const bg          = isDark ? Colors.blue.primary       : Colors.light.bg;
   const textPrimary = isDark ? Colors.text.primary       : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.6)'   : Colors.light.textMuted;
@@ -140,9 +141,9 @@ export default function LessonDetailScreen() {
   const isLast   = lessonIndex + 1 === totalLessons;
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: bg }} edges={['top']}>
       {/* Header */}
-      <View className="px-5 pt-3 pb-2 flex-row items-center gap-3">
+      <View style={{ paddingHorizontal: 20, paddingTop: Math.max(8, insets.top > 0 ? 0 : 12), paddingBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <ButtonBackScreen />
         <View className="flex-1 flex-row items-center justify-between">
           <Text className="text-[15px] font-bold" style={{ color: textPrimary }} numberOfLines={1}>

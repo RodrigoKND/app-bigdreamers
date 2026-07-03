@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 import CompanyCard from "@/components/invest/CompanyCard";
@@ -8,9 +8,10 @@ import { Building } from 'lucide-react-native';
 
 interface LevelGoldProps {
   companies: Company[];
+  onSeeAll?: () => void;
 }
 
-export default function LevelGold({ companies }: LevelGoldProps) {
+export default function LevelGold({ companies, onSeeAll }: LevelGoldProps) {
     const { isDark } = useTheme();
 
     return (
@@ -24,7 +25,13 @@ export default function LevelGold({ companies }: LevelGoldProps) {
                         Nivel Oro
                     </Text>
                 </View>
-                <Text style={{ color: isDark ? '#D1D5DB' : Colors.light.textSecond }}>Ver todas</Text>
+                {companies.length > 0 && (
+                  <Pressable onPress={onSeeAll} className="active:opacity-60 px-2 py-1">
+                    <Text style={{ color: isDark ? Colors.gold[400] : Colors.light.accent, fontWeight: '600', fontSize: 13 }}>
+                      Ver todas →
+                    </Text>
+                  </Pressable>
+                )}
             </View>
 
 

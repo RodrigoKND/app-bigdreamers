@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, Pressable } from 'react-native';
-import { Gem, Clock, CheckCircle, XCircle, Check, X } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, Image, Modal } from 'react-native';
+import { Gem, Clock, CheckCircle, XCircle, Check, X, Eye } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { GemRequest } from '@/constants/mockGemRequests';
 
@@ -12,6 +12,7 @@ interface GemRequestCardProps {
 }
 
 const GemRequestCard = React.memo(({ request, onApprove, onReject, isDark }: GemRequestCardProps) => {
+  const [showImage, setShowImage] = useState(false);
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
@@ -37,13 +38,11 @@ const GemRequestCard = React.memo(({ request, onApprove, onReject, isDark }: Gem
         borderColor:     isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
       }}
     >
-      {/* Encabezado: nombre + fecha */}
       <View className="flex-row justify-between items-center mb-3">
         <Text className="font-bold" style={{ color: textPrimary }}>{request.userName}</Text>
         <Text className="text-xs"   style={{ color: textMuted }}>{request.date}</Text>
       </View>
 
-      {/* Gemas + precio */}
       <View className="flex-row items-center mb-3">
         <Gem size={16} color={Colors.gold[400]} />
         <Text className="ml-2 text-base font-bold" style={{ color: Colors.gold[400] }}>
@@ -53,7 +52,26 @@ const GemRequestCard = React.memo(({ request, onApprove, onReject, isDark }: Gem
         <Text className="ml-2" style={{ color: textMuted }}>{request.bsPrice} Bs</Text>
       </View>
 
-      {/* Estado + botones */}
+      {request.receiptImageUrl ? (
+        <Pressable
+          onPress={() => setShowImage(true)}
+          className="flex-row items-center gap-2 mb-3 rounded-xl overflow-hidden"
+          style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9' }}
+        >
+          <Image
+            source={{ uri: request.receiptImageUrl }}
+            style={{ width: 56, height: 56 }}
+            resizeMode="cover"
+          />
+          <View className="flex-row items-center gap-1.5">
+            <Eye size={14} color={Colors.gold[400]} />
+            <Text className="text-xs font-semibold" style={{ color: Colors.gold[400] }}>
+              Ver comprobante
+            </Text>
+          </View>
+        </Pressable>
+      ) : null}
+
       <View className="gap-[10px]">
         <View className="flex-row items-center">
           <View
@@ -91,6 +109,27 @@ const GemRequestCard = React.memo(({ request, onApprove, onReject, isDark }: Gem
           </View>
         )}
       </View>
+
+      <Modal transparent animationType="fade" visible={showImage} onRequestClose={() => setShowImage(false)}>
+        <Pressable
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 }}
+          onPress={() => setShowImage(false)}
+        >
+          <Pressable onPress={() => {}} className="w-full max-w-sm">
+            <Image
+              source={{ uri: request.receiptImageUrl }}
+              style={{ width: '100%', height: 400 }}
+              resizeMode="contain"
+            />
+            <Text
+              className="text-center mt-4 text-sm font-semibold"
+              style={{ color: 'rgba(255,255,255,0.6)' }}
+            >
+              Toca fuera de la imagen para cerrar
+            </Text>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 });

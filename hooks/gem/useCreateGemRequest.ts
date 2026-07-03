@@ -12,6 +12,7 @@ export function useCreateGemRequest() {
     packageId: string;
     gems: number;
     bsPrice: number;
+    receiptImageUrl?: string;
   }) => {
     setLoading(true);
     setError(null);
@@ -20,9 +21,11 @@ export function useCreateGemRequest() {
       const data = await createGemRequest(params);
       setRequest(data);
       return data;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
+    } catch (err: any) {
+      const message = err?.message || String(err);
+      const error = err instanceof Error ? err : new Error(message);
       setError(error);
+      throw error;
     } finally {
       setLoading(false);
     }

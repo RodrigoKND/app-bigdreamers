@@ -74,8 +74,8 @@ export default function ModuleLessonList({ lessons, completedLessons, isDark }: 
           return (
             <TouchableOpacity
               key={lesson.id}
-              onPress={isLocked ? undefined : () => router.push(`/lesson/${lesson.id}`)}
-              activeOpacity={isLocked ? 1 : 0.72}
+              onPress={isLocked || isCompleted ? undefined : () => router.push(`/lesson/${lesson.id}`)}
+              activeOpacity={isLocked || isCompleted ? 1 : 0.72}
               className="rounded-2xl p-4 flex-row items-center"
               style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
             >

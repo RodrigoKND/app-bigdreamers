@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { View, Text, Pressable, Animated, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BookOpen, ArrowLeft, Check } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
@@ -25,6 +26,7 @@ export default function ReadingLesson({
   completing,
   onComplete,
 }: Props) {
+  const insets      = useSafeAreaInsets();
   const bg          = isDark ? Colors.blue.primary       : Colors.light.bg;
   const cardBg      = isDark ? 'rgba(255,255,255,0.05)'  : Colors.light.card;
   const borderColor = isDark ? 'rgba(255,255,255,0.08)'  : 'rgba(0,0,0,0.05)';
@@ -61,7 +63,7 @@ export default function ReadingLesson({
   if (total === 0) {
     return (
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, paddingTop: 4 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: Math.max(insets.bottom + 16, 36), paddingTop: 4 }}
         showsVerticalScrollIndicator={false}
         style={{ backgroundColor: bg }}
       >
@@ -141,7 +143,7 @@ export default function ReadingLesson({
       </ScrollView>
 
       {/* Controles */}
-      <View className="px-5 pb-5 pt-1 gap-3">
+      <View className="px-5 pt-1 gap-3" style={{ paddingBottom: Math.max(insets.bottom + 16, 20) }}>
         {onLastPage && gemsReward > 0 && (
           <View
             className="flex-row items-center justify-center gap-2 px-4 py-2.5 rounded-2xl"

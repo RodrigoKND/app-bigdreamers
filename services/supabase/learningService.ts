@@ -223,6 +223,16 @@ export async function completeModule(userId: string, moduleId: string, gemsRewar
     });
     if (gemsError) throw gemsError;
   }
+
+  const { error: streakError } = await supabase.rpc('increment_streak', {
+    p_user_id: userId,
+  });
+  if (streakError) throw streakError;
+
+  const { error: modulesError } = await supabase.rpc('increment_completed_modules', {
+    p_user_id: userId,
+  });
+  if (modulesError) throw modulesError;
 }
 
 export async function getUserCompletedModules(userId: string): Promise<string[]> {
@@ -269,5 +279,14 @@ export async function addLessonToLearningModule(
       duration_minutes: lesson.durationMinutes,
       content: lesson.content,
     });
+  if (error) throw error;
+}
+
+export async function deleteLessonsByModuleId(moduleId: string): Promise<void> {
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase
+    .from('lessons')
+    .delete()
+    .eq('module_id', moduleId);
   if (error) throw error;
 }

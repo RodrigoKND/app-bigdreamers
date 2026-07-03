@@ -32,7 +32,10 @@ interface QuizQuestion {
 
 interface CourseFormProps {
   onPublish: (data: LearningModuleFormData) => void;
+  onUpdate?: (id: string, data: LearningModuleFormData) => void;
   onCancel:  () => void;
+  initialData?: LearningModuleFormData & { id?: string } | null;
+  initialLessons?: { title: string; durationMinutes: number; content: string }[];
 }
 
 const CATEGORIES:   Category[]   = ['Finanzas', 'Inversion', 'Ahorro', 'Empresa'];
@@ -60,21 +63,26 @@ const emptyQuestion = (): QuizQuestion => ({
   q: '', options: ['', '', '', ''], correct: 0, hint: '',
 });
 
-const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
+const CourseForm = ({ onPublish, onUpdate, onCancel, initialData, initialLessons }: CourseFormProps) => {
   const { isDark } = useTheme();
+  const isEditing = !!initialData?.id;
+
+  const catMap: Record<string, Category> = {
+    finanzas: 'Finanzas', inversion: 'Inversion', ahorro: 'Ahorro', empresa: 'Empresa',
+  };
 
   // Module fields
-  const [title,       setTitle]       = useState('');
-  const [description, setDescription] = useState('');
-  const [category,    setCategory]    = useState<Category>('Finanzas');
-  const [duration,    setDuration]    = useState('');
-  const [gemsReward,  setGemsReward]  = useState('');
-  const [thumbnail,   setThumbnail]   = useState('');
-  const [difficulty,  setDifficulty]  = useState<Difficulty>('beginner');
-  const [orderIndex,  setOrderIndex]  = useState('');
+  const [title,       setTitle]       = useState(initialData?.title ?? '');
+  const [description, setDescription] = useState(initialData?.description ?? '');
+  const [category,    setCategory]    = useState<Category>(catMap[initialData?.category?.toLowerCase() ?? ''] ?? 'Finanzas');
+  const [duration,    setDuration]    = useState(initialData?.duration ?? '');
+  const [gemsReward,  setGemsReward]  = useState(initialData?.gemsReward?.toString() ?? '');
+  const [thumbnail,   setThumbnail]   = useState(initialData?.thumbnail ?? '');
+  const [difficulty,  setDifficulty]  = useState<Difficulty>(initialData?.difficulty ?? 'beginner');
+  const [orderIndex,  setOrderIndex]  = useState(initialData?.orderIndex?.toString() ?? '');
 
   // Lesson list
-  const [lessons, setLessons] = useState<{ title: string; durationMinutes: number; content: string }[]>([]);
+  const [lessons, setLessons] = useState<{ title: string; durationMinutes: number; content: string }[]>(initialLessons ?? []);
 
   // Lesson input
   const [lessonTitle,    setLessonTitle]    = useState('');
@@ -146,9 +154,9 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
     setQuizQuestions([emptyQuestion()]);
   };
 
-  // ── Publish module ────────────────────────────────────────
+  // ── Publish / Update module ──────────────────────────────
   const doPublish = (finalLessons: typeof lessons) => {
-    onPublish({
+    const payload: LearningModuleFormData = {
       title:       title.trim(),
       description: description.trim(),
       category:    category.toLowerCase(),
@@ -158,12 +166,26 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
       difficulty,
       orderIndex:  orderIndex ? parseInt(orderIndex) : undefined,
       lessons:     finalLessons.length > 0 ? finalLessons : undefined,
-    });
+    };
+
+    if (isEditing && initialData?.id && onUpdate) {
+      onUpdate(initialData.id, payload);
+    } else {
+      onPublish(payload);
+    }
   };
 
   const handlePublish = () => {
     if (!title.trim()) {
       Alert.alert('Campo requerido', 'El título del módulo no puede estar vacío.');
+      return;
+    }
+
+    if (lessons.length === 0 && !lessonTitle.trim()) {
+      Alert.alert(
+        'Sin lecciones',
+        'El módulo debe tener al menos una lección antes de publicarlo. Agrega una lección usando el formulario de abajo.',
+      );
       return;
     }
 
@@ -203,7 +225,7 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
     doPublish(lessons);
   };
 
-  const canPublish = !!title.trim();
+  const canPublish = !!title.trim() && lessons.length > 0;
 
   return (
     <ScrollView
@@ -217,7 +239,7 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
       <View className="flex-row items-center mb-6">
         <ButtonBackScreen />
         <Text className="flex-1 text-center text-[22px] font-extrabold mr-8" style={{ color: textPrimary }}>
-          Nuevo Módulo
+          {isEditing ? 'Editar Módulo' : 'Nuevo Módulo'}
         </Text>
       </View>
 
@@ -478,7 +500,11 @@ const CourseForm = ({ onPublish, onCancel }: CourseFormProps) => {
             opacity: canPublish ? 1 : 0.5,
           }}>
           <Text className="font-extrabold text-sm" style={{ color: canPublish ? '#000' : textMuted }}>
-            Publicar módulo
+            {!title.trim()
+              ? 'Falta título'
+              : lessons.length === 0
+                ? 'Agrega una lección'
+                : isEditing ? 'Guardar cambios' : 'Publicar módulo'}
           </Text>
         </Pressable>
       </View>

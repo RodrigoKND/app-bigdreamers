@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
-import { Trash2, UserPlus } from 'lucide-react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { Trash2, UserPlus, Mail, MessageCircle } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import ImagePickerField from '@/components/shared/ImagePickerField';
 import { Colors } from '@/constants/colors';
@@ -11,17 +11,22 @@ import ButtonBackScreen from '@/components/shared/ButtonBackScreen';
 
 interface CompanyFormProps {
   onPublish: (company: Partial<Company>) => void;
+  onUpdate?: (id: string, company: Partial<Company>) => void;
   onCancel: () => void;
+  initialData?: Company | null;
 }
 
-const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
+const CompanyForm = ({ onPublish, onUpdate, onCancel, initialData }: CompanyFormProps) => {
   const { isDark } = useTheme();
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [gems, setGems] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [level, setLevel] = useState<CompanyLevel>('bronze');
-  const [teamMembers, setTeamMembers] = useState<CompanyTeamMember[]>([]);
+  const isEditing = !!initialData;
+  const [name, setName] = useState(initialData?.name ?? '');
+  const [description, setDescription] = useState(initialData?.description ?? '');
+  const [gems, setGems] = useState(initialData?.gems?.toString() ?? '');
+  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl ?? '');
+  const [level, setLevel] = useState<CompanyLevel>(initialData?.level ?? 'bronze');
+  const [teamMembers, setTeamMembers] = useState<CompanyTeamMember[]>(
+    initialData?.teamMembers?.map(m => ({ ...m, contactType: m.contactType ?? (m.contact?.includes('@') ? 'email' : 'whatsapp') })) ?? []
+  );
 
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
@@ -54,12 +59,23 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
   const removeImage = () => setImageUrl('');
 
   const addTeamMember = () => {
-    setTeamMembers([...teamMembers, { name: '', role: '', contact: '' }]);
+    setTeamMembers([...teamMembers, { name: '', role: '', contact: '', contactType: 'whatsapp' }]);
   };
 
   const updateTeamMember = (index: number, field: keyof CompanyTeamMember, value: string) => {
     const updated = [...teamMembers];
     updated[index] = { ...updated[index], [field]: value };
+
+    // Auto-add +591 when switching to WhatsApp with empty contact
+    if (field === 'contactType') {
+      if (value === 'whatsapp' && (!updated[index].contact || updated[index].contact === '')) {
+        updated[index].contact = '+591 ';
+      }
+      if (value === 'email' && updated[index].contact?.startsWith('+591')) {
+        updated[index].contact = '';
+      }
+    }
+
     setTeamMembers(updated);
   };
 
@@ -70,23 +86,41 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
   const handlePublish = () => {
     if (!name.trim() || !description.trim() || !level) return;
 
-    onPublish({
+    const payload: Partial<Company> = {
       name: name.trim(),
       description: description.trim(),
       gems: parseInt(gems) || 0,
       imageUrl: imageUrl.trim() || '',
       level,
-      teamMembers: teamMembers.filter(m => m.name.trim() && m.role.trim()).map(m => ({ ...m, contact: m.contact?.trim() ?? '' })),
-    });
+      teamMembers: teamMembers.filter(m => m.name.trim() && m.role.trim()).map(m => ({
+        name: m.name,
+        role: m.role,
+        contact: m.contact?.trim() ?? '',
+        contactType: m.contactType,
+      })),
+    };
+
+    if (isEditing && initialData && onUpdate) {
+      onUpdate(initialData.id, payload);
+    } else {
+      onPublish(payload);
+    }
   };
 
   const canPublish = name.trim() && description.trim() && level;
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
       className="flex-1"
       style={{ backgroundColor: isDark ? Colors.blue.primary : Colors.light.bg }}
-      contentContainerStyle={{ padding: 20, paddingTop: 28, paddingBottom: 32 }}
+      behavior="padding"
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+    <ScrollView
+      className="flex-1"
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{ padding: 20, paddingTop: 28, paddingBottom: 120 }}
+      showsVerticalScrollIndicator={false}
     >
       <View className="flex-row items-center mb-6 pt-2">
         <ButtonBackScreen />
@@ -94,7 +128,7 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
           className="flex-1 text-center text-2xl font-bold mr-8"
           style={{ color: isDark ? '#FFFFFF' : Colors.text.primary }}
         >
-          Nueva Empresa
+          {isEditing ? 'Editar Empresa' : 'Nueva Empresa'}
         </Text>
       </View>
       <View
@@ -184,16 +218,68 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
               style={inputDynamic}
             />
 
-            <TextInput
-              placeholder="WhatsApp (+58...) o correo electrónico"
-              placeholderTextColor={textMuted}
-              value={member.contact ?? ''}
-              onChangeText={(value) => updateTeamMember(index, 'contact', value)}
-              className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3"
-              style={inputDynamic}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+            {/* Contact type selector */}
+            <View className="flex-row mb-2 gap-2">
+              <Pressable
+                onPress={() => updateTeamMember(index, 'contactType', 'whatsapp')}
+                className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl flex-1"
+                style={{
+                  backgroundColor: member.contactType === 'whatsapp'
+                    ? 'rgba(37,211,102,0.15)'
+                    : isDark ? 'rgba(255,255,255,0.05)' : Colors.light.surface,
+                  borderWidth: 1,
+                  borderColor: member.contactType === 'whatsapp'
+                    ? '#25D366'
+                    : 'transparent',
+                }}
+              >
+                <MessageCircle size={14} color={member.contactType === 'whatsapp' ? '#25D366' : textMuted} />
+                <Text className="text-xs font-semibold" style={{ color: member.contactType === 'whatsapp' ? '#25D366' : textMuted }}>
+                  WhatsApp
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => updateTeamMember(index, 'contactType', 'email')}
+                className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl flex-1"
+                style={{
+                  backgroundColor: member.contactType === 'email'
+                    ? 'rgba(96,165,250,0.15)'
+                    : isDark ? 'rgba(255,255,255,0.05)' : Colors.light.surface,
+                  borderWidth: 1,
+                  borderColor: member.contactType === 'email'
+                    ? '#60A5FA'
+                    : 'transparent',
+                }}
+              >
+                <Mail size={14} color={member.contactType === 'email' ? '#60A5FA' : textMuted} />
+                <Text className="text-xs font-semibold" style={{ color: member.contactType === 'email' ? '#60A5FA' : textMuted }}>
+                  Correo
+                </Text>
+              </Pressable>
+            </View>
+
+            {member.contactType === 'whatsapp' ? (
+              <TextInput
+                placeholder="+591 12345678"
+                placeholderTextColor={textMuted}
+                value={member.contact ?? ''}
+                onChangeText={(value) => updateTeamMember(index, 'contact', value)}
+                className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3"
+                style={inputDynamic}
+                keyboardType="phone-pad"
+              />
+            ) : (
+              <TextInput
+                placeholder="correo@ejemplo.com"
+                placeholderTextColor={textMuted}
+                value={member.contact ?? ''}
+                onChangeText={(value) => updateTeamMember(index, 'contact', value)}
+                className="rounded-xl border px-[14px] py-[14px] text-[15px] mb-3"
+                style={inputDynamic}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            )}
           </View>
         ))}
 
@@ -247,11 +333,12 @@ const CompanyForm = ({ onPublish, onCancel }: CompanyFormProps) => {
             className="font-extrabold text-sm"
             style={{ color: canPublish ? '#000' : textMuted, letterSpacing: 0.4 }}
           >
-            Crear empresa
+            {isEditing ? 'Guardar cambios' : 'Crear empresa'}
           </Text>
         </Pressable>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

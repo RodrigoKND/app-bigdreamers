@@ -1,14 +1,19 @@
-import React, { useCallback, useRef, useState, useEffect } from 'react';
+import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import {
-  View, Text, ScrollView,
-  Pressable, ActivityIndicator, RefreshControl,
+  View, Text, ScrollView, Image, Modal,
+  Pressable, ActivityIndicator, RefreshControl, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2, Users  } from 'lucide-react-native';
+import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2, Users, Gem, TrendingUp, Mail, MapPinOff } from 'lucide-react-native';
+
+const SUPPORT_EMAIL = 'dreamersb648@gmail.com';
+const INVEST_PREVIEW = 4;
+import { IMAGES } from '@/constants/images';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUser } from '@/hooks/user/useCurrentUser';
+import { useUserInvestments } from '@/hooks/investment/useUserInvestments';
 import { useTheme } from '@/context/ThemeContext';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileStatCard from '@/components/profile/ProfileStatCard';
@@ -21,9 +26,10 @@ interface MenuItemProps {
   danger?: boolean;
   isDark: boolean;
   showChevron?: boolean;
+  rawIcon?: boolean;
 }
 
-function MenuItem({ icon, label, onPress, danger, isDark, showChevron = true }: MenuItemProps) {
+function MenuItem({ icon, label, onPress, danger, isDark, showChevron = true, rawIcon = false }: MenuItemProps) {
   const textColor = danger
     ? '#FF6B6B'
     : isDark ? '#FFFFFF' : Colors.light.textPrimary;
@@ -44,14 +50,18 @@ function MenuItem({ icon, label, onPress, danger, isDark, showChevron = true }: 
       accessibilityLabel={label}
       accessibilityRole="button"
     >
-      <View
-        className="w-9 h-9 rounded-xl items-center justify-center"
-        style={{ backgroundColor: iconBg }}
-      >
-        {React.isValidElement(icon)
-          ? React.cloneElement(icon as React.ReactElement<any>, { color: iconAccent })
-          : icon}
-      </View>
+      {rawIcon ? (
+        icon
+      ) : (
+        <View
+          className="w-9 h-9 rounded-xl items-center justify-center"
+          style={{ backgroundColor: iconBg }}
+        >
+          {React.isValidElement(icon)
+            ? React.cloneElement(icon as React.ReactElement<any>, { color: iconAccent })
+            : icon}
+        </View>
+      )}
       <Text
         className="font-sans text-[15px] flex-1"
         style={{ color: textColor }}
@@ -82,11 +92,37 @@ function SectionLabel({ label, isDark }: { label: string; isDark: boolean }) {
 export default function ProfileScreen() {
   const { user: authUser, logout } = useAuth();
   const { user: dbUser, loading, refetch } = useCurrentUser(authUser?.id ?? null);
+  const { investments, refetch: refetchInvestments } = useUserInvestments(authUser?.id ?? null);
   const user = dbUser ?? authUser ?? null;
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
   const [initialLoad, setInitialLoad] = useState(!user);
   const [refreshing,  setRefreshing]  = useState(false);
+  const [showAllInvestments, setShowAllInvestments] = useState(false);
+  const [removedCompanyVisible, setRemovedCompanyVisible] = useState(false);
+
+  const handleInvestmentPress = useCallback((companyId: string | null) => {
+    if (companyId) {
+      router.push(`/company/${companyId}`);
+    } else {
+      // La empresa fue eliminada (company_id quedó en null por la FK).
+      setRemovedCompanyVisible(true);
+    }
+  }, [router]);
+
+  // Agrupamos las inversiones por empresa (suma de gemas + cantidad de veces).
+  const investmentsByCompany = useMemo(() => {
+    const map = new Map<string, { companyId: string | null; companyName: string; gems: number; count: number }>();
+    for (const inv of investments) {
+      const key = inv.companyId ?? inv.companyName;
+      const cur = map.get(key) ?? { companyId: inv.companyId, companyName: inv.companyName, gems: 0, count: 0 };
+      cur.gems += inv.gems;
+      cur.count += 1;
+      map.set(key, cur);
+    }
+    return Array.from(map.values()).sort((a, b) => b.gems - a.gems);
+  }, [investments]);
+  const totalInvested = useMemo(() => investments.reduce((s, i) => s + i.gems, 0), [investments]);
 
   useEffect(() => {
     if (user) setInitialLoad(false);
@@ -103,7 +139,8 @@ export default function ProfileScreen() {
         return;
       }
       refetch();
-    }, [refetch])
+      refetchInvestments();
+    }, [refetch, refetchInvestments])
   );
   
   // IMPORTANTE: todos los hooks deben ir ANTES de cualquier return temprano.
@@ -112,8 +149,8 @@ export default function ProfileScreen() {
   // previous render" → crash nativo al abrir Perfil.
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    try { await refetch(); } finally { setRefreshing(false); }
-  }, [refetch]);
+    try { await Promise.all([refetch(), refetchInvestments()]); } finally { setRefreshing(false); }
+  }, [refetch, refetchInvestments]);
 
   if (initialLoad || !user) {
     return (
@@ -168,6 +205,91 @@ export default function ProfileScreen() {
             { label: 'RACHA',   value: String(user.streak),               accent: Colors.warning },
           ]}
         />
+
+        {/* MIS INVERSIONES */}
+        <SectionLabel label="MIS INVERSIONES" isDark={isDark} />
+        <View
+          className="mx-4 rounded-2xl overflow-hidden"
+          style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
+        >
+          {investmentsByCompany.length === 0 ? (
+            <View className="px-4 py-5 items-center gap-1">
+              <TrendingUp size={22} color={isDark ? 'rgba(255,255,255,0.4)' : Colors.light.textMuted} />
+              <Text className="text-[13px] text-center" style={{ color: isDark ? 'rgba(255,255,255,0.6)' : Colors.light.textMuted }}>
+                Aún no invertiste en ninguna empresa
+              </Text>
+            </View>
+          ) : (
+            <>
+              {/* Total invertido */}
+              <View className="flex-row items-center justify-between px-4 py-[14px]">
+                <Text className="font-sans text-[15px]" style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}>
+                  Total invertido
+                </Text>
+                <View className="flex-row items-center gap-1">
+                  <Gem size={15} color={Colors.gold[500]} />
+                  <Text className="font-bold text-[15px]" style={{ color: Colors.gold[500] }}>
+                    {totalInvested.toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+              <View className="h-px mx-4" style={{ backgroundColor: divider }} />
+
+              {/* Por empresa (capado con "Ver todas" para no crecer infinito) */}
+              {(showAllInvestments ? investmentsByCompany : investmentsByCompany.slice(0, INVEST_PREVIEW)).map((inv, i) => (
+                <View key={(inv.companyId ?? inv.companyName) + i}>
+                  {i > 0 && <View className="h-px mx-4" style={{ backgroundColor: divider }} />}
+                  <Pressable
+                    onPress={() => handleInvestmentPress(inv.companyId)}
+                    className="flex-row items-center gap-3 px-4 py-[13px] active:opacity-70"
+                    accessibilityRole="button"
+                    accessibilityLabel={`Ver empresa ${inv.companyName}`}
+                  >
+                    <View
+                      className="w-9 h-9 rounded-xl items-center justify-center"
+                      style={{ backgroundColor: isDark ? 'rgba(249, 244, 102, 0.17)' : Colors.light.accentLight }}
+                    >
+                      <TrendingUp size={16} color={iconColor} />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-sans text-[15px]" numberOfLines={1} style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}>
+                        {inv.companyName}
+                      </Text>
+                      {inv.count > 1 && (
+                        <Text className="text-[11px]" style={{ color: isDark ? 'rgba(255,255,255,0.55)' : Colors.light.textMuted }}>
+                          {inv.count} inversiones
+                        </Text>
+                      )}
+                    </View>
+                    <View className="flex-row items-center gap-1">
+                      <Gem size={13} color={Colors.gold[500]} />
+                      <Text className="font-bold text-[14px]" style={{ color: Colors.gold[500] }}>
+                        {inv.gems.toLocaleString()}
+                      </Text>
+                    </View>
+                    <ChevronRight size={15} color={isDark ? 'rgba(255,255,255,0.4)' : Colors.light.textMuted} />
+                  </Pressable>
+                </View>
+              ))}
+
+              {/* Toggle Ver todas / Ver menos */}
+              {investmentsByCompany.length > INVEST_PREVIEW && (
+                <>
+                  <View className="h-px mx-4" style={{ backgroundColor: divider }} />
+                  <Pressable
+                    onPress={() => setShowAllInvestments((v) => !v)}
+                    className="items-center py-[13px] active:opacity-70"
+                    accessibilityRole="button"
+                  >
+                    <Text className="font-semibold text-[13px]" style={{ color: iconColor }}>
+                      {showAllInvestments ? 'Ver menos' : `Ver todas (${investmentsByCompany.length})`}
+                    </Text>
+                  </Pressable>
+                </>
+              )}
+            </>
+          )}
+        </View>
 
         {/* MI CUENTA */}
         <SectionLabel label="MI CUENTA" isDark={isDark} />
@@ -249,6 +371,32 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
+        {/* ACERCA DE */}
+        <SectionLabel label="ACERCA DE" isDark={isDark} />
+        <View
+          className="mx-4 rounded-2xl overflow-hidden"
+          style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
+        >
+          <MenuItem
+            isDark={isDark}
+            rawIcon
+            icon={
+              <View
+                className="w-9 h-9 rounded-full items-center justify-center overflow-hidden"
+                style={{ backgroundColor: '#FFFFFF' }}
+              >
+                <Image
+                  source={IMAGES.BUHO}
+                  style={{ width: 30, height: 30 }}
+                  resizeMode="contain"
+                />
+              </View>
+            }
+            label="Conocer más sobre BigDreamerss"
+            onPress={() => Linking.openURL('https://bigdreamerss.com/')}
+          />
+        </View>
+
         {/* CERRAR SESIÓN */}
         <View className="mx-4 mt-3 mb-2">
           <Pressable
@@ -278,6 +426,66 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* Modal: empresa eliminada */}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={removedCompanyVisible}
+        onRequestClose={() => setRemovedCompanyVisible(false)}
+      >
+        <Pressable
+          className="flex-1 items-center justify-center px-8"
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+          onPress={() => setRemovedCompanyVisible(false)}
+        >
+          <Pressable
+            className="w-full rounded-3xl p-6 items-center"
+            style={{ backgroundColor: isDark ? Colors.navy[700] : '#FFFFFF' }}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View
+              className="w-16 h-16 rounded-full items-center justify-center mb-4"
+              style={{ backgroundColor: isDark ? 'rgba(255,107,107,0.15)' : Colors.light.errorBg }}
+            >
+              <MapPinOff size={30} color="#FF6B6B" />
+            </View>
+            <Text
+              className="text-lg font-extrabold text-center"
+              style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}
+            >
+              Empresa sacada del mapa
+            </Text>
+            <Text
+              className="text-sm text-center mt-2 leading-5"
+              style={{ color: isDark ? 'rgba(255,255,255,0.7)' : Colors.light.textMuted }}
+            >
+              Esta empresa fue removida. Contáctate con el centro de soporte de BigDreamerss.
+            </Text>
+
+            <Pressable
+              onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
+              className="flex-row items-center gap-2 mt-4 px-4 py-2.5 rounded-xl active:opacity-70"
+              style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.light.accentLight }}
+            >
+              <Mail size={15} color={isDark ? Colors.gold[400] : Colors.light.accent} />
+              <Text className="font-semibold text-[13px]" style={{ color: isDark ? Colors.gold[400] : Colors.light.accent }}>
+                {SUPPORT_EMAIL}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setRemovedCompanyVisible(false)}
+              className="mt-4 px-6 py-2.5 rounded-xl active:opacity-70"
+              style={{ backgroundColor: isDark ? Colors.gold[400] : Colors.light.accent }}
+            >
+              <Text className="font-bold text-[14px]" style={{ color: isDark ? '#000' : '#fff' }}>
+                Entendido
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }

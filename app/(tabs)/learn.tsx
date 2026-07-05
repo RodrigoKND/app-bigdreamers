@@ -29,7 +29,8 @@ import { Colors } from '@/constants/colors';
 import LearnHeader from '@/components/learn/LearnHeader';
 import { useLearningModules } from '@/hooks/learning/useLearningModules';
 import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
-import { useUserModulesProgress } from '@/hooks/learning/useUserModulesProgress';
+import { useUserModulesProgressDetailed } from '@/hooks/learning/useUserModulesProgressDetailed';
+import { useCurrentUser } from '@/hooks/user/useCurrentUser';
 import { useAuth } from '@/contexts/AuthContext';
 
 
@@ -151,14 +152,23 @@ export default function LearnScreen() {
     category: CATEGORY_MAP[activeCategory],
   });
 
-  const { progress, loading: progressLoading, refetch: refetchProgress } = useUserModulesProgress(user?.id ?? null);
+  const { progress, loading: progressLoading, refetch: refetchProgress } = useUserModulesProgressDetailed(user?.id ?? null);
+
+  // Gemas desde la BD (fresco) igual que Home/Perfil, para que no quede desfasado
+  // con el authUser (que solo se actualiza al login).
+  const { user: dbUser, refetch: refetchUser } = useCurrentUser(user?.id ?? null);
+  const gems = dbUser?.gems ?? user?.gems ?? 0;
 
   useFocusEffect(
     useCallback(() => {
       invalidateCachePattern(CacheKeys.learningModules);
-      if (user?.id) invalidateCachePattern(CacheKeys.userModulesProgress(user.id));
+      if (user?.id) {
+        invalidateCachePattern(CacheKeys.userModulesProgressDetailed(user.id));
+        invalidateCachePattern(CacheKeys.currentUser(user.id));
+      }
       refetch();
       refetchProgress();
+      refetchUser();
       setRefreshKey(k => k + 1);
     }, [user?.id])
   );
@@ -167,8 +177,11 @@ export default function LearnScreen() {
     setRefreshing(true);
     try {
       invalidateCachePattern(CacheKeys.learningModules);
-      if (user?.id) invalidateCachePattern(CacheKeys.userModulesProgress(user.id));
-      await Promise.all([refetch(), refetchProgress()]);
+      if (user?.id) {
+        invalidateCachePattern(CacheKeys.userModulesProgressDetailed(user.id));
+        invalidateCachePattern(CacheKeys.currentUser(user.id));
+      }
+      await Promise.all([refetch(), refetchProgress(), refetchUser()]);
       setRefreshKey(k => k + 1);
     } finally {
       setRefreshing(false);
@@ -189,15 +202,15 @@ export default function LearnScreen() {
       const userProgress  = progressMap.get(mod.id);
       const totalLessons  = mod.totalLessons ?? 0;
 
+      // `completed` ya considera si se agregaron lecciones nuevas tras completar:
+      // en ese caso viene false y el módulo se reactiva en la lección faltante.
       if (userProgress?.completed) {
         return { ...mod, status: 'completed' as const, completedLessons: totalLessons, totalLessons };
       }
 
       if (!foundActive) {
         foundActive = true;
-        const completedLessons = userProgress
-          ? Math.floor((userProgress.progress / 100) * totalLessons)
-          : 0;
+        const completedLessons = userProgress?.completedLessons ?? 0;
         return { ...mod, status: 'active' as const, completedLessons, totalLessons };
       }
 
@@ -215,7 +228,7 @@ export default function LearnScreen() {
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: bg }}>
       <View className="flex-1">
-        <LearnHeader gems={user?.gems ?? 0} />
+        <LearnHeader gems={gems} />
 
         {/* Category tabs */}
         <View className="h-11 mb-3">

@@ -79,9 +79,11 @@ function AnimatedCard({ company, index, scrollOffset, isDark }: {
   const router = useRouter();
   const levelStyle = LEVEL_STYLES[company.level] ?? LEVEL_STYLES.bronze;
 
-  const cardBodyBg = isDark ? '#1E293B' : '#FFFFFF';
+  // En oscuro usamos los azules de la paleta (no slate/negro) para que las
+  // tarjetas armonicen con el fondo azul de la página en vez de romperlo.
+  const cardBodyBg = isDark ? Colors.blue.card : '#FFFFFF';
   const infoGradColors: readonly [string, string] = isDark
-    ? ['#1E293B', '#0F172A'] as const
+    ? [Colors.blue.card, Colors.blue.surface] as const
     : ['#F8FAFC', '#F1F5F9'] as const;
   const textColor = isDark ? Colors.text.primary : Colors.light.textPrimary;
 

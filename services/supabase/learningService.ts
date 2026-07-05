@@ -13,6 +13,7 @@ function mapLearningModule(row: any, totalLessons = 0): LearningModule {
     progress: row.progress ?? 0,
     thumbnail: row.thumbnail,
     difficulty: row.difficulty,
+    orderIndex: row.order_index,
     totalLessons,
   };
 }
@@ -266,6 +267,59 @@ export async function getUserModulesProgress(userId: string): Promise<
   }));
 }
 
+// Estado detallado por módulo: cuenta las lecciones realmente hechas comparando
+// el completed_at del usuario con el created_at de cada lección. Así, si se
+// agregan lecciones nuevas a un módulo ya completado, deja de estar completado
+// y el usuario retoma en la lección faltante (no repite las que ya hizo).
+export async function getUserModulesProgressDetailed(userId: string): Promise<
+  { moduleId: string; progress: number; completed: boolean; completedLessons: number; totalLessons: number }[]
+> {
+  const supabase = await getSupabaseClient();
+
+  const { data: userModules, error } = await supabase
+    .from('user_modules')
+    .select('module_id, progress, completed, completed_at')
+    .eq('user_id', userId);
+
+  if (error) throw error;
+  const rows = userModules || [];
+  if (rows.length === 0) return [];
+
+  const moduleIds = rows.map((r: any) => r.module_id);
+  const { data: lessonRows } = await supabase
+    .from('lessons')
+    .select('module_id, created_at')
+    .in('module_id', moduleIds);
+
+  const lessonsByModule = new Map<string, string[]>();
+  (lessonRows || []).forEach((l: any) => {
+    const arr = lessonsByModule.get(l.module_id) ?? [];
+    arr.push(l.created_at);
+    lessonsByModule.set(l.module_id, arr);
+  });
+
+  return rows.map((row: any) => {
+    const createdAts = lessonsByModule.get(row.module_id) ?? [];
+    const totalLessons = createdAts.length;
+
+    let completedLessons: number;
+    if (row.completed_at) {
+      const completedAt = new Date(row.completed_at);
+      completedLessons = createdAts.filter((ca) => new Date(ca) <= completedAt).length;
+    } else {
+      completedLessons = Math.floor(((row.progress ?? 0) / 100) * totalLessons);
+    }
+
+    return {
+      moduleId: row.module_id,
+      progress: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0,
+      completed: totalLessons > 0 && completedLessons >= totalLessons,
+      completedLessons,
+      totalLessons,
+    };
+  });
+}
+
 export async function addLessonToLearningModule(
   learningModuleId: string,
   lesson: { title: string; durationMinutes: number; content: string }
@@ -289,4 +343,84 @@ export async function deleteLessonsByModuleId(moduleId: string): Promise<void> {
     .delete()
     .eq('module_id', moduleId);
   if (error) throw error;
+}
+
+export async function getModuleLessons(
+  moduleId: string
+): Promise<{ id: string; title: string; content: string; durationMinutes: number }[]> {
+  const supabase = await getSupabaseClient();
+  const { data, error } = await supabase
+    .from('lessons')
+    .select('id, title, content, duration_minutes')
+    .eq('module_id', moduleId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return (data || []).map((l: any) => ({
+    id: l.id,
+    title: l.title,
+    content: l.content ?? '',
+    durationMinutes: l.duration_minutes,
+  }));
+}
+
+export async function deleteLessonById(lessonId: string): Promise<void> {
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase.from('lessons').delete().eq('id', lessonId);
+  if (error) throw error;
+}
+
+export async function updateLessonById(
+  lessonId: string,
+  updates: { durationMinutes?: number }
+): Promise<void> {
+  const dbUpdates: Record<string, any> = {};
+  if (updates.durationMinutes !== undefined) dbUpdates.duration_minutes = updates.durationMinutes;
+  if (Object.keys(dbUpdates).length === 0) return;
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase.from('lessons').update(dbUpdates).eq('id', lessonId);
+  if (error) throw error;
+}
+
+// Sincroniza las lecciones de un módulo preservando las que no cambiaron (y su
+// created_at). Las que cambian de título/contenido o se agregan se insertan
+// como nuevas (created_at nuevo → quedan como "faltantes" para quien ya completó);
+// las quitadas se eliminan. Así editar un módulo NO obliga a rehacer todo.
+export async function syncModuleLessons(
+  moduleId: string,
+  formLessons: { title: string; durationMinutes: number; content: string }[]
+): Promise<void> {
+  const existing = await getModuleLessons(moduleId);
+  const keyOf = (l: { title: string; content: string }) => `${l.title} ${l.content}`;
+
+  const existingByKey = new Map<string, { id: string; durationMinutes: number }[]>();
+  existing.forEach((l) => {
+    const arr = existingByKey.get(keyOf(l)) ?? [];
+    arr.push({ id: l.id, durationMinutes: l.durationMinutes });
+    existingByKey.set(keyOf(l), arr);
+  });
+
+  const consumedIds = new Set<string>();
+
+  for (const fl of formLessons) {
+    const bucket = existingByKey.get(keyOf(fl));
+    if (bucket && bucket.length > 0) {
+      const match = bucket.shift()!;
+      consumedIds.add(match.id);
+      if (match.durationMinutes !== fl.durationMinutes) {
+        await updateLessonById(match.id, { durationMinutes: fl.durationMinutes });
+      }
+    } else {
+      await addLessonToLearningModule(moduleId, {
+        title: fl.title,
+        durationMinutes: fl.durationMinutes,
+        content: fl.content,
+      });
+    }
+  }
+
+  for (const ex of existing) {
+    if (!consumedIds.has(ex.id)) {
+      await deleteLessonById(ex.id);
+    }
+  }
 }

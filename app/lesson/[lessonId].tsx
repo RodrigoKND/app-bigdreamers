@@ -107,6 +107,7 @@ export default function LessonDetailScreen() {
       }
       await invalidateCachePattern(CacheKeys.learningModules);
       await invalidateCachePattern(CacheKeys.userModulesProgress(user.id));
+      await invalidateCachePattern(CacheKeys.userModulesProgressDetailed(user.id));
       router.replace(`/module/${moduleId}`);
     } catch (err) {
       console.error('Error completing lesson:', err);

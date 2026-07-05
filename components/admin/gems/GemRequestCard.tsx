@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Image, Modal } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Gem, Clock, CheckCircle, XCircle, Check, X, Eye } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { GemRequest } from '@/constants/mockGemRequests';
+import ZoomableImage from '@/components/shared/ZoomableImage';
 
 interface GemRequestCardProps {
   request: GemRequest;
@@ -111,24 +113,29 @@ const GemRequestCard = React.memo(({ request, onApprove, onReject, isDark }: Gem
       </View>
 
       <Modal transparent animationType="fade" visible={showImage} onRequestClose={() => setShowImage(false)}>
-        <Pressable
-          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 }}
-          onPress={() => setShowImage(false)}
-        >
-          <Pressable onPress={() => {}} className="w-full max-w-sm">
-            <Image
-              source={{ uri: request.receiptImageUrl }}
-              style={{ width: '100%', height: 400 }}
-              resizeMode="contain"
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center', padding: 16 }}>
+            <Pressable
+              onPress={() => setShowImage(false)}
+              hitSlop={12}
+              style={{ position: 'absolute', top: 48, right: 24, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <X size={22} color="#fff" />
+            </Pressable>
+
+            <ZoomableImage
+              uri={request.receiptImageUrl!}
+              style={{ width: '100%', height: 460 }}
             />
+
             <Text
               className="text-center mt-4 text-sm font-semibold"
               style={{ color: 'rgba(255,255,255,0.6)' }}
             >
-              Toca fuera de la imagen para cerrar
+              Pellizca para hacer zoom · doble toque para acercar
             </Text>
-          </Pressable>
-        </Pressable>
+          </View>
+        </GestureHandlerRootView>
       </Modal>
     </View>
   );

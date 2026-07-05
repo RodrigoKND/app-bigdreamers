@@ -24,9 +24,14 @@ const CompanyForm = ({ onPublish, onUpdate, onCancel, initialData }: CompanyForm
   const [gems, setGems] = useState(initialData?.gems?.toString() ?? '');
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl ?? '');
   const [level, setLevel] = useState<CompanyLevel>(initialData?.level ?? 'bronze');
-  const [teamMembers, setTeamMembers] = useState<CompanyTeamMember[]>(
-    initialData?.teamMembers?.map(m => ({ ...m, contactType: m.contactType ?? (m.contact?.includes('@') ? 'email' : 'whatsapp') })) ?? []
-  );
+  const [teamMembers, setTeamMembers] = useState<CompanyTeamMember[]>(() => {
+    const existing = initialData?.teamMembers?.map(m => ({ ...m, contactType: m.contactType ?? (m.contact?.includes('@') ? 'email' : 'whatsapp') })) ?? [];
+    // El primer representante es SIEMPRE el representante legal (obligatorio).
+    // Si no hay ninguno, sembramos uno con el rol prellenado.
+    return existing.length > 0
+      ? existing
+      : [{ name: '', role: 'Representante legal', contact: '+591 ', contactType: 'whatsapp' as const }];
+  });
 
   const textPrimary = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
@@ -83,8 +88,22 @@ const CompanyForm = ({ onPublish, onUpdate, onCancel, initialData }: CompanyForm
     setTeamMembers(teamMembers.filter((_, i) => i !== index));
   };
 
+  const legalRep = teamMembers[0];
+  const legalRepValid = !!legalRep
+    && legalRep.name.trim().length > 0
+    && legalRep.role.trim().length > 0
+    && (legalRep.contact?.trim().length ?? 0) > 0;
+
   const handlePublish = () => {
     if (!name.trim() || !description.trim() || !level) return;
+
+    if (!legalRepValid) {
+      Alert.alert(
+        'Representante legal requerido',
+        'Debes registrar al representante legal con nombre, rol y contacto antes de crear la empresa.'
+      );
+      return;
+    }
 
     const payload: Partial<Company> = {
       name: name.trim(),
@@ -107,7 +126,7 @@ const CompanyForm = ({ onPublish, onUpdate, onCancel, initialData }: CompanyForm
     }
   };
 
-  const canPublish = name.trim() && description.trim() && level;
+  const canPublish = name.trim() && description.trim() && level && legalRepValid;
 
   return (
     <KeyboardAvoidingView
@@ -181,10 +200,13 @@ const CompanyForm = ({ onPublish, onUpdate, onCancel, initialData }: CompanyForm
       {/* Representantes */}
       <View className="mt-5">
         <Text
-          className="text-[13px] font-bold uppercase opacity-90 mb-[10px]"
+          className="text-[13px] font-bold uppercase opacity-90 mb-1"
           style={{ color: textPrimary, letterSpacing: 0.4 }}
         >
           Representantes del equipo
+        </Text>
+        <Text className="text-[12px] mb-[10px]" style={{ color: textMuted }}>
+          El representante legal es obligatorio.
         </Text>
 
         {teamMembers.map((member, index) => (
@@ -194,10 +216,14 @@ const CompanyForm = ({ onPublish, onUpdate, onCancel, initialData }: CompanyForm
             style={{ backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : Colors.light.surface }}
           >
             <View className="flex-row justify-between items-center mb-2">
-              <Text className="font-semibold" style={{ color: textPrimary }}>Miembro {index + 1}</Text>
-              <Pressable onPress={() => removeTeamMember(index)}>
-                <Trash2 size={16} color="#FF6B6B" />
-              </Pressable>
+              <Text className="font-semibold" style={{ color: index === 0 ? Colors.gold[400] : textPrimary }}>
+                {index === 0 ? 'Representante legal *' : `Miembro ${index + 1}`}
+              </Text>
+              {index !== 0 && (
+                <Pressable onPress={() => removeTeamMember(index)}>
+                  <Trash2 size={16} color="#FF6B6B" />
+                </Pressable>
+              )}
             </View>
 
             <TextInput

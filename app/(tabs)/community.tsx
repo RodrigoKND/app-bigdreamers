@@ -7,6 +7,7 @@ import {
   Pressable,
   ActivityIndicator,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
@@ -15,10 +16,12 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Gem, Crown, Medal, Search, Star, Shield, Swords } from 'lucide-react-native';
+import { useFocusEffect } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import { useRankingByPeriod } from '@/hooks/community/useRankingByPeriod';
 import { useAuth } from '@/contexts/AuthContext';
+import { invalidateCache, CacheKeys } from '@/services/cache/cacheService';
 import type { Level, CommunityMember } from '@/types';
 
 type Period = 'semanal' | 'mensual' | 'global';
@@ -97,6 +100,27 @@ export default function CommunityScreen() {
   const { members, loading, error, refetch } = useRankingByPeriod(PERIOD_MAP[period], 50);
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Al volver a la pestaña, refrescamos para tomar cambios recientes (ej: avatar
+  // actualizado). useCachedQuery usa caché si sigue fresco, así que es barato.
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // Invalidamos el caché del período actual para forzar datos frescos del
+      // servidor (el gesto manual debe traer contenido nuevo, no el caché).
+      await invalidateCache(CacheKeys.rankingByPeriod(PERIOD_MAP[period], 50));
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch, period]);
 
   const bg = isDark ? Colors.blue.primary : Colors.light.bg;
   const cardBg = isDark ? 'rgba(0,0,0,0.25)' : Colors.light.card;
@@ -254,6 +278,14 @@ export default function CommunityScreen() {
               initialNumToRender={10}
               maxToRenderPerBatch={10}
               windowSize={5}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor={accentColor}
+                  colors={[accentColor]}
+                />
+              }
               ListHeaderComponent={
                 top3.length > 0 ? (
                   <View className="mb-6 pt-4 pb-2 px-2">

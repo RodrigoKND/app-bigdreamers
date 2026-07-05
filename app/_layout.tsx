@@ -72,11 +72,9 @@ function AppContent() {
 
   useEffect(() => {
     if (!isLoggedIn || !user?.id) return;
-    registerForPushNotifications().then((token) => {
-      if (token) {
-        savePushToken(user.id, token);
-      }
-    });
+    registerForPushNotifications()
+      .then((token) => { if (token) savePushToken(user.id, token); })
+      .catch(() => {});
   }, [isLoggedIn, user?.id]);
 
   // Auth gate: redirige imperativamente según el estado de sesión.

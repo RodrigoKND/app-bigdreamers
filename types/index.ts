@@ -50,6 +50,7 @@ export interface LearningModule {
   progress: number;
   thumbnail: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
+  orderIndex?: number;
   totalLessons?: number;
 }
 

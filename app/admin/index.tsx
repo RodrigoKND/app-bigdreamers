@@ -20,7 +20,7 @@ import { useDeleteCompany } from '@/hooks/company/useDeleteCompany';
 import { LearningModuleFormData } from '@/components/admin/courses/CourseForm';
 import { Company } from '@/constants/mockCompanies';
 import { uploadCompanyImage } from '@/services/supabase/storageService';
-import { addLessonToLearningModule, deleteLessonsByModuleId } from '@/services/supabase/learningService';
+import { addLessonToLearningModule, deleteLessonsByModuleId, syncModuleLessons } from '@/services/supabase/learningService';
 import { sendGemRequestNotification } from '@/services/notifications/notificationService';
 import { getSupabaseClient } from '@/services/supabase/supabase';
 import { invalidateCache, CacheKeys } from '@/services/cache/cacheService';
@@ -168,15 +168,11 @@ const AdminScreen = () => {
         difficulty: data.difficulty,
         orderIndex: data.orderIndex,
       });
-      if (data.lessons && data.lessons.length > 0) {
-        await deleteLessonsByModuleId(id);
-        for (const lesson of data.lessons) {
-          await addLessonToLearningModule(id, {
-            title: lesson.title,
-            durationMinutes: lesson.durationMinutes,
-            content: lesson.content,
-          });
-        }
+      if (data.lessons) {
+        // Preserva las lecciones sin cambios (y su created_at); solo inserta las
+        // nuevas/cambiadas y borra las quitadas. Así editar NO reinicia el módulo
+        // para quienes ya lo completaron: solo deben hacer la lección nueva/cambiada.
+        await syncModuleLessons(id, data.lessons);
       }
       setShowCourseForm(false);
       setEditingModule(null);

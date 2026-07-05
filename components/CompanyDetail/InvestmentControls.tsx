@@ -15,6 +15,7 @@ import Animated, {
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 import { updateUserGems } from '@/services/supabase/userService';
+import { createInvestment } from '@/services/supabase/investmentService';
 import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
 import Button from '@/components/shared/Button';
 
@@ -22,6 +23,7 @@ interface Props {
   currentGems: number;
   cost: number;
   companyName: string;
+  companyId: string | null;
   userId: string | null;
   onInvested?: () => void;
 }
@@ -184,7 +186,7 @@ const INVEST_QUOTES = [
 
 // ── Main component ─────────────────────────────────────────────────────────
 
-export default function InvestmentControls({ currentGems, cost, companyName, userId, onInvested }: Props) {
+export default function InvestmentControls({ currentGems, cost, companyName, companyId, userId, onInvested }: Props) {
   const { isDark } = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -213,7 +215,17 @@ export default function InvestmentControls({ currentGems, cost, companyName, use
     setLoading(true);
     try {
       await updateUserGems(userId, currentGems - cost);
+      // El registro de la inversión es secundario: si falla (ej: tabla aún no
+      // creada) no debe romper la inversión ni dejar gemas descontadas sin éxito.
+      if (companyId) {
+        try {
+          await createInvestment({ userId, companyId, companyName, gems: cost });
+        } catch (e) {
+          console.error('[Invest] No se pudo registrar la inversión:', e);
+        }
+      }
       await invalidateCachePattern(CacheKeys.currentUser(userId));
+      await invalidateCachePattern(CacheKeys.userInvestments(userId));
       setModal('success');
       onInvested?.();
     } catch {

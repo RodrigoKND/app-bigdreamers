@@ -47,6 +47,7 @@ export default function CompanyDetail({ companyId }: { companyId: string }) {
               currentGems={user?.gems ?? 0}
               cost={company?.gems ?? 0}
               companyName={company?.name ?? 'esta empresa'}
+              companyId={companyId}
               userId={authUser?.id ?? null}
               onInvested={refetchUser}
             />

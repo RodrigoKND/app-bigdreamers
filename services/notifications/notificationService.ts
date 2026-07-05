@@ -1,40 +1,57 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { getSupabaseClient } from '@/services/supabase/supabase';
 
-export function setupNotificationHandler() {
+// En Expo Go (SDK 53+) el módulo expo-notifications lanza un error FATAL al
+// evaluarse porque el push remoto fue removido de Expo Go. Por eso NO lo
+// importamos estáticamente: lo cargamos de forma perezosa y sólo fuera de Expo Go.
+// En un development build o en el APK, expo-notifications funciona normal.
+const isExpoGo = Constants.appOwnership === 'expo';
+
+async function loadNotifications() {
+  if (isExpoGo) return null;
   try {
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
-    });
-  } catch (e) {
-    console.warn('Failed to set notification handler:', e);
+    return await import('expo-notifications');
+  } catch {
+    return null;
   }
 }
 
+export function setupNotificationHandler() {
+  if (isExpoGo) return;
+  loadNotifications()
+    .then((Notifications) => {
+      if (!Notifications) return;
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+          shouldShowBanner: true,
+          shouldShowList: true,
+        }),
+      });
+    })
+    .catch((e) => console.warn('Failed to set notification handler:', e));
+}
+
 export async function registerForPushNotifications(): Promise<string | null> {
-  const existingPerm: any = await Notifications.getPermissionsAsync();
-  let granted = existingPerm.granted;
-
-  if (!granted) {
-    const result: any = await Notifications.requestPermissionsAsync();
-    granted = result.granted;
-  }
-
-  if (!granted) {
-    console.warn('Push notification permission not granted');
-    return null;
-  }
+  const Notifications = await loadNotifications();
+  if (!Notifications) return null;
 
   try {
+    const existingPerm: any = await Notifications.getPermissionsAsync();
+    let granted = existingPerm.granted;
+
+    if (!granted) {
+      const result: any = await Notifications.requestPermissionsAsync();
+      granted = result.granted;
+    }
+
+    if (!granted) return null;
+
     const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: undefined,
+      projectId: Constants.expoConfig?.extra?.eas?.projectId,
     });
     const pushToken = tokenData.data;
 
@@ -49,7 +66,6 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
     return pushToken;
   } catch (error) {
-    console.error('Error getting push token:', error);
     return null;
   }
 }

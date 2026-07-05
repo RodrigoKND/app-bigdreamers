@@ -5,7 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 import { getSupabaseClient } from '@/services/supabase/supabase';
-import { createUser, getUserById } from '@/services/supabase/userService';
+import { createUser, getUserById, updateUser } from '@/services/supabase/userService';
 import { useAuth } from '@/contexts/AuthContext';
 import { User } from '@/types';
 
@@ -33,6 +33,7 @@ export default function AuthCallback() {
         if (!user) throw new Error('No user found');
         if (!user.email) throw new Error('No email found');
 
+        const googleAvatar = user.user_metadata?.avatar_url as string | undefined;
         let existingUser = await getUserById(user.id);
 
         if (!existingUser) {
@@ -40,8 +41,12 @@ export default function AuthCallback() {
             id : user.id,
             name: user.user_metadata?.full_name || user.email.split('@')[0] || 'User',
             email: user.email,
-            avatar: user.user_metadata?.avatar_url || undefined,
+            avatar: googleAvatar || undefined,
           });
+        } else if (!existingUser.avatar && googleAvatar) {
+          // Persistimos el avatar de Google si faltaba, para tab y comunidad.
+          await updateUser(user.id, { avatar: googleAvatar }).catch(() => {});
+          existingUser = { ...existingUser, avatar: googleAvatar };
         }
 
         login(existingUser);

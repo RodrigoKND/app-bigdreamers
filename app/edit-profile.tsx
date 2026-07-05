@@ -18,14 +18,16 @@ import { useCurrentUser } from '@/hooks/user/useCurrentUser';
 import { useUpdateUser } from '@/hooks/user/useUpdateUser';
 import BaseInput from '@/components/shared/BaseInput';
 import ImagePickerField from '@/components/shared/ImagePickerField';
-import { invalidateCache, CacheKeys } from '@/services/cache/cacheService';
+import { invalidateCache, invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
+import { uploadAvatarImage } from '@/services/supabase/storageService';
 
 export default function EditProfileScreen() {
   const router = useRouter();
   const { isDark } = useTheme();
-  const { user: authUser } = useAuth();
+  const { user: authUser, refreshUser } = useAuth();
   const { user, loading: loadingUser } = useCurrentUser(authUser?.id ?? null);
   const { update, loading: updating } = useUpdateUser();
+  const [uploading, setUploading] = useState(false);
 
   const [name, setName]     = useState('');
   const [avatar, setAvatar] = useState('');
@@ -44,7 +46,7 @@ export default function EditProfileScreen() {
   const textMuted   = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
   const iconColor   = isDark ? Colors.gold[400] : Colors.light.accent;
 
-  const canSave = name.trim().length > 0 && !updating && !loadingUser;
+  const canSave = name.trim().length > 0 && !updating && !uploading && !loadingUser;
 
   const handlePickAvatar = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -68,14 +70,32 @@ export default function EditProfileScreen() {
   const handleSave = async () => {
     if (!user?.id || !canSave) return;
     try {
+      let avatarUrl = avatar.trim();
+      // Si es una imagen local recién elegida (file://...), la subimos a Storage
+      // y guardamos la URL pública. Si ya es http(s), se deja tal cual.
+      if (avatarUrl && !avatarUrl.startsWith('http')) {
+        setUploading(true);
+        try {
+          avatarUrl = await uploadAvatarImage(avatarUrl);
+        } finally {
+          setUploading(false);
+        }
+      }
+
       await update(user.id, {
         name: name.trim(),
-        ...(avatar.trim() ? { avatar: avatar.trim() } : {}),
+        avatar: avatarUrl,
       });
       await invalidateCache(CacheKeys.currentUser(user.id));
+      // Invalidamos los rankings de comunidad (semanal/mensual/global) para que
+      // no sigan mostrando el avatar anterior desde el caché.
+      await invalidateCachePattern('ranking_');
+      await invalidateCachePattern('community_ranking_');
+      // Refrescamos el authUser para que el tab y el resto se actualicen al instante.
+      await refreshUser();
       router.back();
-    } catch {
-      Alert.alert('Error', 'No se pudo guardar los cambios. Intenta de nuevo.');
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'No se pudo guardar los cambios. Intenta de nuevo.');
     }
   };
 

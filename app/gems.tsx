@@ -64,8 +64,10 @@ const GemsScreen = () => {
       if (imageUri) {
         try {
           receiptImageUrl = await uploadReceiptImage(imageUri);
-        } catch {
-          Alert.alert('Error', 'No se pudo subir el comprobante. Intenta de nuevo.');
+        } catch (err: any) {
+          const detail = err?.message || err?.error || 'Error desconocido';
+          console.error('[Gems] Error subiendo comprobante:', err);
+          Alert.alert('No se pudo subir el comprobante', `${detail}\n\nIntenta de nuevo.`);
           return;
         }
       }

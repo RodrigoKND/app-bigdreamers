@@ -6,6 +6,7 @@ export interface LessonData {
   title: string;
   durationMinutes: number;
   content: string;
+  createdAt: string;
 }
 
 export function useLessonsByModuleId(moduleId: string) {
@@ -23,7 +24,7 @@ export function useLessonsByModuleId(moduleId: string) {
         const supabase = await getSupabaseClient();
         const { data, error } = await supabase
           .from('lessons')
-          .select('id, title, duration_minutes, content')
+          .select('id, title, duration_minutes, content, created_at')
           .eq('module_id', moduleId)
           .order('created_at', { ascending: true });
 
@@ -34,6 +35,7 @@ export function useLessonsByModuleId(moduleId: string) {
             title: l.title,
             durationMinutes: l.duration_minutes,
             content: l.content ?? '',
+            createdAt: l.created_at,
           })));
         }
       } catch (err) {

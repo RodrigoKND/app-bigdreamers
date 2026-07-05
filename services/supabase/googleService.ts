@@ -1,7 +1,7 @@
 import { getSupabaseClient } from '@/services/supabase/supabase';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import { createUser, getUserById } from '@/services/supabase/userService';
+import { createUser, getUserById, updateUser } from '@/services/supabase/userService';
 import { User } from '@/types';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -45,8 +45,18 @@ export async function signInWithGoogle(): Promise<User> {
   if (!user) throw new Error('No user found after setting session');
   if (!user.email) throw new Error('No email found for user');
 
+  const googleAvatar = user.user_metadata?.avatar_url as string | undefined;
+
   const existingUser = await getUserById(user.id);
-  if (existingUser) return existingUser;
+  if (existingUser) {
+    // Si el usuario no tenía avatar guardado, persistimos el de Google para que
+    // aparezca en el tab, en comunidad y en cualquier lectura de la BD.
+    if (!existingUser.avatar && googleAvatar) {
+      await updateUser(user.id, { avatar: googleAvatar }).catch(() => {});
+      return { ...existingUser, avatar: googleAvatar };
+    }
+    return existingUser;
+  }
 
   return await createUser({
     id: user.id,

@@ -74,12 +74,16 @@ export default function ModuleDetail({ moduleId }: Props) {
     );
   }
 
-  const isCompletelyCompleted = module.completed || userProgress?.completed;
+  // Las lecciones "hechas" son las que ya existían cuando el usuario completó
+  // el módulo (created_at <= completed_at). Si el admin agrega lecciones nuevas
+  // después, esas quedan como faltantes y el módulo deja de estar completado.
   const totalLessons = lessons.length;
-  const progress = userProgress?.progress ?? 0;
-  const completedLessons = isCompletelyCompleted
-    ? totalLessons
-    : Math.floor((progress / 100) * totalLessons);
+  const completedAt = userProgress?.completedAt;
+  const completedLessons = completedAt
+    ? lessons.filter((l) => new Date(l.createdAt) <= new Date(completedAt)).length
+    : Math.floor(((userProgress?.progress ?? 0) / 100) * totalLessons);
+  const isCompletelyCompleted = totalLessons > 0 && completedLessons >= totalLessons;
+  const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: bg }} edges={['top']}>
@@ -134,6 +138,7 @@ export default function ModuleDetail({ moduleId }: Props) {
             difficulty={module.difficulty}
             gemsReward={module.gemsReward}
             isDark={isDark}
+            thumbnail={module.thumbnail}
           />
 
           <ModuleProgressSection

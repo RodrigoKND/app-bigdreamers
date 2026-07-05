@@ -3,7 +3,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '@/types';
 import { getSession, signOut } from '@/services/supabase/googleService';
 import { getUserById } from '@/services/supabase/userService';
-
 const ONBOARDING_KEY = 'onboarding_done';
 
 interface AuthContextType {
@@ -36,34 +35,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Simular carga del usuario guardado
+    let finished = false;
+
+    // Fail-safe absoluto: pase lo que pase (SecureStore colgado, red muerta,
+    // getSession que nunca resuelve), a los 6s dejamos de mostrar el loader.
+    const safety = setTimeout(() => {
+      if (!finished) {
+        console.warn('[Auth] Fail-safe: forzando isLoading=false tras 6s');
+        setIsLoading(false);
+      }
+    }, 6000);
+
     const loadUser = async () => {
       try {
-        const session = await getSession();
+        console.log('[Auth] loadUser: pidiendo sesión...');
+        const session = await Promise.race([
+          getSession(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+        ]);
+        console.log('[Auth] loadUser: sesión =', session?.user?.id ?? 'null');
         if (session?.user?.id) {
-          const dbUser = await getUserById(session.user.id);
+          const dbUser = await Promise.race([
+            getUserById(session.user.id),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+          ]);
+          console.log('[Auth] loadUser: dbUser =', dbUser ? 'ok' : 'null');
           if (dbUser) {
             const avatar = dbUser.avatar || session.user.user_metadata?.avatar_url;
             setUser(avatar ? { ...dbUser, avatar } : dbUser);
           }
         }
       } catch (error) {
-        console.error('Error restoring session:', error);
+        console.error('[Auth] Error restoring session:', error);
       } finally {
+        finished = true;
+        clearTimeout(safety);
         setIsLoading(false);
+        console.log('[Auth] loadUser: listo (isLoading=false)');
       }
     };
 
     loadUser();
+    return () => clearTimeout(safety);
   }, []);
 
   // El estado de onboarding se comparte con el guard de _layout para evitar
   // loops: cuando termina, se actualiza aquí y el guard deja pasar a /(tabs).
   useEffect(() => {
     if (user) {
+      // Fail-safe: si AsyncStorage no responde, asumimos onboarding no hecho
+      // para que el guard no se quede esperando con onboardingDone===null.
+      const t = setTimeout(() => setOnboardingDone((v) => (v === null ? false : v)), 4000);
       AsyncStorage.getItem(ONBOARDING_KEY)
-        .then((val) => setOnboardingDone(val === 'true'))
-        .catch(() => setOnboardingDone(false));
+        .then((val) => { clearTimeout(t); setOnboardingDone(val === 'true'); })
+        .catch(() => { clearTimeout(t); setOnboardingDone(false); });
+      return () => clearTimeout(t);
     } else {
       setOnboardingDone(null);
     }

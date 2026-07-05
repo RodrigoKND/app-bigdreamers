@@ -1,5 +1,5 @@
-import React from 'react';
-import { Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Text, View, Image } from 'react-native';
 import { Gem, Clock } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
@@ -10,6 +10,11 @@ interface Props {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   gemsReward: number;
   isDark: boolean;
+  thumbnail?: string;
+}
+
+function isValidUrl(url?: string): url is string {
+  return !!url && (url.startsWith('http://') || url.startsWith('https://'));
 }
 
 const DIFFICULTY_STYLES: Record<Props['difficulty'], { label: string; color: string }> = {
@@ -25,6 +30,7 @@ export default function ModuleDetailHeader({
   difficulty,
   gemsReward,
   isDark,
+  thumbnail,
 }: Props) {
   const diffStyle = DIFFICULTY_STYLES[difficulty];
   const textPrimary = isDark ? '#FFFFFF' : Colors.light.textPrimary;
@@ -32,11 +38,25 @@ export default function ModuleDetailHeader({
   const cardBg      = isDark ? 'rgba(255,255,255,0.06)' : Colors.light.card;
   const borderColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
 
+  const [imgFailed, setImgFailed] = useState(false);
+  const showThumb = isValidUrl(thumbnail) && !imgFailed;
+
   return (
     <View
-      className="rounded-3xl overflow-hidden p-6"
+      className="rounded-3xl overflow-hidden"
       style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
     >
+      {/* Miniatura */}
+      {showThumb && (
+        <Image
+          source={{ uri: thumbnail }}
+          style={{ width: '100%', height: 160 }}
+          resizeMode="cover"
+          onError={() => setImgFailed(true)}
+        />
+      )}
+
+      <View className="p-6">
       {/* Badges */}
       <View className="flex-row flex-wrap gap-2 mb-5">
         <View
@@ -83,6 +103,7 @@ export default function ModuleDetailHeader({
         <Text className="text-[15px] font-bold" style={{ color: Colors.gold[400] }}>
           {gemsReward} gemas de recompensa
         </Text>
+      </View>
       </View>
     </View>
   );

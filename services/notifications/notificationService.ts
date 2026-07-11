@@ -85,7 +85,7 @@ export async function sendPushNotification(
   data?: Record<string, any>
 ): Promise<void> {
   try {
-    await fetch('https://exp.host/--/api/v2/push/send', {
+    const response = await fetch('https://exp.host/--/api/v2/push/send', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -100,6 +100,11 @@ export async function sendPushNotification(
         priority: 'high',
       }),
     });
+    const result = await response.json();
+    const ticket = Array.isArray(result?.data) ? result.data[0] : result?.data;
+    if (ticket?.status === 'error') {
+      console.error('Expo push error:', ticket.message, ticket.details);
+    }
   } catch (error) {
     console.error('Error sending push notification:', error);
   }

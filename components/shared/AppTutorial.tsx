@@ -16,7 +16,7 @@ const STEPS = [
   {
     emoji: '👋',
     title: '¡Bienvenido a BigDreamers!',
-    desc: 'Aprende a invertir de forma práctica con empresas reales. Te mostramos cómo funciona en 3 pasos.',
+    desc: 'Aprende a invertir de forma práctica con empresas verificadas. Te mostramos cómo funciona en 3 pasos.',
     tab: null,
   },
   {
@@ -28,7 +28,7 @@ const STEPS = [
   {
     emoji: '📈',
     title: 'Invierte en empresas',
-    desc: 'En Invertir encontrarás empresas emprendedoras reales. Usa tus gemas para practicar cómo funciona la inversión.',
+    desc: 'En Invertir encontrarás empresas emprendedoras verificadas. Usa tus gemas para practicar cómo funciona la inversión.',
     tab: 'Invertir',
   },
   {

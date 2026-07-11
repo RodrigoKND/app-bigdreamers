@@ -9,9 +9,10 @@ import { Building } from 'lucide-react-native';
 interface LevelBronceProps {
   companies: Company[];
   onSeeAll?: () => void;
+  investedCompanyIds?: Set<string>;
 }
 
-export default function LevelBronce({ companies, onSeeAll }: LevelBronceProps) {
+export default function LevelBronce({ companies, onSeeAll, investedCompanyIds }: LevelBronceProps) {
     const { isDark } = useTheme();
 
     return (
@@ -51,6 +52,7 @@ export default function LevelBronce({ companies, onSeeAll }: LevelBronceProps) {
                       name={company.name}
                       gems={company.gems}
                       imageUrl={company.imageUrl}
+                      isInvested={investedCompanyIds?.has(company.id)}
                     />
                   ))
                 )}

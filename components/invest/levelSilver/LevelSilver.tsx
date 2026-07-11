@@ -9,9 +9,10 @@ import { Building } from 'lucide-react-native';
 interface LevelSilverProps {
   companies: Company[];
   onSeeAll?: () => void;
+  investedCompanyIds?: Set<string>;
 }
 
-export default function LevelSilver({ companies, onSeeAll }: LevelSilverProps) {
+export default function LevelSilver({ companies, onSeeAll, investedCompanyIds }: LevelSilverProps) {
     const { isDark } = useTheme();
 
     return (
@@ -52,6 +53,7 @@ export default function LevelSilver({ companies, onSeeAll }: LevelSilverProps) {
                       name={company.name}
                       gems={company.gems}
                       imageUrl={company.imageUrl}
+                      isInvested={investedCompanyIds?.has(company.id)}
                     />
                   ))
                 )}

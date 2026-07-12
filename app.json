@@ -37,6 +37,15 @@
       "expo-web-browser",
       "expo-secure-store",
       [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/logo.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#1A3A5C"
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "android": {

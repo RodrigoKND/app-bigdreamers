@@ -1,5 +1,9 @@
-# claude
+# ai / skills / agents
 .claude/
+.agents/
+skills-lock.json
+CLAUDE.md
+AGENTS.md
 
 # dependencies
 node_modules/
@@ -42,6 +46,4 @@ package-lock.json
 services/supabase/database.md
 services/supabase/schema.sql
 
-.agents/*
 docs/*
-skills-lock.json

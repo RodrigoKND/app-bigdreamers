@@ -46,7 +46,7 @@ function LoadingScreen() {
       <Animated.View style={{ opacity: fade, transform: [{ translateY: bounce }] }} className="items-center">
         <Image
           source={IMAGES.BUHO}
-          style={{ width: 140, height: 140 }}
+          style={{ width: 240, height: 201 }}
           resizeMode="contain"
         />
         <ActivityIndicator

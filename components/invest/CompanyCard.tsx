@@ -10,6 +10,7 @@ interface CompanyCardProps {
   name: string;
   gems: number;
   imageUrl: string;
+  isInvested?: boolean;
 }
 
 const FALLBACK_IMAGE = 'https://cdn-icons-png.flaticon.com/512/2611/2611152.png';
@@ -20,7 +21,7 @@ function isValidImageUrl(url: string): string {
   return FALLBACK_IMAGE;
 }
 
-const CompanyCard = React.memo(function CompanyCard({ id, name, gems, imageUrl }: CompanyCardProps) {
+const CompanyCard = React.memo(function CompanyCard({ id, name, gems, imageUrl, isInvested }: CompanyCardProps) {
   const router = useRouter();
   const [imgError, setImgError] = useState(false);
 
@@ -39,6 +40,12 @@ const CompanyCard = React.memo(function CompanyCard({ id, name, gems, imageUrl }
           colors={['transparent', 'rgba(0,0,0,0.8)']}
           className="absolute left-0 right-0 bottom-0 h-1/2"
         />
+
+        {isInvested && (
+          <View className="absolute top-3 left-3 bg-emerald-500/90 px-3 py-1 rounded-full">
+            <Text className="text-white text-xs font-bold">Ya invertiste</Text>
+          </View>
+        )}
 
         <View className="flex-1 justify-end p-5">
           <Text className="text-2xl font-bold text-white">{name}</Text>

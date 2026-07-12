@@ -56,6 +56,10 @@
     "expo-modules-core": "^55.0.25",
     "jest": "^29.7.0",
     "jest-expo": "^55.0.17",
+    "react-test-renderer": "19.2.0",
     "typescript": "~5.9.2"
+  },
+  "overrides": {
+    "react-test-renderer": "19.2.0"
   }
 }

@@ -10,15 +10,24 @@ import LevelSilver from '@/components/invest/levelSilver/LevelSilver';
 import LevelBronce from '@/components/invest/levelBronce/LevelBronce';
 import CompanyListModal from '@/components/invest/CompanyListModal';
 import { useCompanies } from '@/hooks/company/useCompanies';
+import { useUserInvestments } from '@/hooks/investment/useUserInvestments';
+import { useAuth } from '@/contexts/AuthContext';
 import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
 import { CompanyLevel } from '@/constants/mockCompanies';
 
 const Invest = React.memo(function Invest() {
   const { isDark } = useTheme();
+  const { user: authUser } = useAuth();
   const { companies, loading, refetch } = useCompanies();
+  const { investments } = useUserInvestments(authUser?.id ?? null);
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [modalLevel, setModalLevel] = useState<CompanyLevel | null>(null);
+
+  const investedCompanyIds = useMemo(
+    () => new Set(investments.map((inv) => inv.companyId).filter((id): id is string => !!id)),
+    [investments]
+  );
 
   const filtered = companies.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
   const goldCompanies = useMemo(() => filtered.filter((c) => c.level === 'gold'), [filtered]);
@@ -52,7 +61,7 @@ const Invest = React.memo(function Invest() {
           Empresas disponibles
         </Text>
         <Text className="mt-1" style={{ color: isDark ? '#B0C4DE' : Colors.light.textSecond }}>
-          Invierte en empresas reales verificadas
+          Practica cómo invertir en empresas verificadas
         </Text>
       </View>
 
@@ -73,9 +82,9 @@ const Invest = React.memo(function Invest() {
           <SearchBar value={search} onChangeText={setSearch} />
           {!loading && (
             <>
-              <LevelGold companies={goldCompanies} onSeeAll={() => setModalLevel('gold')} />
-              <LevelSilver companies={silverCompanies} onSeeAll={() => setModalLevel('silver')} />
-              <LevelBronce companies={bronzeCompanies} onSeeAll={() => setModalLevel('bronze')} />
+              <LevelGold companies={goldCompanies} onSeeAll={() => setModalLevel('gold')} investedCompanyIds={investedCompanyIds} />
+              <LevelSilver companies={silverCompanies} onSeeAll={() => setModalLevel('silver')} investedCompanyIds={investedCompanyIds} />
+              <LevelBronce companies={bronzeCompanies} onSeeAll={() => setModalLevel('bronze')} investedCompanyIds={investedCompanyIds} />
             </>
           )}
 
@@ -87,6 +96,7 @@ const Invest = React.memo(function Invest() {
         level={modalLevel}
         companies={modalCompanies}
         onClose={() => setModalLevel(null)}
+        investedCompanyIds={investedCompanyIds}
       />
     </SafeAreaView>
   );

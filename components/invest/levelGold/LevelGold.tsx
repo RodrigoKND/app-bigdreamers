@@ -9,9 +9,10 @@ import { Building } from 'lucide-react-native';
 interface LevelGoldProps {
   companies: Company[];
   onSeeAll?: () => void;
+  investedCompanyIds?: Set<string>;
 }
 
-export default function LevelGold({ companies, onSeeAll }: LevelGoldProps) {
+export default function LevelGold({ companies, onSeeAll, investedCompanyIds }: LevelGoldProps) {
     const { isDark } = useTheme();
 
     return (
@@ -52,6 +53,7 @@ export default function LevelGold({ companies, onSeeAll }: LevelGoldProps) {
                       name={company.name}
                       gems={company.gems}
                       imageUrl={company.imageUrl}
+                      isInvested={investedCompanyIds?.has(company.id)}
                     />
                   ))
                 )}

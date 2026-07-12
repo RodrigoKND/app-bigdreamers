@@ -11,6 +11,7 @@ interface Props {
   level: 'gold' | 'silver' | 'bronze' | null;
   companies: Company[];
   onClose: () => void;
+  investedCompanyIds?: Set<string>;
 }
 
 const LEVEL_CONFIG: Record<string, { label: string; color: string; gradient: string[] }> = {
@@ -27,7 +28,7 @@ function isValidImageUrl(url: string): string {
   return FALLBACK_IMAGE;
 }
 
-export default function CompanyListModal({ visible, level, companies, onClose }: Props) {
+export default function CompanyListModal({ visible, level, companies, onClose, investedCompanyIds }: Props) {
   const { isDark } = useTheme();
   const router = useRouter();
   const config = level ? LEVEL_CONFIG[level] : null;
@@ -94,9 +95,16 @@ export default function CompanyListModal({ visible, level, companies, onClose }:
                     />
                   </View>
                   <View className="flex-1 p-3 justify-center">
-                    <Text className="font-bold text-base" style={{ color: textPrimary }} numberOfLines={1}>
-                      {company.name}
-                    </Text>
+                    <View className="flex-row items-center gap-2">
+                      <Text className="font-bold text-base" style={{ color: textPrimary }} numberOfLines={1}>
+                        {company.name}
+                      </Text>
+                      {investedCompanyIds?.has(company.id) && (
+                        <View className="bg-emerald-500/90 px-2 py-0.5 rounded-full">
+                          <Text className="text-white text-[10px] font-bold">Ya invertiste</Text>
+                        </View>
+                      )}
+                    </View>
                     <Text className="text-xs mt-1" style={{ color: textMuted }} numberOfLines={2}>
                       {company.description}
                     </Text>

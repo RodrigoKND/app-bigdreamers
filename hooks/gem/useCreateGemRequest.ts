@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { GemRequest } from '@/constants/mockGemRequests';
 import { createGemRequest } from '@/services/supabase/gemService';
+import { invalidateCachePattern, CacheKeys } from '@/services/cache/cacheService';
 
 export function useCreateGemRequest() {
   const [loading, setLoading] = useState(false);
@@ -20,6 +21,7 @@ export function useCreateGemRequest() {
     try {
       const data = await createGemRequest(params);
       setRequest(data);
+      await invalidateCachePattern(CacheKeys.gemRequests().slice(0, -1));
       return data;
     } catch (err: any) {
       const message = err?.message || String(err);

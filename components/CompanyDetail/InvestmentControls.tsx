@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, Pressable, ActivityIndicator, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 import { AlertCircle, TrendingUp } from 'lucide-react-native';
 import Animated, {
   useSharedValue,
@@ -188,7 +187,6 @@ const INVEST_QUOTES = [
 
 export default function InvestmentControls({ currentGems, cost, companyName, companyId, userId, onInvested }: Props) {
   const { isDark } = useTheme();
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const [modal, setModal] = useState<ModalState>('none');
@@ -236,11 +234,6 @@ export default function InvestmentControls({ currentGems, cost, companyName, com
     }
   };
 
-  const goToRecharge = () => {
-    setModal('none');
-    router.push('/gems');
-  };
-
   return (
     <View className="mb-8">
       <View
@@ -277,14 +270,11 @@ export default function InvestmentControls({ currentGems, cost, companyName, com
             <Text style={[title, { color: textPrimary }]}>Gemas insuficientes</Text>
             <Text style={[body, { color: textMuted }]}>
               Para invertir en {companyName} necesitas {cost} gemas y tienes {currentGems}.
-              Te faltan {missing} 💎. Puedes recargar gemas en la sección de Perfil.
+              Te faltan {missing} 💎. Contacta al administrador para que te asigne más gemas.
             </Text>
             <View style={row}>
-              <Pressable onPress={() => setModal('none')} style={[btn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.light.surface }]}>
-                <Text style={{ color: textMuted, fontWeight: '700' }}>Cerrar</Text>
-              </Pressable>
-              <Pressable onPress={goToRecharge} style={[btn, { backgroundColor: Colors.gold[400] }]}>
-                <Text style={{ color: '#000', fontWeight: '800' }}>Recargar gemas</Text>
+              <Pressable onPress={() => setModal('none')} style={[btn, { backgroundColor: Colors.gold[400] }]}>
+                <Text style={{ color: '#000', fontWeight: '800' }}>Entendido</Text>
               </Pressable>
             </View>
           </View>

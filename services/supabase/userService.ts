@@ -1,5 +1,8 @@
 import { User } from '@/types';
 import { getSupabaseClient} from '@/services/supabase/supabase';
+import { createInvestment } from '@/services/supabase/investmentService';
+import { createNotification } from '@/services/supabase/notificationDbService';
+import { sendGemsAssignedNotification } from '@/services/notifications/notificationService';
 
 function mapUserRow(row: any): User {
   return {
@@ -32,6 +35,17 @@ export async function getCurrentUser(userId: string): Promise<User> {
 
   if (error) throw error;
   return mapUserRow(data);
+}
+
+export async function getAllUsers(): Promise<User[]> {
+  const supabase = await getSupabaseClient();
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .order('name', { ascending: true });
+
+  if (error) throw error;
+  return (data || []).map(mapUserRow);
 }
 
 export async function getUserById(userId: string): Promise<User | null> {
@@ -126,6 +140,54 @@ export async function addGemsToUser(userId: string, gemsToAdd: number): Promise<
   });
 
   if (error) throw error;
+}
+
+export async function assignGemsToUser(input: {
+  userId: string;
+  gems: number;
+  companyId?: string;
+  companyName?: string;
+}): Promise<void> {
+  await addGemsToUser(input.userId, input.gems);
+
+  if (input.companyId && input.companyName) {
+    try {
+      await createInvestment({
+        userId: input.userId,
+        companyId: input.companyId,
+        companyName: input.companyName,
+        gems: input.gems,
+      });
+    } catch (e) {
+      console.error('[assignGemsToUser] No se pudo registrar la inversión:', e);
+    }
+  }
+
+  const title = '💎 ¡Gemas asignadas!';
+  const body = input.companyName
+    ? `El administrador te asignó ${input.gems} gemas para tu inversión en ${input.companyName}.`
+    : `El administrador te asignó ${input.gems} gemas. Ya están disponibles en tu cuenta.`;
+
+  try {
+    await createNotification({
+      userId: input.userId,
+      type: 'gems_assigned',
+      title,
+      body,
+      data: { gems: input.gems, companyName: input.companyName ?? null },
+    });
+  } catch (e) {
+    console.error('[assignGemsToUser] No se pudo crear la notificación:', e);
+  }
+
+  try {
+    const user = await getUserById(input.userId);
+    if (user?.pushToken) {
+      await sendGemsAssignedNotification(user.pushToken, input.gems, input.companyName);
+    }
+  } catch (e) {
+    console.error('[assignGemsToUser] No se pudo enviar el push:', e);
+  }
 }
 
 export async function updateUserLevel(userId: string, level: string): Promise<void> {

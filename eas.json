@@ -10,6 +10,9 @@
       "node": "22.14.0",
       "android": {
         "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
       }
     },
     "preview": {
@@ -18,6 +21,7 @@
       "android": {
         "buildType": "apk"
       },
+      "ios": {},
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://vghhvjqhxcxbamvnzgvj.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_CPBSpbh1LZTja4HNF61daA_2zCj3FDV"
@@ -29,6 +33,7 @@
       "android": {
         "buildType": "app-bundle"
       },
+      "ios": {},
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://vghhvjqhxcxbamvnzgvj.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_CPBSpbh1LZTja4HNF61daA_2zCj3FDV"

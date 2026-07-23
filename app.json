@@ -10,8 +10,12 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.bigdreamers",
+      "buildNumber": "1",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "web": {
@@ -56,8 +60,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "La aplicaci\u00f3n necesita acceder a tu galer\u00eda para subir im\u00e1genes de perfil y comprobantes de pago.",
-          "cameraPermission": "La aplicaci\u00f3n necesita acceder a tu c\u00e1mara para tomar fotos."
+          "photosPermission": "La aplicación necesita acceder a tu galería para subir imágenes de perfil y comprobantes de pago.",
+          "cameraPermission": "La aplicación necesita acceder a tu cámara para tomar fotos."
         }
       ],
       [
@@ -66,7 +70,9 @@
           "icon": "./assets/images/logo.png",
           "color": "#1A3A5C"
         }
-      ]
+      ],
+      "expo-sharing",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

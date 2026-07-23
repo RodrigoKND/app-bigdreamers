@@ -132,3 +132,33 @@ export async function sendGemRequestNotification(
     gems,
   });
 }
+
+export async function sendGemsAssignedNotification(
+  userPushToken: string,
+  gems: number,
+  companyName?: string
+): Promise<void> {
+  const title = '💎 ¡Gemas asignadas!';
+  const body = companyName
+    ? `El administrador te asignó ${gems} gemas para tu inversión en ${companyName}.`
+    : `El administrador te asignó ${gems} gemas. Ya están disponibles en tu cuenta.`;
+
+  await sendPushNotification(userPushToken, title, body, {
+    type: 'gems_assigned',
+    gems,
+    companyName,
+  });
+}
+
+export async function sendReportGeneratedNotification(
+  userPushToken: string,
+  companyName: string
+): Promise<void> {
+  const title = '📄 Nuevo reporte disponible';
+  const body = `Se generó tu reporte mensual de inversión en ${companyName}. Ya puedes descargarlo.`;
+
+  await sendPushNotification(userPushToken, title, body, {
+    type: 'report_generated',
+    companyName,
+  });
+}

@@ -30,6 +30,10 @@ export const CacheKeys = {
   recentActivities: (limit: number) => `recent_activities_${limit}`,
   courses: 'courses',
   course: (id: string) => `course_${id}`,
+  allUsers: 'all_users',
+  userReports: (userId: string) => `user_reports_${userId}`,
+  allReports: 'all_reports',
+  userNotifications: (userId: string) => `user_notifications_${userId}`,
 };
 
 export async function getCachedData<T>(key: string): Promise<{ data: T; stale: boolean } | null> {

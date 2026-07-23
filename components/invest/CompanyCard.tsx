@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Button from '@/components/shared/Button';
 import { Link } from 'expo-router';
-import { useRouter } from 'expo-router';
 
 interface CompanyCardProps {
   id: string;
@@ -22,7 +20,6 @@ function isValidImageUrl(url: string): string {
 }
 
 const CompanyCard = React.memo(function CompanyCard({ id, name, gems, imageUrl, isInvested }: CompanyCardProps) {
-  const router = useRouter();
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -50,17 +47,8 @@ const CompanyCard = React.memo(function CompanyCard({ id, name, gems, imageUrl, 
         <View className="flex-1 justify-end p-5">
           <Text className="text-2xl font-bold text-white">{name}</Text>
 
-          <View className="flex-row items-center justify-between mt-2">
-            <View className="flex-row items-center">
-              <Text className="text-xl font-semibold text-white">{gems} Gemas</Text>
-            </View>
-
-            <Button
-              title="+"
-              size="sm"
-              className="bg-white/40 border-white p-2 rounded-full shadow-sm"
-              onPress={() => router.push('/gems')}
-            />
+          <View className="flex-row items-center mt-2">
+            <Text className="text-xl font-semibold text-white">{gems} Gemas</Text>
           </View>
         </View>
 

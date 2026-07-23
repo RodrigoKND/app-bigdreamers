@@ -54,24 +54,26 @@ export default function ProfileStatCard({ stats, className = '', isDark, onRecha
           {gemsStat.value}
         </Text>
         <Text
-          className="text-[10px] font-semibold tracking-widest mt-1 mb-4"
-          style={{ color: textMuted }}
+          className="text-[10px] font-semibold tracking-widest"
+          style={{ color: textMuted, marginBottom: onRechargeGems ? 16 : 0 }}
         >
           GEMAS
         </Text>
-        <Pressable
-          onPress={onRechargeGems}
-          className="flex-row items-center gap-1.5 px-6 py-2.5 rounded-xl active:opacity-70"
-          style={{ backgroundColor: Colors.gold[500] }}
-          accessible
-          accessibilityLabel="Recargar gemas"
-          accessibilityRole="button"
-        >
-          <Plus size={14} color={Colors.navy[900]} strokeWidth={2.5} />
-          <Text className="font-bold text-[13px]" style={{ color: Colors.navy[900] }}>
-            Recargar gemas
-          </Text>
-        </Pressable>
+        {onRechargeGems && (
+          <Pressable
+            onPress={onRechargeGems}
+            className="flex-row items-center gap-1.5 px-6 py-2.5 rounded-xl active:opacity-70"
+            style={{ backgroundColor: Colors.gold[500] }}
+            accessible
+            accessibilityLabel="Recargar gemas"
+            accessibilityRole="button"
+          >
+            <Plus size={14} color={Colors.navy[900]} strokeWidth={2.5} />
+            <Text className="font-bold text-[13px]" style={{ color: Colors.navy[900] }}>
+              Recargar gemas
+            </Text>
+          </Pressable>
+        )}
       </View>
 
       {/* Módulos y Racha */}

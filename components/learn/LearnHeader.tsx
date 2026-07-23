@@ -1,10 +1,9 @@
 import React from 'react';
-import { Text, Pressable, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Gem } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
-import { useRouter } from 'expo-router';
 
 interface LearnHeaderProps {
   gems?: number;
@@ -12,7 +11,6 @@ interface LearnHeaderProps {
 
 export default function LearnHeader({ gems = 0 }: LearnHeaderProps) {
   const { isDark } = useTheme();
-  const router = useRouter();
 
   const textPrimary     = isDark ? Colors.text.primary : Colors.light.textPrimary;
   const badgeTextColor  = isDark ? Colors.gold[400]    : Colors.light.gold;
@@ -32,8 +30,7 @@ export default function LearnHeader({ gems = 0 }: LearnHeaderProps) {
         </Text>
       </View>
 
-      <Pressable
-        onPress={() => router.push('/gems')}
+      <View
         className="flex-row items-center gap-1.5 rounded-xl px-3 py-2"
         style={{ backgroundColor: badgeBackground }}
       >
@@ -41,7 +38,7 @@ export default function LearnHeader({ gems = 0 }: LearnHeaderProps) {
         <Text className="text-sm font-bold" style={{ color: badgeTextColor }}>
           {gems.toLocaleString()}
         </Text>
-      </Pressable>
+      </View>
     </SafeAreaView>
   );
 }

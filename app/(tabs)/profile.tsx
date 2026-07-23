@@ -4,7 +4,7 @@ import {
   Pressable, ActivityIndicator, RefreshControl, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2, Users, Gem, TrendingUp, Mail, MapPinOff } from 'lucide-react-native';
+import { LogOut, Shield, Sun, Moon, ChevronRight, User, BarChart2, Users, Gem, TrendingUp, Mail, MapPinOff, FileText, Download } from 'lucide-react-native';
 
 const SUPPORT_EMAIL = 'dreamersb648@gmail.com';
 const INVEST_PREVIEW = 4;
@@ -14,6 +14,7 @@ import { Colors } from '@/constants/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUser } from '@/hooks/user/useCurrentUser';
 import { useUserInvestments } from '@/hooks/investment/useUserInvestments';
+import { useUserReports } from '@/hooks/report/useUserReports';
 import { useTheme } from '@/context/ThemeContext';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileStatCard from '@/components/profile/ProfileStatCard';
@@ -94,6 +95,7 @@ export default function ProfileScreen() {
   const { user: dbUser, loading, refetch } = useCurrentUser(authUser?.id ?? null);
   const { investments, refetch: refetchInvestments } = useUserInvestments(authUser?.id ?? null);
   const user = dbUser ?? authUser ?? null;
+  const { reports, refetch: refetchReports } = useUserReports(user?.id);
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
   const [initialLoad, setInitialLoad] = useState(!user);
@@ -140,17 +142,18 @@ export default function ProfileScreen() {
       }
       refetch();
       refetchInvestments();
-    }, [refetch, refetchInvestments])
+      refetchReports();
+    }, [refetch, refetchInvestments, refetchReports])
   );
-  
+
   // IMPORTANTE: todos los hooks deben ir ANTES de cualquier return temprano.
   // Si onRefresh (useCallback) queda debajo del return de loading, en el primer
   // render no se ejecuta y luego sí → "Rendered more hooks than during the
   // previous render" → crash nativo al abrir Perfil.
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    try { await Promise.all([refetch(), refetchInvestments()]); } finally { setRefreshing(false); }
-  }, [refetch, refetchInvestments]);
+    try { await Promise.all([refetch(), refetchInvestments(), refetchReports()]); } finally { setRefreshing(false); }
+  }, [refetch, refetchInvestments, refetchReports]);
 
   if (initialLoad || !user) {
     return (
@@ -198,7 +201,6 @@ export default function ProfileScreen() {
         <ProfileStatCard
           isDark={isDark}
           className="mt-2"
-          onRechargeGems={() => router.push('/gems')}
           stats={[
             { label: 'GEMAS',   value: user.gems.toLocaleString(),         accent: Colors.gold[500] },
             { label: 'MÓDULOS', value: String(user.completedModules),     accent: isDark ? '#FFFFFF' : Colors.light.textPrimary },
@@ -288,6 +290,50 @@ export default function ProfileScreen() {
                 </>
               )}
             </>
+          )}
+        </View>
+
+        {/* MIS REPORTES */}
+        <SectionLabel label="MIS REPORTES" isDark={isDark} />
+        <View
+          className="mx-4 rounded-2xl overflow-hidden"
+          style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
+        >
+          {reports.length === 0 ? (
+            <View className="px-4 py-5 items-center gap-1">
+              <FileText size={22} color={isDark ? 'rgba(255,255,255,0.4)' : Colors.light.textMuted} />
+              <Text className="text-[13px] text-center" style={{ color: isDark ? 'rgba(255,255,255,0.6)' : Colors.light.textMuted }}>
+                Aún no tienes reportes generados
+              </Text>
+            </View>
+          ) : (
+            reports.map((report, i) => (
+              <View key={report.id}>
+                {i > 0 && <View className="h-px mx-4" style={{ backgroundColor: divider }} />}
+                <Pressable
+                  onPress={() => Linking.openURL(report.pdfUrl)}
+                  className="flex-row items-center gap-3 px-4 py-[13px] active:opacity-70"
+                  accessibilityRole="button"
+                  accessibilityLabel={`Descargar reporte de ${report.companyName}`}
+                >
+                  <View
+                    className="w-9 h-9 rounded-xl items-center justify-center"
+                    style={{ backgroundColor: isDark ? 'rgba(249, 244, 102, 0.17)' : Colors.light.accentLight }}
+                  >
+                    <FileText size={16} color={iconColor} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-sans text-[15px]" numberOfLines={1} style={{ color: isDark ? '#FFFFFF' : Colors.light.textPrimary }}>
+                      {report.companyName}
+                    </Text>
+                    <Text className="text-[11px]" style={{ color: isDark ? 'rgba(255,255,255,0.55)' : Colors.light.textMuted }}>
+                      {report.reportDate}
+                    </Text>
+                  </View>
+                  <Download size={16} color={Colors.gold[500]} />
+                </Pressable>
+              </View>
+            ))
           )}
         </View>
 

@@ -1,10 +1,10 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
-import { Gem, BookOpen, Building2 } from 'lucide-react-native';
+import { Users, BookOpen, Building2, FileText } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
 interface AdminTabsProps {
-  activeTab: 'gems' | 'courses' | 'companies';
-  onTabChange: (tab: 'gems' | 'courses' | 'companies') => void;
+  activeTab: 'users' | 'courses' | 'companies' | 'reports';
+  onTabChange: (tab: 'users' | 'courses' | 'companies' | 'reports') => void;
   isDark: boolean;
 }
 
@@ -12,9 +12,10 @@ const AdminTabs = ({ activeTab, onTabChange, isDark }: AdminTabsProps) => {
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : Colors.light.textMuted;
 
   const tabs = [
-    { key: 'gems', label: 'Gemas', icon: Gem },
+    { key: 'users', label: 'Usuarios', icon: Users },
     { key: 'courses', label: 'Cursos', icon: BookOpen },
     { key: 'companies', label: 'Empresas', icon: Building2 },
+    { key: 'reports', label: 'Reportes', icon: FileText },
   ] as const;
 
   return (

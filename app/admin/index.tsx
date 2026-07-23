@@ -1,13 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, Pressable, Alert, RefreshControl } from 'react-native';
-import { Plus, Package, BookOpen, Building, Trash2, Pencil } from 'lucide-react-native';
+import { View, Text, ScrollView, Pressable, TextInput, Alert, RefreshControl, Linking } from 'react-native';
+import { Plus, BookOpen, Building, Trash2, Pencil, Search, FileText, Download } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { useGemRequests } from '@/hooks/gem/useGemRequests';
-import { useApproveGemRequest } from '@/hooks/gem/useApproveGemRequest';
-import { useRejectGemRequest } from '@/hooks/gem/useRejectGemRequest';
+import { useAllUsers } from '@/hooks/user/useAllUsers';
+import { useAssignGems } from '@/hooks/user/useAssignGems';
+import { useAllReports } from '@/hooks/report/useAllReports';
+import { useCreateReport } from '@/hooks/report/useCreateReport';
 import { useLearningModules } from '@/hooks/learning/useLearningModules';
 import { useCreateLearningModule } from '@/hooks/learning/useCreateLearningModule';
 import { useUpdateLearningModule } from '@/hooks/learning/useUpdateLearningModule';
@@ -19,27 +20,28 @@ import { useUpdateCompanyTeamMembers } from '@/hooks/company/useUpdateCompanyTea
 import { useDeleteCompany } from '@/hooks/company/useDeleteCompany';
 import { LearningModuleFormData } from '@/components/admin/courses/CourseForm';
 import { Company } from '@/constants/mockCompanies';
+import { User } from '@/types';
 import { uploadCompanyImage } from '@/services/supabase/storageService';
 import { addLessonToLearningModule, deleteLessonsByModuleId, syncModuleLessons } from '@/services/supabase/learningService';
-import { sendGemRequestNotification } from '@/services/notifications/notificationService';
-import { getSupabaseClient } from '@/services/supabase/supabase';
 import { invalidateCache, CacheKeys } from '@/services/cache/cacheService';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminTabs from '@/components/admin/AdminTabs';
-import GemRequestCard from '@/components/admin/gems/GemRequestCard';
-import ConfirmApproveModal from '@/components/admin/gems/ConfirmApproveModal';
+import UserListCard from '@/components/admin/users/UserListCard';
+import AssignGemsModal from '@/components/admin/users/AssignGemsModal';
+import ReportForm, { ReportFormValues } from '@/components/admin/reports/ReportForm';
 import CourseForm from '@/components/admin/courses/CourseForm';
 import CompanyForm from '@/components/admin/companies/CompanyForm';
-import ConfirmRejectModal from '@/components/admin/gems/ConfirmRejectModal';
 
 const AdminScreen = () => {
   const { isDark } = useTheme();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'gems' | 'courses' | 'companies'>('gems');
+  const [activeTab, setActiveTab] = useState<'users' | 'courses' | 'companies' | 'reports'>('users');
 
-  const { requests: gemRequests, loading: gemRequestsLoading, refetch: refetchGemRequests } = useGemRequests();
-  const { approve: approveGemRequest, loading: approving } = useApproveGemRequest();
-  const { reject: rejectGemRequest, loading: rejecting } = useRejectGemRequest();
+  const { users, loading: usersLoading, refetch: refetchUsers } = useAllUsers();
+  const { assign: assignGems, loading: assigning } = useAssignGems();
+
+  const { reports, loading: reportsLoading, refetch: refetchReports } = useAllReports();
+  const { create: createReport, loading: creatingReport } = useCreateReport();
 
   const { modules, loading: modulesLoading, refetch: refetchModules } = useLearningModules();
   const { create: createLearningModule, loading: creatingModule } = useCreateLearningModule();
@@ -52,22 +54,22 @@ const AdminScreen = () => {
   const { updateTeamMembers } = useUpdateCompanyTeamMembers();
   const { remove: deleteCompany, loading: deletingCompany } = useDeleteCompany();
 
-  const [pendingApproval, setPendingApproval] = useState<any | null>(null);
-  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
+  const [assigningToUser, setAssigningToUser] = useState<User | null>(null);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showReportForm, setShowReportForm] = useState(false);
   const [showCourseForm, setShowCourseForm] = useState(false);
   const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [editingModule, setEditingModule] = useState<{ id: string; data: LearningModuleFormData; lessons: { title: string; durationMinutes: number; content: string }[] } | null>(null);
-  const [pendingRejection, setPendingRejection] = useState<any | null>(null);
-  const [showRejectModal, setShowRejectModal] = useState(false);
 
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    try { await Promise.all([refetchGemRequests(), refetchModules(), refetchCompanies()]); }
+    try { await Promise.all([refetchUsers(), refetchModules(), refetchCompanies(), refetchReports()]); }
     finally { setRefreshing(false); }
-  }, [refetchGemRequests, refetchModules, refetchCompanies]);
+  }, [refetchUsers, refetchModules, refetchCompanies, refetchReports]);
 
   const bg          = isDark ? Colors.blue.primary : Colors.light.bg;
   const cardBg      = isDark ? 'rgba(255,255,255,0.05)' : Colors.light.card;
@@ -75,61 +77,41 @@ const AdminScreen = () => {
   const textPrimary = isDark ? Colors.text.primary      : Colors.light.textPrimary;
   const textMuted   = isDark ? 'rgba(255,255,255,0.6)'  : Colors.light.textMuted;
 
-  const pendingCount = gemRequests.filter(r => r.status === 'pending').length;
+  const filteredUsers = users.filter((u) => {
+    const q = userSearch.trim().toLowerCase();
+    if (!q) return true;
+    return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+  });
 
-  const handleApprove = (id: string) => {
-    const req = gemRequests.find(r => r.id === id);
-    setPendingApproval(req ?? null);
-    setShowApproveModal(true);
+  const handleAssignGems = (u: User) => {
+    setAssigningToUser(u);
+    setShowAssignModal(true);
   };
 
-  const confirmApprove = async () => {
-    if (!pendingApproval || !user?.id) return;
+  const confirmAssignGems = async (params: { gems: number; companyId?: string; companyName?: string }) => {
+    if (!assigningToUser) return;
     try {
-      await approveGemRequest(pendingApproval.id, user.id);
-      const supabase = await getSupabaseClient();
-      const { data: userData } = await supabase
-        .from('users')
-        .select('push_token')
-        .eq('id', pendingApproval.userId)
-        .single();
-      if (userData?.push_token) {
-        sendGemRequestNotification(userData.push_token, 'approved', pendingApproval.gems);
-      }
-      setShowApproveModal(false);
-      setPendingApproval(null);
-      refetchGemRequests();
+      await assignGems({ userId: assigningToUser.id, ...params });
+      setShowAssignModal(false);
+      setAssigningToUser(null);
+      refetchUsers();
+      Alert.alert('¡Listo!', `Se asignaron ${params.gems} gemas a ${assigningToUser.name}.`);
     } catch (error) {
-      console.error('Error approving gem request:', error);
-      Alert.alert('Error', 'No se pudo aprobar la solicitud. Intenta nuevamente.');
+      console.error('Error assigning gems:', error);
+      Alert.alert('Error', 'No se pudieron asignar las gemas. Intenta nuevamente.');
     }
   };
 
-  const handleReject = (id: string) => {
-    const req = gemRequests.find(r => r.id === id);
-    setPendingRejection(req ?? null);
-    setShowRejectModal(true);
-  };
-
-  const confirmReject = async (reason?: string) => {
-    if (!pendingRejection) return;
+  const handleCreateReport = async (values: ReportFormValues) => {
+    if (!user?.id) return;
     try {
-      await rejectGemRequest(pendingRejection.id, reason);
-      const supabase = await getSupabaseClient();
-      const { data: userData } = await supabase
-        .from('users')
-        .select('push_token')
-        .eq('id', pendingRejection.userId)
-        .single();
-      if (userData?.push_token) {
-        sendGemRequestNotification(userData.push_token, 'rejected', pendingRejection.gems, reason);
-      }
-      setShowRejectModal(false);
-      setPendingRejection(null);
-      refetchGemRequests();
+      await createReport({ ...values, createdBy: user.id });
+      setShowReportForm(false);
+      refetchReports();
+      Alert.alert('¡Reporte generado!', 'El PDF se creó y el usuario fue notificado.');
     } catch (error) {
-      console.error('Error rejecting gem request:', error);
-      Alert.alert('Error', 'No se pudo rechazar la solicitud. Intenta nuevamente.');
+      console.error('Error creating report:', error);
+      Alert.alert('Error', 'No se pudo generar el reporte. Intenta nuevamente.');
     }
   };
 
@@ -356,6 +338,18 @@ const AdminScreen = () => {
     );
   }
 
+  if (showReportForm) {
+    return (
+      <ReportForm
+        companies={companies}
+        users={users}
+        onSubmit={handleCreateReport}
+        onCancel={() => setShowReportForm(false)}
+        submitting={creatingReport}
+      />
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: bg }} edges={['bottom']}>
       <AdminHeader />
@@ -373,47 +367,48 @@ const AdminScreen = () => {
           />
         }
       >
-        {/* ─── Gemas ─── */}
-        {activeTab === 'gems' && (
+        {/* ─── Usuarios ─── */}
+        {activeTab === 'users' && (
           <View>
-            <View className="flex-row items-center mb-4 mt-2">
-              <Text className="text-[17px] font-bold" style={{ color: textPrimary }}>
-                Solicitudes de Gemas
-              </Text>
-              {pendingCount > 0 && (
-                <View
-                  className="rounded-full px-2.5 py-0.5 ml-2"
-                  style={{ backgroundColor: Colors.gold[400] }}
-                >
-                  <Text className="text-xs font-extrabold" style={{ color: '#000' }}>
-                    {pendingCount}
-                  </Text>
-                </View>
-              )}
+            <Text className="text-[17px] font-bold mb-3 mt-2" style={{ color: textPrimary }}>
+              Usuarios ({users.length})
+            </Text>
+
+            <View
+              className="flex-row items-center rounded-xl px-3 mb-4"
+              style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
+            >
+              <Search size={16} color={textMuted} />
+              <TextInput
+                placeholder="Buscar por nombre o correo"
+                placeholderTextColor={textMuted}
+                value={userSearch}
+                onChangeText={setUserSearch}
+                className="flex-1 py-3 px-2 text-[14px]"
+                style={{ color: textPrimary }}
+              />
             </View>
 
-            {gemRequestsLoading ? (
+            {usersLoading ? (
               <View className="items-center justify-center py-12">
-                <Text style={{ color: textMuted }}>Cargando solicitudes...</Text>
+                <Text style={{ color: textMuted }}>Cargando usuarios...</Text>
               </View>
-            ) : gemRequests.length === 0 ? (
+            ) : filteredUsers.length === 0 ? (
               <View
                 className="items-center justify-center py-12 rounded-2xl"
                 style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
               >
-                <Package size={40} color={textMuted} />
-                <Text className="text-[15px] font-semibold text-center mt-3" style={{ color: textMuted }}>
-                  No hay solicitudes pendientes
+                <Text className="text-[15px] font-semibold text-center" style={{ color: textMuted }}>
+                  No se encontraron usuarios
                 </Text>
               </View>
             ) : (
-              <View className="gap-3">
-                {gemRequests.map((request) => (
-                  <GemRequestCard
-                    key={request.id}
-                    request={request}
-                    onApprove={handleApprove}
-                    onReject={handleReject}
+              <View>
+                {filteredUsers.map((u) => (
+                  <UserListCard
+                    key={u.id}
+                    user={u}
+                    onAssignGems={handleAssignGems}
                     isDark={isDark}
                   />
                 ))}
@@ -597,21 +592,73 @@ const AdminScreen = () => {
             )}
           </View>
         )}
+
+        {/* ─── Reportes ─── */}
+        {activeTab === 'reports' && (
+          <View>
+            <Pressable
+              onPress={() => setShowReportForm(true)}
+              className="flex-row items-center justify-center rounded-2xl py-4 mb-5 mt-2 gap-2"
+              style={{ backgroundColor: Colors.gold[400] }}
+            >
+              <Plus size={18} color="#000" />
+              <Text className="text-[15px] font-extrabold" style={{ color: '#000' }}>
+                Nuevo reporte
+              </Text>
+            </Pressable>
+
+            {reportsLoading ? (
+              <View className="items-center justify-center py-12">
+                <Text style={{ color: textMuted }}>Cargando reportes...</Text>
+              </View>
+            ) : reports.length === 0 ? (
+              <View
+                className="items-center justify-center py-12 rounded-2xl"
+                style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
+              >
+                <FileText size={40} color={textMuted} />
+                <Text className="text-[15px] font-semibold text-center mt-3" style={{ color: textMuted }}>
+                  No hay reportes generados
+                </Text>
+              </View>
+            ) : (
+              <View className="gap-3">
+                {reports.map((report) => (
+                  <View
+                    key={report.id}
+                    className="rounded-2xl p-4"
+                    style={{ backgroundColor: cardBg, borderWidth: 1, borderColor }}
+                  >
+                    <View className="flex-row justify-between items-start mb-1">
+                      <Text className="text-[15px] font-bold flex-1 mr-3" style={{ color: textPrimary }} numberOfLines={1}>
+                        {report.investorName}
+                      </Text>
+                      <Pressable
+                        onPress={() => Linking.openURL(report.pdfUrl)}
+                        className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                        style={{ backgroundColor: isDark ? 'rgba(255,215,64,0.12)' : Colors.light.goldLight }}
+                      >
+                        <Download size={13} color={Colors.gold[500]} />
+                        <Text className="text-xs font-bold" style={{ color: Colors.gold[500] }}>PDF</Text>
+                      </Pressable>
+                    </View>
+                    <Text className="text-xs" style={{ color: textMuted }}>
+                      {report.companyName} · {report.reportDate}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
       </ScrollView>
 
-      <ConfirmApproveModal
-        visible={showApproveModal}
-        request={pendingApproval}
-        onConfirm={confirmApprove}
-        onCancel={() => setShowApproveModal(false)}
-        isDark={isDark}
-      />
-
-      <ConfirmRejectModal
-        visible={showRejectModal}
-        request={pendingRejection}
-        onConfirm={confirmReject}
-        onCancel={() => setShowRejectModal(false)}
+      <AssignGemsModal
+        visible={showAssignModal}
+        user={assigningToUser}
+        companies={companies}
+        onConfirm={confirmAssignGems}
+        onCancel={() => { setShowAssignModal(false); setAssigningToUser(null); }}
         isDark={isDark}
       />
     </SafeAreaView>
